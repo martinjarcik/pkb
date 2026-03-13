@@ -1,0 +1,39 @@
+---
+description: Core project rules for LLM development of the notes app
+alwaysApply: true
+---
+
+# Project Rules
+
+This is a configurable note-taking app, not a plugin platform.
+Read `AI_RULES.md` before making any changes.
+
+## Folder boundaries
+
+- `app/components/` → UI rendering (Nuxt auto-imported)
+- `app/composables/` → shared Vue state and UI logic (Nuxt auto-imported)
+- `app/pages/` → routes (Nuxt auto-imported)
+- `app/layouts/` → page layouts (Nuxt auto-imported)
+- `app/assets/css/` → stylesheets, theme CSS variables
+- `app/notes/` → pure note domain logic (explicit imports)
+- `app/storage/` → persistence (explicit imports)
+- `app/config/` → configuration loading (explicit imports)
+
+These folders are approved — create them when first needed.
+Do not create folders outside this list (no `utils/`, `helpers/`, `shared/`, `lib/`, or `index.ts` barrel files).
+
+## Conventions
+
+- Components: `PascalCase.vue`
+- Composables: `useXxx.ts`
+- Domain/storage: `camelCase.ts`
+- Tests: `*.test.ts`
+- Imports from domain folders: use `~/` alias (e.g. `~/notes/types`)
+
+## Key constraints
+
+- Pure domain logic (`notes/`, `storage/`) must not import from Vue.
+- Theming uses CSS custom properties via Tailwind/shadcn-vue. No JS token objects.
+- Prefer modifying existing files over creating new ones.
+- Keep functions small and direct.
+- Log decisions in `docs/decisions.md`.
