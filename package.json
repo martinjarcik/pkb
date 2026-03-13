@@ -1,0 +1,61 @@
+{
+  "name": "pkb",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "dev": "nuxt dev",
+    "build": "nuxt build",
+    "generate": "nuxt generate",
+    "preview": "nuxt preview",
+    "postinstall": "nuxt prepare",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "typecheck": "nuxt typecheck",
+    "test:unit": "vitest",
+    "test:unit:ci": "vitest run",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "prepare": "husky"
+  },
+  "dependencies": {
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "lucide-vue-next": "^0.577.0",
+    "nuxt": "^4.4.2",
+    "radix-vue": "^1.9.17",
+    "tailwind-merge": "^3.5.0",
+    "vue": "^3.5.30",
+    "yaml": "^2.8.2"
+  },
+  "lint-staged": {
+    "*.{ts,vue}": [
+      "eslint --fix"
+    ],
+    "*.{ts,vue,css,md,json,yaml}": [
+      "prettier --write"
+    ]
+  },
+  "devDependencies": {
+    "@commitlint/cli": "^20.4.4",
+    "@commitlint/config-conventional": "^20.4.4",
+    "@nuxt/eslint": "^1.15.2",
+    "@nuxt/test-utils": "^4.0.0",
+    "@nuxtjs/tailwindcss": "^6.14.0",
+    "@playwright/test": "^1.58.2",
+    "@vue/test-utils": "^2.4.6",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.3.3",
+    "prettier": "^3.8.1",
+    "prettier-plugin-tailwindcss": "^0.7.2",
+    "shadcn-nuxt": "^2.4.3",
+    "tailwindcss-animate": "^1.0.7",
+    "typescript": "^5.9.3",
+    "vitest": "^4.1.0",
+    "vue-tsc": "^3.2.5"
+  }
+}

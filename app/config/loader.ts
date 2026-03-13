@@ -1,12 +1,9 @@
-import yaml from "yaml"
-import rawDefaultConfig from "./default.yaml?raw"
+import yaml from 'yaml'
+import rawDefaultConfig from './default.yaml?raw'
 
 export type AppConfig = {
   features: {
     metadata: boolean
-  }
-  theme: {
-    accent: string
   }
   layout: {
     showSidebar: boolean

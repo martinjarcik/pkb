@@ -1,9 +1,6 @@
 features:
   metadata: true
 
-theme:
-  accent: blue
-
 layout:
   showSidebar: true
   showNoteList: true

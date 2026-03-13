@@ -3,7 +3,7 @@
 ## Domain feature (touches note logic)
 
 1. Identify the feature location in `app/notes/`.
-2. Write acceptance test in `tests/acceptance/`.
+2. Write e2e test in `tests/e2e/`.
 3. Implement domain logic in `app/notes/`.
 4. Write unit tests in `tests/unit/`.
 5. Expose behavior through a composable in `app/composables/`.
@@ -17,7 +17,7 @@
 
 ## Configuration change
 
-1. Update the schema in `app/config/loader.ts`.
+1. Update the `AppConfig` type in `app/config/loader.ts`.
 2. Update `app/config/default.yaml` to match.
 3. Wire the config value into the relevant composable or component.
 
@@ -29,8 +29,22 @@
 ## Testing strategy
 
 - Unit tests → domain logic (`app/notes/`, `app/storage/`)
-- Acceptance tests → user-visible behavior and flows
+- E2E tests → user-visible behavior and flows (Playwright)
+
+Test file paths mirror the source they cover:
+
+- `app/notes/types.ts` → `tests/unit/notes/types.test.ts`
+- `app/storage/browser.ts` → `tests/unit/storage/browser.test.ts`
+- E2E tests: one file per flow, e.g. `tests/e2e/create-note.test.ts`
 
 ## After every change
 
+- Run `npm run lint:fix` to fix lint errors.
+- Run `npm run format` to normalize formatting.
+- Run `npm run typecheck` to verify types.
+- Run `npm run test:unit:ci` to verify unit tests pass.
+
+All four checks also run automatically via the pre-commit hook.
+
 - Record any architectural decision in `docs/decisions.md`.
+- Use conventional commit messages (enforced by commitlint): `feat:`, `fix:`, `chore:`, `refactor:`, `docs:`, `test:`, `style:`.

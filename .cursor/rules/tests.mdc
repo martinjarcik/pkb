@@ -1,0 +1,28 @@
+---
+description: Rules for test files
+globs: "tests/**"
+---
+
+# Test Rules
+
+## Unit tests (`tests/unit/`)
+
+- Runner: Vitest with `@nuxt/test-utils`.
+- File naming: `*.test.ts`. Mirror source paths: `app/notes/parser.ts` → `tests/unit/notes/parser.test.ts`.
+- Import test utilities from `vitest`: `import { describe, it, expect } from 'vitest'`.
+- Import domain types via `~/` alias: `import type { Note } from '~/notes/types'`.
+- Test pure logic only. Do not test Vue components in unit tests.
+- Run with: `npm run test:unit` (watch) or `npm run test:unit:ci` (single run).
+
+## E2E tests (`tests/e2e/`)
+
+- Runner: Playwright.
+- File naming: `*.spec.ts`. One file per user flow (e.g. `create-note.spec.ts`).
+- Import from `@playwright/test`: `import { test, expect } from '@playwright/test'`.
+- Tests run against `http://localhost:3000` (dev server started automatically by Playwright config).
+- Run with: `npm run test:e2e` or `npm run test:e2e:ui` (interactive).
+
+## General
+
+- Do not mix unit and e2e patterns. Unit tests assert return values; e2e tests assert page behavior.
+- Keep tests focused — one logical assertion per `it`/`test` block.

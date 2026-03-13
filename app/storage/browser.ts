@@ -1,7 +1,7 @@
-import type { NoteStorage } from "./types"
-import type { Note } from "~/notes/types"
+import type { NoteStorage } from './types'
+import type { Note } from '~/notes/types'
 
-const STORAGE_KEY = "notes"
+const STORAGE_KEY = 'notes'
 
 export const browserStorage: NoteStorage = {
   async loadNotes(): Promise<Note[]> {

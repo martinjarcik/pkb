@@ -1,0 +1,6 @@
+.output/
+.nuxt/
+.nitro/
+.cache/
+node_modules/
+package-lock.json

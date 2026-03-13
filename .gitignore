@@ -4,3 +4,19 @@ node_modules/
 dist/
 .DS_Store
 *.log
+.nitro/
+.cache/
+
+# Playwright
+test-results/
+playwright-report/
+playwright/.cache/
+blob-report/
+
+# Environment
+.env
+.env.*
+!.env.example
+
+# Coverage
+coverage/

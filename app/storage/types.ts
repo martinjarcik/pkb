@@ -1,4 +1,4 @@
-import type { Note } from "~/notes/types"
+import type { Note } from '~/notes/types'
 
 export interface NoteStorage {
   loadNotes(): Promise<Note[]>
