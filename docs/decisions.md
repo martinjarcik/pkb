@@ -39,3 +39,7 @@ Added local dev tooling: ESLint (@nuxt/eslint), Prettier (with tailwindcss plugi
 ## D010 — 2026-03
 
 Autonomous AI development workflow. Features are specified in `docs/features/<slug>.md` using a template with user flows, acceptance tests, requirements, and vertical slices (INVEST). Implementation follows a TDD loop per slice. Sub-agents handle slice review and critical review. Complexity constraints enforced via Cursor rule.
+
+## D011 — 2026-03
+
+Install a small set of Nuxt modules that map directly to near-term product needs: `nuxt-tiptap-editor` for rich text note editing, `@nuxt/fonts` for managed font loading, `@nuxt/icon` for a standard icon pipeline, `@vueuse/nuxt` for composable utilities, `@nuxtjs/color-mode` for theme switching, `nuxt-security` for baseline security headers and protections, and `@nuxtjs/i18n` for localization readiness. Defer `@nuxt/image` until image optimization requirements are clearer, to avoid extra build and deployment complexity before the app needs it.
