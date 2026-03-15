@@ -26,6 +26,17 @@ tests/
 └── e2e/             End-to-end tests (Playwright)
 ```
 
+## Feature specs
+
+```
+docs/features/
+├── backlog.md       Ordered priority list
+├── _template.md     Feature spec template
+└── <slug>.md        One file per feature
+```
+
+See `docs/ai-development.md` for the workflow that uses these files.
+
 ## Domain model
 
 ### Note (`app/notes/types.ts`)
@@ -42,21 +53,3 @@ tests/
 
 - `AppConfig` — typed configuration: `features.metadata`, `layout.showSidebar`, `layout.showNoteList`.
 - `loadConfig()` — parses the YAML default config into `AppConfig`.
-
-## Nuxt auto-import boundary
-
-Nuxt auto-imports from `components/`, `composables/`, `pages/`, `layouts/`.
-All other app folders require explicit imports using the `~/` alias.
-
-## Design
-
-See `design/` for design-to-component mapping and design system assets.
-
-## UI layout
-
-- `Sidebar.vue`
-- `NoteList.vue`
-- `Editor.vue`
-- `Inspector.vue` (metadata)
-- `Toolbar.vue`
-- Modals (to be defined)

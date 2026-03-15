@@ -29,14 +29,12 @@ Wrong — barrel file re-exporting everything:
 ```ts
 // app/notes/index.ts
 export * from './types'
-export * from './parser'
 ```
 
 Right — import directly from the source file:
 
 ```ts
 import type { Note } from '~/notes/types'
-import { parseNote } from '~/notes/parser'
 ```
 
 Wrong — generic utility folder:
@@ -48,25 +46,6 @@ export function capitalize(s: string) { ... }
 
 Right — put the function where it is used, or in the domain folder it belongs to.
 
-Wrong — Vue import inside domain logic:
-
-```ts
-// app/notes/noteService.ts
-import { ref } from 'vue' // FORBIDDEN in domain folders
-```
-
-Right — domain logic stays pure; Vue reactivity belongs in composables:
-
-```ts
-// app/notes/noteService.ts
-export function findNote(notes: Note[], id: string): Note | undefined {
-  return notes.find((n) => n.id === id)
-}
-
-// app/composables/useNotes.ts
-const notes = ref<Note[]>([])
-```
-
 Wrong — abstract base class:
 
 ```ts
@@ -74,11 +53,11 @@ abstract class BaseStorage { ... }
 class BrowserStorage extends BaseStorage { ... }
 ```
 
-Right — interface + direct implementation:
+Right — type + direct implementation:
 
 ```ts
 // app/storage/types.ts
-export interface NoteStorage {
+export type NoteStorage = {
   loadNotes(): Promise<Note[]>
 }
 
@@ -111,22 +90,88 @@ Other:
 - `app/assets/css/` → stylesheets, theme CSS variables
 - `tests/unit/` → domain logic tests
 - `tests/e2e/` → end-to-end tests (Playwright)
-- `docs/` → architecture, decisions, workflow
+- `docs/` → architecture, decisions, workflow, product manual
+- `docs/features/` → feature backlog and specs
+- `design/` → design-to-component mapping
 
-Reserved (exist but not active yet):
+Reserved (create when first needed):
 
 - `desktop/tauri/` → Tauri desktop packaging
-- `themes/tokens/` → theme token definitions
 
 ## Naming conventions
 
 - Vue components: `PascalCase.vue` (e.g. `NoteList.vue`)
 - Composables: `useXxx.ts` (e.g. `useNotes.ts`)
 - Domain and storage files: `camelCase.ts` (e.g. `browser.ts`)
-- Test files: `*.test.ts` (e.g. `notes.test.ts`)
+- Unit test files: `*.test.ts` (e.g. `notes.test.ts`)
+- E2E test files: `*.spec.ts` (e.g. `create-note.spec.ts`)
 - Import alias: `~/` from app root (e.g. `import { Note } from '~/notes/types'`)
 - Use relative imports (`./`) within the same folder (e.g. `import { NoteStorage } from './types'`)
 - `~/` and `@/` both resolve to `app/`. Use `~/` in all code. `@/` appears only in `components.json` for the shadcn-vue CLI.
+
+## Types
+
+- Use `type` for all type definitions. Do not use `interface`.
+- Export explicit types for all public contracts.
+- Keep types co-located with the logic that uses them (e.g. `types.ts` in the same folder).
+
+## Domain logic
+
+Domain folders (`app/notes/`, `app/storage/`, `app/config/`) contain pure TypeScript.
+
+Allowed imports:
+
+- npm packages (e.g. `yaml`)
+- Other domain folders via `~/` alias (e.g. `import type { Note } from '~/notes/types'`)
+- Same-folder files via `./` (e.g. `import { NoteStorage } from './types'`)
+
+Forbidden imports:
+
+- `vue`, `#app`, `#imports`, `nuxt/app`, any `@vue/*` package
+- Anything from `app/components/`, `app/composables/`, `app/pages/`, `app/layouts/`
+
+## Components
+
+- shadcn-vue primitives in `app/components/ui/` are managed by CLI. Do not edit them manually.
+- Use `cn()` from `~/lib/utils` to merge Tailwind classes conditionally.
+- Use Tailwind utility classes for styling. Reference theme tokens via CSS variables (e.g. `text-foreground`, `bg-primary`).
+- Do not use scoped `<style>` blocks for layout. `<style scoped>` is acceptable only for animations or overrides Tailwind cannot express.
+- Keep components focused on rendering. Extract shared state into `app/composables/`.
+- Do not import from `app/notes/`, `app/storage/`, or `app/config/` directly — access domain data through composables.
+
+## Testing
+
+Unit tests (`tests/unit/`):
+
+- Runner: Vitest with `@nuxt/test-utils`.
+- File naming: `*.test.ts`. Mirror source paths: `app/notes/parser.ts` → `tests/unit/notes/parser.test.ts`.
+- Import from `vitest`: `import { describe, it, expect } from 'vitest'`.
+- Test pure logic only. Do not test Vue components in unit tests.
+- Every exported function and type implementation should have a corresponding unit test.
+
+E2E tests (`tests/e2e/`):
+
+- Runner: Playwright.
+- File naming: `*.spec.ts`. One file per user flow (e.g. `create-note.spec.ts`).
+- Import from `@playwright/test`: `import { test, expect } from '@playwright/test'`.
+- Tests run against `http://localhost:3000`.
+
+General:
+
+- Do not mix unit and e2e patterns. Unit tests assert return values; e2e tests assert page behavior.
+- Keep tests focused — one logical assertion per `it`/`test` block.
+
+## Complexity constraints
+
+- Keep functions short and focused. If a function exceeds 30 lines, look for extraction opportunities.
+- Avoid nesting deeper than 3 levels. Use early returns to flatten logic.
+- Do not create a new abstraction unless it is used in 3+ places today.
+- Do not add generics/type parameters unless the function is called with 2+ different types.
+- Do not create wrapper types that add no behavior.
+- Do not create factory functions for simple object creation.
+- Do not add error handling for impossible states.
+- Do not create abstractions for future extensibility.
+- If a function has only one caller, consider inlining it.
 
 ## Theming
 
@@ -140,8 +185,6 @@ Theme selection logic belongs in `app/composables/`.
 - Put code in the most obvious existing folder.
 - Folders listed in "Folder boundaries" above are approved. Create them when first needed.
 - Do not create folders outside that list without explicit approval.
-- Keep functions small and direct.
-- Pure domain logic (`notes/`, `storage/`, `config/`) must not import from Vue.
 - When unsure where code belongs, check the folder boundaries above. If none fits, ask.
 
 ## Decisions
@@ -163,6 +206,7 @@ Run after every change:
 - `npm run test:unit:ci` — unit tests (Vitest)
 
 Git hooks enforce lint, format, typecheck, unit tests, and conventional commit messages automatically on commit.
+Allowed commit prefixes: `feat:`, `fix:`, `chore:`, `refactor:`, `docs:`, `test:`, `style:`, `build:`, `ci:`, `perf:`.
 
 ## Workflow
 

@@ -35,3 +35,7 @@ Stack initialized: Nuxt 4, Vue 3, TypeScript, Tailwind CSS, shadcn-vue. srcDir s
 ## D009 — 2026-03
 
 Added local dev tooling: ESLint (@nuxt/eslint), Prettier (with tailwindcss plugin), Vitest (with @nuxt/test-utils), nuxt typecheck (uses vue-tsc internally), Husky + lint-staged pre-commit hooks, commitlint (conventional commits), .editorconfig, .nvmrc (Node 22), .env.example.
+
+## D010 — 2026-03
+
+Autonomous AI development workflow. Features are specified in `docs/features/<slug>.md` using a template with user flows, acceptance tests, requirements, and vertical slices (INVEST). Implementation follows a TDD loop per slice. Sub-agents handle slice review and critical review. Complexity constraints enforced via Cursor rule.
