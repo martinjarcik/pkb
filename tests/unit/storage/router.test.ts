@@ -18,14 +18,19 @@ describe('getNoteStorage', () => {
     expect(getNoteStorage(baseConfig)).toBe(browserStorage)
   })
 
-  it('throws for unimplemented storage backends', () => {
-    expect(() =>
-      getNoteStorage({
-        ...baseConfig,
-        applicationType: 'desktop',
-      }),
-    ).toThrow('Desktop note storage is not implemented yet')
+  it('returns filesystem storage for desktop application type', () => {
+    const storage = getNoteStorage({
+      ...baseConfig,
+      applicationType: 'desktop',
+    })
 
+    expect(storage).toBeDefined()
+    expect(typeof storage.loadNotes).toBe('function')
+    expect(typeof storage.saveNote).toBe('function')
+    expect(typeof storage.deleteNote).toBe('function')
+  })
+
+  it('throws for unimplemented storage backends', () => {
     expect(() =>
       getNoteStorage({
         ...baseConfig,

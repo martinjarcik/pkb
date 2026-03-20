@@ -1,6 +1,7 @@
 import type { AppConfig } from '~/config/loader'
 import { loadConfig } from '~/config/loader'
 import { browserStorage } from './browser'
+import { createFilesystemStorage } from './filesystem'
 import type { NoteStorage } from './types'
 
 export function getNoteStorage(config: AppConfig = loadConfig()): NoteStorage {
@@ -8,7 +9,7 @@ export function getNoteStorage(config: AppConfig = loadConfig()): NoteStorage {
     case 'browser':
       return browserStorage
     case 'desktop':
-      throw new Error('Desktop note storage is not implemented yet')
+      return createFilesystemStorage(config.vault)
     case 'cloud':
       throw new Error('Cloud note storage is not implemented yet')
     default:
