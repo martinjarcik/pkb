@@ -185,8 +185,13 @@ function writeStoredNotes(notes: BrowserStoredNotes): void {
 
 export const browserStorage: NoteStorage = {
   async loadNotes(): Promise<Note[]> {
-    return Object.entries(readStoredNotes()).map(([id, storedNote]) =>
+    const notes = Object.entries(readStoredNotes()).map(([id, storedNote]) =>
       composeNote(id, storedNote),
+    )
+
+    return notes.sort(
+      (a, b) =>
+        new Date(b.modifiedAt).getTime() - new Date(a.modifiedAt).getTime(),
     )
   },
 

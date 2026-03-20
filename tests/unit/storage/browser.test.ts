@@ -248,6 +248,28 @@ describe('browserStorage', () => {
     ])
   })
 
+  it('returns loaded notes ordered by most recently modified first', async () => {
+    localStorage.setItem(
+      'notes',
+      JSON.stringify({
+        'notes/older.md': {
+          document: '# Older',
+          createdAt: '2026-03-18T00:00:00.000Z',
+          modifiedAt: '2026-03-18T00:00:00.000Z',
+        },
+        'notes/newer.md': {
+          document: '# Newer',
+          createdAt: '2026-03-20T00:00:00.000Z',
+          modifiedAt: '2026-03-20T00:00:00.000Z',
+        },
+      }),
+    )
+
+    const notes = await browserStorage.loadNotes()
+
+    expect(notes.map((n) => n.id)).toEqual(['notes/newer.md', 'notes/older.md'])
+  })
+
   it('deletes notes by id', async () => {
     vi.setSystemTime(new Date('2026-03-20T10:00:00.000Z'))
 
