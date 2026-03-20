@@ -55,4 +55,27 @@ describe('filesystemStorage', () => {
       modifiedAt: '2026-03-20T12:00:00.000Z',
     })
   })
+
+  it('returns loaded notes ordered by most recently modified first', async () => {
+    const older = join(vaultPath, 'older.md')
+    const newer = join(vaultPath, 'newer.md')
+
+    await writeFile(older, '# Older', 'utf-8')
+    await utimes(
+      older,
+      new Date('2026-03-18T00:00:00Z'),
+      new Date('2026-03-18T00:00:00Z'),
+    )
+
+    await writeFile(newer, '# Newer', 'utf-8')
+    await utimes(
+      newer,
+      new Date('2026-03-20T00:00:00Z'),
+      new Date('2026-03-20T00:00:00Z'),
+    )
+
+    const notes = await storage.loadNotes()
+
+    expect(notes.map((n) => n.id)).toEqual(['newer.md', 'older.md'])
+  })
 })
