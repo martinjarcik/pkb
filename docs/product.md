@@ -15,11 +15,27 @@ Default visibility of the sidebar, note list, and inspector is set in
 
 | Key                    | Type    | Default     | Description                                     |
 | ---------------------- | ------- | ----------- | ----------------------------------------------- |
-| `applicationType`      | string  | `"browser"` | Application mode: `browser`, `desktop`, `cloud` |
+| `applicationType`      | string  | `"desktop"` | Application mode: `browser`, `desktop`, `cloud` |
+| `vault`                | string  | `"./vault"` | Path to the vault directory for desktop storage |
 | `layout.showInspector` | boolean | `true`      | Show the Inspector panel                        |
 | `layout.showSidebar`   | boolean | `true`      | Show the sidebar                                |
 | `layout.showNoteList`  | boolean | `true`      | Show the note list panel                        |
 
 ## Features
 
-See `docs/features/` for the backlog. Document each feature here as it ships.
+### Filesystem Storage (desktop)
+
+When `applicationType` is `desktop`, notes are stored as Markdown files in the
+configured `vault` directory. Each note is one `.md` file. The note `id` equals
+the file path relative to the vault root.
+
+- Properties are serialized as YAML frontmatter.
+- Content is the Markdown body after the frontmatter.
+- `createdAt` and `modifiedAt` are derived from file system timestamps.
+- Notes are loaded in most-recently-modified-first order.
+- The vault path is set in `app/config/default.yaml` (default: `./vault`).
+
+### Browser Storage
+
+When `applicationType` is `browser`, notes are stored in the browser's
+localStorage as JSON-serialized Markdown documents with YAML frontmatter.

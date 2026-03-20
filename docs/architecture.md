@@ -32,6 +32,9 @@ identifier.
   properties and content save inputs.
 - `app/storage/browser.ts` — browser localStorage adapter storing Markdown
   documents with YAML frontmatter plus timestamps.
+- `app/storage/filesystem.ts` — filesystem adapter storing notes as Markdown
+  files with YAML frontmatter in a configurable vault directory. Timestamps
+  derived from file stats. Notes loaded in mtime-descending order.
 - `app/storage/router.ts` — active storage selection from `applicationType`.
 - `app/config/loader.ts` — typed `AppConfig` parsed from `app/config/default.yaml`.
 - `app/pages/index.vue` — placeholder page.
@@ -78,8 +81,8 @@ New contexts may be introduced when corresponding features are specified.
   documents while hiding backend-specific serialization details.
 - `app/storage/router.ts` selects the active `NoteStorage` from configuration.
 - The active storage adapter is determined by `applicationType` in
-  `app/config/default.yaml`: `browser` → browser localStorage adapter,
-  `desktop` → filesystem adapter, `cloud` → database adapter.
+  `app/config/default.yaml`: `desktop` → filesystem adapter (default),
+  `browser` → browser localStorage adapter, `cloud` → database adapter.
 - Browser localStorage stores one Markdown document plus storage-owned
   timestamps per note.
 - Expected adapters: filesystem (desktop), browser, cloud.
