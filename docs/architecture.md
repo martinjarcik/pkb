@@ -8,13 +8,17 @@ For canonical terminology, see `docs/ubiquitous-language.md`.
 The data model is derived from the canonical storage format: one Markdown
 file per note with YAML frontmatter.
 
-A Note is a composite of three parts:
+A Note is an in-memory object whose user-defined Properties are top-level
+fields (values may be scalars, arrays, or nested objects). Composed of three
+parts:
 
 - **System Properties** — read-only values provided by the storage adapter:
   `id` (string), `createdAt` (ISO 8601 string), `modifiedAt` (ISO 8601 string).
-- **Properties** — user-defined structured data, unique per note. In
-  filesystem storage these are serialized as YAML frontmatter.
-- **Content** — rich text (Markdown with Liquid templating tags).
+- **Properties** — user-defined data, unique per note. In memory these live as
+  top-level note fields; values may be scalars, arrays, or nested objects. In
+  storage they are serialized as YAML frontmatter.
+- **Content** — rich text stored in the `content` field (Markdown with Liquid
+  templating tags).
 
 `id` is always a string. On desktop (filesystem storage) it equals the file
 path within the Vault. On cloud (database storage) it is a database record
@@ -22,9 +26,13 @@ identifier.
 
 ## Current implementation
 
-- `app/notes/types.ts` — `Note` type (`id`, `content`, `createdAt`, `modifiedAt`).
-- `app/storage/types.ts` — `NoteStorage` adapter boundary.
-- `app/storage/browser.ts` — browser localStorage adapter (provisional).
+- `app/notes/types.ts` — flat `Note` type (`id`, user-defined properties,
+  `content`, `createdAt`, `modifiedAt`).
+- `app/storage/types.ts` — `NoteStorage` adapter boundary with separate
+  properties and content save inputs.
+- `app/storage/browser.ts` — browser localStorage adapter storing Markdown
+  documents with YAML frontmatter plus timestamps.
+- `app/storage/router.ts` — active storage selection from `applicationType`.
 - `app/config/loader.ts` — typed `AppConfig` parsed from `app/config/default.yaml`.
 - `app/pages/index.vue` — placeholder page.
 
@@ -67,11 +75,14 @@ New contexts may be introduced when corresponding features are specified.
 ## Storage (`app/storage/`)
 
 - `NoteStorage` — adapter boundary for loading and saving logical note
-  documents.
+  documents while hiding backend-specific serialization details.
+- `app/storage/router.ts` selects the active `NoteStorage` from configuration.
 - The active storage adapter is determined by `applicationType` in
   `app/config/default.yaml`: `browser` → browser localStorage adapter,
   `desktop` → filesystem adapter, `cloud` → database adapter.
-- Expected adapters: filesystem (desktop), browser (provisional development).
+- Browser localStorage stores one Markdown document plus storage-owned
+  timestamps per note.
+- Expected adapters: filesystem (desktop), browser, cloud.
 - Adapter-specific caches or indexes are derived artifacts, never the source of
   truth.
 
