@@ -1,5 +1,5 @@
-import { mkdir, writeFile } from 'fs/promises'
-import { dirname, resolve } from 'path'
+import { mkdir, readdir, readFile, stat, writeFile } from 'fs/promises'
+import { dirname, relative, resolve } from 'path'
 import yaml from 'yaml'
 import type { Note, NoteProperties, NotePropertyValue } from '~/notes/types'
 import { NOTE_SYSTEM_PROPERTY_KEYS } from '~/notes/types'
@@ -62,6 +62,51 @@ function serializeDocument(
   return `---\n${frontmatter}\n---\n${content}`
 }
 
+function parseDocument(raw: string): {
+  properties: NoteProperties
+  content: string
+} {
+  const document = raw.replace(/\r\n?/g, '\n')
+
+  if (!document.startsWith('---\n')) {
+    return { properties: {}, content: document }
+  }
+
+  const closingIndex = document.indexOf('\n---\n', 4)
+
+  if (closingIndex === -1) {
+    return { properties: {}, content: document }
+  }
+
+  const content = document.slice(closingIndex + 5)
+
+  try {
+    const rawFrontmatter = document.slice(4, closingIndex)
+    const parsed = yaml.parse(rawFrontmatter)
+
+    return { properties: sanitizeProperties(parsed), content }
+  } catch {
+    return { properties: {}, content }
+  }
+}
+
+async function findMarkdownFiles(dir: string): Promise<string[]> {
+  const entries = await readdir(dir, { withFileTypes: true })
+  const paths: string[] = []
+
+  for (const entry of entries) {
+    const fullPath = resolve(dir, entry.name)
+
+    if (entry.isDirectory()) {
+      paths.push(...(await findMarkdownFiles(fullPath)))
+    } else if (entry.isFile() && entry.name.endsWith('.md')) {
+      paths.push(fullPath)
+    }
+  }
+
+  return paths
+}
+
 function assertSafeId(vaultPath: string, id: string): string {
   const filePath = resolve(vaultPath, id)
   const normalizedVault = resolve(vaultPath)
@@ -76,7 +121,30 @@ function assertSafeId(vaultPath: string, id: string): string {
 export function createFilesystemStorage(vaultPath: string): NoteStorage {
   return {
     async loadNotes(): Promise<Note[]> {
-      return []
+      const normalizedVault = resolve(vaultPath)
+      const filePaths = await findMarkdownFiles(normalizedVault)
+
+      const notes = await Promise.all(
+        filePaths.map(async (filePath) => {
+          const raw = await readFile(filePath, 'utf-8')
+          const fileStats = await stat(filePath)
+          const { properties, content } = parseDocument(raw)
+          const id = relative(normalizedVault, filePath)
+
+          return {
+            id,
+            ...properties,
+            content,
+            createdAt: fileStats.birthtime.toISOString(),
+            modifiedAt: fileStats.mtime.toISOString(),
+          } satisfies Note
+        }),
+      )
+
+      return notes.sort(
+        (a, b) =>
+          new Date(b.modifiedAt).getTime() - new Date(a.modifiedAt).getTime(),
+      )
     },
 
     async saveNote(input: SaveNoteInput): Promise<Note> {
