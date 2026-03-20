@@ -154,12 +154,14 @@ export function createFilesystemStorage(vaultPath: string): NoteStorage {
       await mkdir(dirname(filePath), { recursive: true })
       await writeFile(filePath, document, 'utf-8')
 
+      const fileStats = await stat(filePath)
+
       return {
         id: input.id,
         ...sanitizeProperties(input.properties),
         content: input.content,
-        createdAt: '',
-        modifiedAt: '',
+        createdAt: fileStats.birthtime.toISOString(),
+        modifiedAt: fileStats.mtime.toISOString(),
       }
     },
 
