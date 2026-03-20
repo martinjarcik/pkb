@@ -17,5 +17,9 @@ blob-report/
 .env
 .env.*
 
+# Vault (note storage)
+vault/*
+!vault/.gitkeep
+
 # Coverage
 coverage/

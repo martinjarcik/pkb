@@ -1,4 +1,5 @@
-applicationType: browser
+applicationType: desktop
+vault: ./vault
 
 layout:
   showInspector: true

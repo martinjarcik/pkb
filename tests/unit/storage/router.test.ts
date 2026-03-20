@@ -5,6 +5,7 @@ import { getNoteStorage } from '~/storage/router'
 
 const baseConfig: AppConfig = {
   applicationType: 'browser',
+  vault: './vault',
   layout: {
     showInspector: true,
     showSidebar: true,

@@ -5,6 +5,7 @@ export type ApplicationType = 'desktop' | 'cloud' | 'browser'
 
 export type AppConfig = {
   applicationType: ApplicationType
+  vault: string
   layout: {
     showInspector: boolean
     showSidebar: boolean
@@ -31,6 +32,10 @@ function assertAppConfig(value: unknown): AppConfig {
     throw new Error(
       `Config applicationType must be one of: ${VALID_APPLICATION_TYPES.join(', ')}`,
     )
+  }
+
+  if (typeof obj.vault !== 'string' || obj.vault.length === 0) {
+    throw new Error('Config vault must be a non-empty string')
   }
 
   if (typeof obj.layout !== 'object' || obj.layout === null) {
