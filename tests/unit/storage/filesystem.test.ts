@@ -78,4 +78,26 @@ describe('filesystemStorage', () => {
 
     expect(notes.map((n) => n.id)).toEqual(['newer.md', 'older.md'])
   })
+
+  it('preserves frontmatter properties across save and load', async () => {
+    await storage.saveNote({
+      id: 'round-trip.md',
+      properties: {
+        title: 'Round Trip',
+        views: 3,
+        meta: { nested: true },
+        tags: ['a', 'b'],
+      },
+      content: '# Body',
+    })
+
+    const notes = await storage.loadNotes()
+
+    expect(notes).toHaveLength(1)
+    expect(notes[0]!.title).toBe('Round Trip')
+    expect(notes[0]!.views).toBe(3)
+    expect(notes[0]!.meta).toEqual({ nested: true })
+    expect(notes[0]!.tags).toEqual(['a', 'b'])
+    expect(notes[0]!.content).toBe('# Body')
+  })
 })
