@@ -37,7 +37,15 @@ identifier.
   derived from file stats. Notes loaded in mtime-descending order.
 - `app/storage/router.ts` — active storage selection from `applicationType`.
 - `app/config/loader.ts` — typed `AppConfig` parsed from `app/config/default.yaml`.
-- `app/pages/index.vue` — placeholder page.
+- `app/composables/useLayout.ts` — layout panel visibility state initialized
+  from config defaults.
+- `app/layouts/default.vue` — application shell composing Sidebar, NoteList,
+  page slot, and Inspector in a horizontal flexbox.
+- `app/pages/index.vue` — renders `NotePanel`.
+- `app/components/Sidebar.vue` — sidebar region.
+- `app/components/NoteList.vue` — note list region.
+- `app/components/NotePanel.vue` — main note editing region (always visible).
+- `app/components/Inspector.vue` — inspector region.
 
 ## Bounded contexts
 

@@ -3,10 +3,10 @@
 ## Application Layout
 
 - **Sidebar** (left) — navigation and app-level actions.
-- **Note list** (left panel) — lists all notes, allows selecting one.
-- **Editor** (center) — displays and edits the selected note content.
+- **NoteList** (left panel) — lists all notes, allows selecting one.
+- **NotePanel** (center) — hosts the main note area and fills the remaining
+  space.
 - **Inspector** (right panel) — shows and edits the selected note's properties.
-- **Toolbar** (top) — contextual actions for the current view.
 
 Default visibility of the sidebar, note list, and inspector is set in
 `app/config/default.yaml`. The UI can override these values at runtime.
