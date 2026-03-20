@@ -141,4 +141,28 @@ describe('filesystemStorage', () => {
 
     expect(notes).toHaveLength(0)
   })
+
+  it('returns an empty array when the vault is empty', async () => {
+    const notes = await storage.loadNotes()
+
+    expect(notes).toEqual([])
+  })
+
+  it('isolates content from broken frontmatter', async () => {
+    await writeFile(
+      join(vaultPath, 'broken.md'),
+      '---\ntitle: [invalid yaml\n---\n# Still readable',
+      'utf-8',
+    )
+
+    const notes = await storage.loadNotes()
+
+    expect(notes).toHaveLength(1)
+    expect(notes[0]!.content).toBe('# Still readable')
+    expect(notes[0]!.title).toBeUndefined()
+  })
+
+  it('does not throw when deleting a non-existent note', async () => {
+    await expect(storage.deleteNote('missing.md')).resolves.toBeUndefined()
+  })
 })
