@@ -127,4 +127,18 @@ describe('filesystemStorage', () => {
 
     expect(written).toBe('# Just content')
   })
+
+  it('deletes a note file by id', async () => {
+    await storage.saveNote({
+      id: 'to-delete.md',
+      properties: { title: 'Delete Me' },
+      content: '# Gone',
+    })
+
+    await storage.deleteNote('to-delete.md')
+
+    const notes = await storage.loadNotes()
+
+    expect(notes).toHaveLength(0)
+  })
 })

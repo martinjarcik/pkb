@@ -1,4 +1,4 @@
-import { mkdir, readdir, readFile, stat, writeFile } from 'fs/promises'
+import { mkdir, readdir, readFile, stat, unlink, writeFile } from 'fs/promises'
 import { dirname, relative, resolve } from 'path'
 import yaml from 'yaml'
 import type { Note, NoteProperties, NotePropertyValue } from '~/notes/types'
@@ -163,6 +163,14 @@ export function createFilesystemStorage(vaultPath: string): NoteStorage {
       }
     },
 
-    async deleteNote(): Promise<void> {},
+    async deleteNote(id: string): Promise<void> {
+      const filePath = assertSafeId(vaultPath, id)
+
+      try {
+        await unlink(filePath)
+      } catch (error) {
+        if ((error as NodeJS.ErrnoException).code !== 'ENOENT') throw error
+      }
+    },
   }
 }
