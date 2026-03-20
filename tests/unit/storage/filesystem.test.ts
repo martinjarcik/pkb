@@ -100,4 +100,19 @@ describe('filesystemStorage', () => {
     expect(notes[0]!.tags).toEqual(['a', 'b'])
     expect(notes[0]!.content).toBe('# Body')
   })
+
+  it('creates intermediate directories when saving a nested note', async () => {
+    await storage.saveNote({
+      id: 'sub/deep/note.md',
+      properties: { title: 'Deep' },
+      content: '# Nested',
+    })
+
+    const written = await readFile(
+      join(vaultPath, 'sub', 'deep', 'note.md'),
+      'utf-8',
+    )
+
+    expect(written).toBe('---\ntitle: Deep\n---\n# Nested')
+  })
 })
