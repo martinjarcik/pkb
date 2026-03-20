@@ -115,4 +115,16 @@ describe('filesystemStorage', () => {
 
     expect(written).toBe('---\ntitle: Deep\n---\n# Nested')
   })
+
+  it('stores raw content without frontmatter when properties are empty', async () => {
+    await storage.saveNote({
+      id: 'plain.md',
+      properties: {},
+      content: '# Just content',
+    })
+
+    const written = await readFile(join(vaultPath, 'plain.md'), 'utf-8')
+
+    expect(written).toBe('# Just content')
+  })
 })
