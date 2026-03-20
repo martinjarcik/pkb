@@ -4,17 +4,17 @@ import { browserStorage } from './browser'
 import { createFilesystemStorage } from './filesystem'
 import type { NoteStorage } from './types'
 
-export function getNoteStorage(config: AppConfig = loadConfig()): NoteStorage {
-  switch (config.applicationType) {
+export function getNoteStorage(config?: AppConfig): NoteStorage {
+  const resolvedConfig = config ?? loadConfig()
+
+  switch (resolvedConfig.applicationType) {
     case 'browser':
       return browserStorage
     case 'desktop':
-      return createFilesystemStorage(config.vault)
-    case 'cloud':
-      throw new Error('Cloud note storage is not implemented yet')
+      return createFilesystemStorage(resolvedConfig.vault)
     default:
       throw new Error(
-        `Unsupported application type: ${config.applicationType as string}`,
+        `Unsupported application type: ${resolvedConfig.applicationType as string}`,
       )
   }
 }

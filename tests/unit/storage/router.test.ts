@@ -30,15 +30,6 @@ describe('getNoteStorage', () => {
     expect(typeof storage.deleteNote).toBe('function')
   })
 
-  it('throws for unimplemented storage backends', () => {
-    expect(() =>
-      getNoteStorage({
-        ...baseConfig,
-        applicationType: 'cloud',
-      }),
-    ).toThrow('Cloud note storage is not implemented yet')
-  })
-
   it('throws for unsupported application types', () => {
     expect(() =>
       getNoteStorage({

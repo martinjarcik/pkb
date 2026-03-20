@@ -1,7 +1,7 @@
 import yaml from 'yaml'
 import rawDefaultConfig from './default.yaml?raw'
 
-export type ApplicationType = 'desktop' | 'cloud' | 'browser'
+export type ApplicationType = 'desktop' | 'browser'
 
 export type AppConfig = {
   applicationType: ApplicationType
@@ -13,11 +13,7 @@ export type AppConfig = {
   }
 }
 
-const VALID_APPLICATION_TYPES: ApplicationType[] = [
-  'desktop',
-  'cloud',
-  'browser',
-]
+const VALID_APPLICATION_TYPES: ApplicationType[] = ['desktop', 'browser']
 
 function assertAppConfig(value: unknown): AppConfig {
   if (typeof value !== 'object' || value === null) {
@@ -53,7 +49,8 @@ function assertAppConfig(value: unknown): AppConfig {
   return value as AppConfig
 }
 
+const DEFAULT_CONFIG = assertAppConfig(yaml.parse(rawDefaultConfig) as unknown)
+
 export function loadConfig(): AppConfig {
-  const parsed: unknown = yaml.parse(rawDefaultConfig)
-  return assertAppConfig(parsed)
+  return DEFAULT_CONFIG
 }
