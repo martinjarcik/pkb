@@ -32,6 +32,12 @@ Numbered, testable.
 
 - NFR1: <e.g., results appear within 200ms>
 
+## Domain Alignment
+
+- Canonical terms used (must match `docs/ubiquitous-language.md`):
+- Affected bounded context:
+- Invariants:
+
 ## Design
 
 - Pencil file: `design/<name>.pen`
@@ -43,15 +49,6 @@ Numbered, testable.
 ### Slice 1: <Name>
 
 **User story:** As a <role>, I want to <action>, so that <benefit>.
-
-**INVEST:**
-
-- Independent: <can be implemented without other slices>
-- Negotiable: <details can be adjusted during implementation>
-- Valuable: <what user value it delivers>
-- Estimable: <scope is clear enough to estimate>
-- Small: <completable in a single implementation session>
-- Testable: <what proves it works>
 
 **Acceptance criteria:**
 

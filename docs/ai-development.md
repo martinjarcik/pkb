@@ -19,8 +19,12 @@ Input: The feature spec file (`docs/features/<slug>.md`).
    - User acceptance tests (one Playwright spec per flow)
    - Numbered requirements (testable, specific)
    - Non-functional requirements
+   - Domain alignment using canonical terms from `docs/ubiquitous-language.md`
    - Design references (Pencil file, component mapping)
-2. Break the feature into vertical slices. Every slice must:
+2. Before finalizing the feature spec, verify that its domain language matches
+   `docs/ubiquitous-language.md` and that its architectural assumptions match
+   `docs/architecture.md`.
+3. Break the feature into vertical slices. Every slice must:
    - Represent an end-to-end user flow
    - Be documented as a user story
    - Satisfy INVEST (Independent, Negotiable, Valuable, Estimable, Small, Testable)
@@ -29,15 +33,16 @@ Input: The feature spec file (`docs/features/<slug>.md`).
    - Have defined unit tests coupled to behavior, decoupled from code structure
    - Deliver individual user value (not be a technical implementation artifact)
    - Have single responsibility with no overlap with other slices
-3. Use a sub-agent to review all slices together. The review must verify:
+4. Perform a review of all slices together. The review must verify:
    - No duplicate requirements across slices
    - No overlapping responsibilities between slices
    - Every parent requirement (R1..Rn) is covered by at least one slice
    - Consistency across slice definitions
    - The solution is not overengineered or unnecessarily complex
    - High confidence in predictability of implementation
-4. Fix any issues found by the review.
-5. Commit the feature spec: `docs(<slug>): define feature specification`
+   - Consistency with `docs/ubiquitous-language.md` and `docs/architecture.md`
+5. Fix any issues found by the review.
+6. Commit the feature spec: `docs(<slug>): define feature specification`
 
 ## Phase 3: Implementation
 
@@ -47,9 +52,10 @@ Every feature is developed in its own `feat/<slug>` branch.
 
 ### Step 1: Scaffolding
 
-1. Add a feature flag to `app/config/default.yaml` (default: `false`) and
-   the `AppConfig` type in `app/config/loader.ts`. The feature must be
-   gated behind this flag so it can be enabled or disabled via configuration.
+1. If the feature is optional or togglable, add a feature flag to
+   `app/config/default.yaml` (default: `false`) and the `AppConfig` type
+   in `app/config/loader.ts`. Core features that the app cannot function
+   without do not need a flag.
 2. Implement any shared types or supporting code required by the slices
    that will not be covered by unit tests.
 3. Commit: `feat(<slug>): scaffold supporting code`
@@ -79,34 +85,15 @@ If any test fails, fix the issue and re-run. Do not proceed until all pass.
 
 ### Step 5: Critical Review
 
-Use a sub-agent to review the complete implementation. The review must answer
-these yes/no questions:
+Perform a review of the complete implementation:
 
-**Consistency:**
-
-- Does the implementation match the feature spec?
-- Are naming conventions consistent with `AI_RULES.md`?
-
-**Overengineering (YAGNI):**
-
-- Is every new file needed to pass the current tests?
-- Is every new type/interface used by more than one consumer?
-- Could any abstraction be replaced with inline code?
-- Is there any configuration for something with only one variant?
-- Is there any interface with only one implementation?
-
-**Complexity:**
-
-- Are there functions longer than 30 lines that could be extracted?
-- Is there nesting deeper than 3 levels that could be flattened with early returns?
-
-**Performance:**
-
-- Are there obvious performance issues fixable without adding complexity?
-
-**Security:**
-
-- Are there user inputs that are not validated or sanitized?
+1. Does the implementation match the feature spec?
+2. Does the code satisfy all rules in `AI_RULES.md`?
+   (naming, complexity constraints, folder boundaries, type conventions)
+3. YAGNI: is every new file, type, and abstraction needed to pass the current
+   tests? Remove anything that exists only for future extensibility.
+4. Are there obvious performance issues fixable without adding complexity?
+5. Are there user inputs that are not validated or sanitized?
 
 Fix any issues found by the review.
 
@@ -115,7 +102,9 @@ Fix any issues found by the review.
 1. Run all unit tests and UAT tests. Fix if they fail.
 2. Update `CHANGELOG.md` with the new feature.
 3. Update `docs/product.md` with the new feature and how to use it.
-4. Update `design/pencil.md` with new component mappings if any.
-5. Record any architectural decisions in `docs/decisions.md`.
-6. Commit: `docs(<slug>): update changelog and documentation`
-7. Create a pull request for human review.
+4. Update `docs/architecture.md` and `docs/ubiquitous-language.md` if the
+   feature changes the canonical model or terminology.
+5. Update `design/pencil.md` with new component mappings if any.
+6. Record any architectural decisions in `docs/decisions.md`.
+7. Commit: `docs(<slug>): update changelog and documentation`
+8. Create a pull request for human review.

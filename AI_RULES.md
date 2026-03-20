@@ -22,6 +22,10 @@ Avoid:
 - `index.ts` barrel files
 - abstract base classes
 
+Exception: Tiptap extensions and custom nodes are the sanctioned extensibility
+mechanism for the content editor. These follow Tiptap's own extension API and
+are not general-purpose plugin infrastructure.
+
 ### Examples
 
 Wrong — barrel file re-exporting everything:
@@ -45,25 +49,6 @@ export function capitalize(s: string) { ... }
 ```
 
 Right — put the function where it is used, or in the domain folder it belongs to.
-
-Wrong — abstract base class:
-
-```ts
-abstract class BaseStorage { ... }
-class BrowserStorage extends BaseStorage { ... }
-```
-
-Right — type + direct implementation:
-
-```ts
-// app/storage/types.ts
-export type NoteStorage = {
-  loadNotes(): Promise<Note[]>
-}
-
-// app/storage/browser.ts
-export const browserStorage: NoteStorage = { ... }
-```
 
 ## Folder boundaries
 
@@ -92,10 +77,14 @@ Other:
 - `tests/e2e/` → end-to-end tests (Playwright)
 - `docs/` → architecture, decisions, workflow, product manual
 - `docs/features/` → feature backlog and specs
-- `design/` → design-to-component mapping
+
+Ignored (do not read or modify):
+
+- `drafts/` → personal brainstorm notes, not authoritative
 
 Reserved (create when first needed):
 
+- `design/` → Pencil design files (`.pen`) and component mapping (`pencil.md`)
 - `desktop/tauri/` → Tauri desktop packaging
 
 ## Naming conventions
@@ -107,7 +96,7 @@ Reserved (create when first needed):
 - E2E test files: `*.spec.ts` (e.g. `create-note.spec.ts`)
 - Import alias: `~/` from app root (e.g. `import { Note } from '~/notes/types'`)
 - Use relative imports (`./`) within the same folder (e.g. `import { NoteStorage } from './types'`)
-- `~/` and `@/` both resolve to `app/`. Use `~/` in all code. `@/` appears only in `components.json` for the shadcn-vue CLI.
+- Use `~/` for all imports from app root. `@/` is reserved for shadcn-vue tooling only.
 
 ## Types
 
@@ -130,6 +119,8 @@ Forbidden imports:
 - `vue`, `#app`, `#imports`, `nuxt/app`, any `@vue/*` package
 - Anything from `app/components/`, `app/composables/`, `app/pages/`, `app/layouts/`
 
+For state management, error handling, and configuration patterns, see `docs/architecture.md`.
+
 ## Components
 
 - shadcn-vue primitives in `app/components/ui/` are managed by CLI. Do not edit them manually.
@@ -147,7 +138,6 @@ Unit tests (`tests/unit/`):
 - File naming: `*.test.ts`. Mirror source paths: `app/notes/parser.ts` → `tests/unit/notes/parser.test.ts`.
 - Import from `vitest`: `import { describe, it, expect } from 'vitest'`.
 - Test pure logic only. Do not test Vue components in unit tests.
-- Every exported function and type implementation should have a corresponding unit test.
 
 E2E tests (`tests/e2e/`):
 

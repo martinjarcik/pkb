@@ -1,6 +1,6 @@
-features:
-  metadata: true
+applicationType: browser
 
 layout:
+  showInspector: true
   showSidebar: true
   showNoteList: true
