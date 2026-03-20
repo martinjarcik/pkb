@@ -165,4 +165,32 @@ describe('filesystemStorage', () => {
   it('does not throw when deleting a non-existent note', async () => {
     await expect(storage.deleteNote('missing.md')).resolves.toBeUndefined()
   })
+
+  it('rejects note IDs that traverse outside the vault', async () => {
+    await expect(
+      storage.saveNote({
+        id: '../outside.md',
+        properties: {},
+        content: 'escaped',
+      }),
+    ).rejects.toThrow('Note ID resolves outside the vault: ../outside.md')
+
+    await expect(storage.deleteNote('../outside.md')).rejects.toThrow(
+      'Note ID resolves outside the vault: ../outside.md',
+    )
+  })
+
+  it('rejects absolute paths as note IDs', async () => {
+    await expect(
+      storage.saveNote({
+        id: '/etc/passwd',
+        properties: {},
+        content: 'escaped',
+      }),
+    ).rejects.toThrow('Note ID resolves outside the vault: /etc/passwd')
+
+    await expect(storage.deleteNote('/tmp/evil.md')).rejects.toThrow(
+      'Note ID resolves outside the vault: /tmp/evil.md',
+    )
+  })
 })
