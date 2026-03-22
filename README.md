@@ -40,7 +40,7 @@ Then open `http://localhost:3000`.
 | [docs/ubiquitous-language.md](docs/ubiquitous-language.md) | Canonical vocabulary                                                  |
 | [docs/decisions.md](docs/decisions.md)                     | Architectural decision records                                        |
 | [docs/product.md](docs/product.md)                         | Product manual                                                        |
-| [docs/features/](docs/features/)                           | Feature backlog and per-feature specifications                        |
+| [design/design.pen](design/design.pen)                     | Canonical UI design (Pencil file)                                     |
 
 ## Scripts
 

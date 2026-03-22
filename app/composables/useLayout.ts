@@ -3,22 +3,22 @@ import { loadConfig } from '~/config/loader'
 const defaultLayout = loadConfig().layout
 
 export function useLayout() {
-  const showInspector = useState(
-    'layout.showInspector',
-    () => defaultLayout.showInspector,
+  const showInspectorPanel = useState(
+    'layout.showInspectorPanel',
+    () => defaultLayout.showInspectorPanel,
   )
-  const showSidebar = useState(
-    'layout.showSidebar',
-    () => defaultLayout.showSidebar,
+  const showSidebarPanel = useState(
+    'layout.showSidebarPanel',
+    () => defaultLayout.showSidebarPanel,
   )
-  const showNoteList = useState(
-    'layout.showNoteList',
-    () => defaultLayout.showNoteList,
+  const showNotesListPanel = useState(
+    'layout.showNotesListPanel',
+    () => defaultLayout.showNotesListPanel,
   )
 
   return {
-    showInspector,
-    showSidebar,
-    showNoteList,
+    showInspectorPanel,
+    showSidebarPanel,
+    showNotesListPanel,
   }
 }

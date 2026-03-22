@@ -4,8 +4,8 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
-- Add the default application layout with `Sidebar`, `NoteList`, `NotePanel`,
-  and `Inspector`, including config-driven visibility for optional panels.
+- Add the default application layout with `SidebarPanel`, `NotesListPanel`, `NotePanel`,
+  and `InspectorPanel`, including config-driven visibility for optional panels.
 - Add filesystem storage adapter for desktop mode. Notes are persisted as
   Markdown files with YAML frontmatter in a configurable vault directory.
 - Change default `applicationType` from `browser` to `desktop`.

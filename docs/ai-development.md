@@ -4,14 +4,67 @@
 
 Input: Human asks to develop a feature.
 
-1. Read `docs/features/backlog.md` to identify the feature.
-2. Read `docs/features/<slug>.md`.
-   If it does not exist, create it from `docs/features/_template.md`. If it does exist, but does not match the template, recreate it using the template.
-3. Create branch `feat/<slug>` from `main`.
+1. Create branch `feat/<slug>` from `main`.
 
 ## Phase 2: Feature Definition
 
-Input: The feature spec file (`docs/features/<slug>.md`).
+Define the feature spec using the following template structure. The spec is a
+working artifact of the conversation, not a committed file.
+
+### Feature spec template
+
+```
+# Feature: <Name>
+
+## Problem Statement
+What user problem does this solve? One paragraph.
+
+## User Flows
+### Flow 1: <Name>
+**Intent:** What the user is trying to accomplish.
+**Steps:**
+1. User does X
+2. System responds with Y
+3. User sees Z
+
+## User Acceptance Tests
+One per user flow. Each becomes a Playwright spec.
+- `tests/e2e/<flow-name>.spec.ts` — <description>
+
+## Requirements
+Numbered, testable.
+- R1: <requirement>
+- R2: <requirement>
+
+## Non-Functional Requirements
+- NFR1: <e.g., results appear within 200ms>
+
+## Domain Alignment
+- Canonical terms used (must match `docs/ubiquitous-language.md`):
+- Affected bounded context:
+- Invariants:
+
+## Design
+- Pencil file: `design/design.pen`
+- Component mapping:
+  - <design region> → `app/components/<Component>.vue`
+
+## Slices
+### Slice 1: <Name>
+**User story:** As a <role>, I want to <action>, so that <benefit>.
+**Acceptance criteria:**
+1. Given <precondition>, when <action>, then <result>
+**Requirements:** R1, R2 (reference parent requirements this slice covers)
+**Implementation plan:**
+- `app/notes/<file>.ts` — <what changes>
+- `app/composables/<file>.ts` — <what changes>
+- `app/components/<Component>.vue` — <what changes>
+**Unit tests:**
+- `tests/unit/notes/<file>.test.ts`
+  - `it('<description of behavior>')`
+```
+
+### Steps
 
 1. Fill in every section of the feature spec:
    - Problem statement
@@ -20,7 +73,7 @@ Input: The feature spec file (`docs/features/<slug>.md`).
    - Numbered requirements (testable, specific)
    - Non-functional requirements
    - Domain alignment using canonical terms from `docs/ubiquitous-language.md`
-   - Design references (Pencil file, component mapping)
+   - Design references (`design/design.pen` via Pencil MCP tools)
 2. Before finalizing the feature spec, verify that its domain language matches
    `docs/ubiquitous-language.md` and that its architectural assumptions match
    `docs/architecture.md`.
@@ -42,11 +95,10 @@ Input: The feature spec file (`docs/features/<slug>.md`).
    - High confidence in predictability of implementation
    - Consistency with `docs/ubiquitous-language.md` and `docs/architecture.md`
 5. Fix any issues found by the review.
-6. Commit the feature spec: `docs(<slug>): define feature specification`
 
 ## Phase 3: Implementation
 
-Input: The completed feature spec with all slices defined.
+Input: The completed feature spec.
 
 Every feature is developed in its own `feat/<slug>` branch.
 
@@ -104,7 +156,7 @@ Fix any issues found by the review.
 3. Update `docs/product.md` with the new feature and how to use it.
 4. Update `docs/architecture.md` and `docs/ubiquitous-language.md` if the
    feature changes the canonical model or terminology.
-5. Update `design/pencil.md` with new component mappings if any.
+5. Update `design/design.pen` (via Pencil MCP tools) with new component mappings if any.
 6. Record any architectural decisions in `docs/decisions.md`.
 7. Commit: `docs(<slug>): update changelog and documentation`
 8. Create a pull request for human review.

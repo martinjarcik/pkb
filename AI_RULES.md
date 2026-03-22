@@ -76,20 +76,23 @@ Other:
 - `tests/unit/` → domain logic tests
 - `tests/e2e/` → end-to-end tests (Playwright)
 - `docs/` → architecture, decisions, workflow, product manual
-- `docs/features/` → feature backlog and specs
 
 Ignored (do not read or modify):
 
 - `drafts/` → personal brainstorm notes, not authoritative
 
+Design:
+
+- `design/` — Pencil design files (`.pen`)
+  - `design/design.pen` — canonical UI design (read via Pencil MCP tools only)
+
 Reserved (create when first needed):
 
-- `design/` → Pencil design files (`.pen`) and component mapping (`pencil.md`)
 - `desktop/tauri/` → Tauri desktop packaging
 
 ## Naming conventions
 
-- Vue components: `PascalCase.vue` (e.g. `NoteList.vue`)
+- Vue components: `PascalCase.vue` (e.g. `NotesListPanel.vue`)
 - Composables: `useXxx.ts` (e.g. `useNotes.ts`)
 - Domain and storage files: `camelCase.ts` (e.g. `browser.ts`)
 - Unit test files: `*.test.ts` (e.g. `notes.test.ts`)

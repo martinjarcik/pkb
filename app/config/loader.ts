@@ -7,9 +7,9 @@ export type AppConfig = {
   applicationType: ApplicationType
   vault: string
   layout: {
-    showInspector: boolean
-    showSidebar: boolean
-    showNoteList: boolean
+    showInspectorPanel: boolean
+    showSidebarPanel: boolean
+    showNotesListPanel: boolean
   }
 }
 
@@ -40,7 +40,11 @@ function assertAppConfig(value: unknown): AppConfig {
 
   const layout = obj.layout as Record<string, unknown>
 
-  for (const key of ['showInspector', 'showSidebar', 'showNoteList'] as const) {
+  for (const key of [
+    'showInspectorPanel',
+    'showSidebarPanel',
+    'showNotesListPanel',
+  ] as const) {
     if (typeof layout[key] !== 'boolean') {
       throw new Error(`Config layout.${key} must be a boolean`)
     }

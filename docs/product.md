@@ -2,24 +2,24 @@
 
 ## Application Layout
 
-- **Sidebar** (left) — navigation and app-level actions.
-- **NoteList** (left panel) — lists all notes, allows selecting one.
+- **SidebarPanel** (left) — navigation and app-level actions.
+- **NotesListPanel** (left panel) — lists all notes, allows selecting one.
 - **NotePanel** (center) — hosts the main note area and fills the remaining
   space.
-- **Inspector** (right panel) — shows and edits the selected note's properties.
+- **InspectorPanel** (right panel) — shows and edits the selected note's properties.
 
 Default visibility of the sidebar, note list, and inspector is set in
 `app/config/default.yaml`. The UI can override these values at runtime.
 
 ## Configuration
 
-| Key                    | Type    | Default     | Description                                     |
-| ---------------------- | ------- | ----------- | ----------------------------------------------- |
-| `applicationType`      | string  | `"desktop"` | Application mode: `browser`, `desktop`, `cloud` |
-| `vault`                | string  | `"./vault"` | Path to the vault directory for desktop storage |
-| `layout.showInspector` | boolean | `true`      | Show the Inspector panel                        |
-| `layout.showSidebar`   | boolean | `true`      | Show the sidebar                                |
-| `layout.showNoteList`  | boolean | `true`      | Show the note list panel                        |
+| Key                         | Type    | Default     | Description                                     |
+| --------------------------- | ------- | ----------- | ----------------------------------------------- |
+| `applicationType`           | string  | `"desktop"` | Application mode: `browser`, `desktop`, `cloud` |
+| `vault`                     | string  | `"./vault"` | Path to the vault directory for desktop storage |
+| `layout.showInspectorPanel` | boolean | `true`      | Show the InspectorPanel                         |
+| `layout.showSidebarPanel`   | boolean | `true`      | Show the SidebarPanel                           |
+| `layout.showNotesListPanel` | boolean | `true`      | Show the NotesListPanel                         |
 
 ## Features
 

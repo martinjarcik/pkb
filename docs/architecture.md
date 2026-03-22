@@ -39,13 +39,13 @@ identifier.
 - `app/config/loader.ts` — typed `AppConfig` parsed from `app/config/default.yaml`.
 - `app/composables/useLayout.ts` — layout panel visibility state initialized
   from config defaults.
-- `app/layouts/default.vue` — application shell composing Sidebar, NoteList,
-  page slot, and Inspector in a horizontal flexbox.
+- `app/layouts/default.vue` — application shell composing SidebarPanel, NotesListPanel,
+  page slot, and InspectorPanel in a horizontal flexbox.
 - `app/pages/index.vue` — renders `NotePanel`.
-- `app/components/Sidebar.vue` — sidebar region.
-- `app/components/NoteList.vue` — note list region.
+- `app/components/SidebarPanel.vue` — sidebar region.
+- `app/components/NotesListPanel.vue` — note list region.
 - `app/components/NotePanel.vue` — main note editing region (always visible).
-- `app/components/Inspector.vue` — inspector region.
+- `app/components/InspectorPanel.vue` — inspector region.
 
 ## Bounded contexts
 
@@ -73,7 +73,7 @@ New contexts may be introduced when corresponding features are specified.
 - Custom Liquid-compatible content blocks are implemented through custom Tiptap
   extensions and nodes. Blocks that have no interactive editing render as
   non-editable nodes.
-- Properties are edited separately in the Inspector, not inside the editor.
+- Properties are edited separately in the InspectorPanel, not inside the editor.
 - In filesystem-backed storage, properties are serialized as YAML frontmatter.
 
 ## Filesystem representation

@@ -1,0 +1,1688 @@
+{
+  "version": "2.9",
+  "children": [
+    {
+      "type": "frame",
+      "id": "CM4Sh",
+      "x": 0,
+      "y": 0,
+      "name": "Design",
+      "clip": true,
+      "width": 1671,
+      "height": 959,
+      "fill": "#FFFFFF",
+      "cornerRadius": 20,
+      "stroke": {
+        "align": "inside",
+        "thickness": 1,
+        "fill": "#0000001a"
+      },
+      "layout": "none",
+      "children": [
+        {
+          "type": "frame",
+          "id": "sLwZ8",
+          "x": 1419,
+          "y": 0,
+          "name": "InspectorContent",
+          "clip": true,
+          "width": 249,
+          "height": "fill_container(1100)",
+          "fill": {
+            "type": "color",
+            "color": "#fafaf91a",
+            "enabled": false
+          },
+          "stroke": {
+            "align": "inside",
+            "thickness": {
+              "top": 1
+            },
+            "fill": "#0000001a"
+          },
+          "layout": "vertical",
+          "children": [
+            {
+              "type": "frame",
+              "id": "cLlxQ",
+              "name": "InspectorNavigation",
+              "width": "fill_container",
+              "height": 52,
+              "stroke": {
+                "thickness": {
+                  "bottom": 1
+                },
+                "fill": "#E5E5E3"
+              },
+              "padding": [
+                0,
+                14
+              ],
+              "justifyContent": "space_around",
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "ehEux",
+                  "name": "InspectorNavigationItem selected",
+                  "fill": "#454543",
+                  "content": "Properties",
+                  "fontFamily": "Inter",
+                  "fontSize": 12,
+                  "fontWeight": "600"
+                },
+                {
+                  "type": "text",
+                  "id": "k7g3N",
+                  "name": "InspectorNavigationItem",
+                  "fill": "#aaaaaa",
+                  "content": "Stats",
+                  "fontFamily": "Inter",
+                  "fontSize": 12,
+                  "fontWeight": "600"
+                },
+                {
+                  "type": "text",
+                  "id": "fyt8X",
+                  "name": "InspectorNavigationItem",
+                  "fill": "#aaaaaa",
+                  "content": "Style",
+                  "fontFamily": "Inter",
+                  "fontSize": 12,
+                  "fontWeight": "600"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "exv8q",
+              "name": "InspectorContent",
+              "width": "fill_container",
+              "height": "fit_content(40)",
+              "layout": "vertical",
+              "gap": 8,
+              "padding": 20,
+              "children": [
+                {
+                  "type": "group",
+                  "id": "3pn02",
+                  "x": 20,
+                  "y": 20,
+                  "name": "InspectorPropertiesView",
+                  "enabled": false,
+                  "layout": "vertical",
+                  "children": [
+                    {
+                      "id": "E0a2z",
+                      "type": "ref",
+                      "ref": "XpvfC",
+                      "x": 0,
+                      "y": 0,
+                      "width": "fill_container",
+                      "height": 86.14101608889995,
+                      "descendants": {
+                        "ZYZFX": {
+                          "y": 35.57050804444997
+                        },
+                        "Rv7um": {
+                          "x": 169,
+                          "y": 35.57050804444997
+                        }
+                      }
+                    },
+                    {
+                      "id": "3FQN5",
+                      "type": "ref",
+                      "ref": "XpvfC",
+                      "x": 0,
+                      "y": 86.14101608889995,
+                      "width": "fill_container",
+                      "height": 86.14101608889995,
+                      "descendants": {
+                        "ZYZFX": {
+                          "content": "modifiedAt",
+                          "y": 35.57050804444997
+                        },
+                        "Rv7um": {
+                          "x": 169,
+                          "y": 35.57050804444997
+                        }
+                      }
+                    },
+                    {
+                      "id": "Yw98j",
+                      "type": "ref",
+                      "ref": "XpvfC",
+                      "x": 0,
+                      "y": 172.2820321777999,
+                      "width": "fill_container",
+                      "height": 86.14101608889997,
+                      "descendants": {
+                        "ZYZFX": {
+                          "content": "favorite",
+                          "y": 35.57050804444999
+                        },
+                        "Rv7um": {
+                          "content": "false",
+                          "x": 181,
+                          "y": 35.57050804444999
+                        }
+                      }
+                    },
+                    {
+                      "id": "64k7U",
+                      "type": "ref",
+                      "ref": "XpvfC",
+                      "x": 0,
+                      "y": 258.4230482666999,
+                      "width": "fill_container",
+                      "height": 86.14101608889993,
+                      "descendants": {
+                        "ZYZFX": {
+                          "content": "pinned",
+                          "y": 35.570508044449966
+                        },
+                        "Rv7um": {
+                          "content": "false",
+                          "x": 181,
+                          "y": 35.570508044449966
+                        }
+                      }
+                    },
+                    {
+                      "type": "frame",
+                      "id": "XpvfC",
+                      "name": "InspectorPropertyItem",
+                      "reusable": true,
+                      "width": "fill_container",
+                      "height": 86.14101608889995,
+                      "justifyContent": "space_between",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "ZYZFX",
+                          "name": "PropertyKey",
+                          "fill": "#333333ff",
+                          "content": "template",
+                          "fontFamily": "Inter",
+                          "fontSize": 12,
+                          "fontWeight": "normal"
+                        },
+                        {
+                          "type": "text",
+                          "id": "Rv7um",
+                          "name": "PropertyValue",
+                          "fill": "#6F6F6B",
+                          "content": "default",
+                          "fontFamily": "Inter",
+                          "fontSize": 12,
+                          "fontWeight": "normal"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "rectangle",
+                      "id": "Xn4l2",
+                      "name": "spacer",
+                      "width": "fill_container",
+                      "height": 148.17071207768646
+                    },
+                    {
+                      "type": "frame",
+                      "id": "KkocO",
+                      "name": "addBtn",
+                      "width": "fill_container",
+                      "height": 148.17071207768655,
+                      "cornerRadius": 6,
+                      "stroke": {
+                        "thickness": 1,
+                        "fill": "#E1E1DF"
+                      },
+                      "justifyContent": "center",
+                      "alignItems": "center",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "8aEkG",
+                          "fill": "#666662",
+                          "content": "+ Add property",
+                          "fontFamily": "Inter",
+                          "fontSize": 12,
+                          "fontWeight": "normal"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "group",
+                  "id": "G7X8b",
+                  "x": 20,
+                  "y": 20,
+                  "name": "InspectorStatsView",
+                  "enabled": false,
+                  "layout": "vertical"
+                },
+                {
+                  "type": "group",
+                  "id": "lmUSD",
+                  "x": 20,
+                  "y": 20,
+                  "name": "InspectorStyleView",
+                  "enabled": false,
+                  "layout": "vertical"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "fyxjn",
+          "x": 590,
+          "y": 0,
+          "name": "NotePanel",
+          "width": 830,
+          "height": "fit_content(973)",
+          "fill": {
+            "type": "color",
+            "color": "#FFFFFF",
+            "enabled": false
+          },
+          "stroke": {
+            "align": "inside",
+            "thickness": {
+              "right": 1,
+              "left": 1
+            },
+            "fill": "#eeeeee"
+          },
+          "layout": "none",
+          "children": [
+            {
+              "type": "frame",
+              "id": "9V5QL",
+              "x": 0,
+              "y": 50,
+              "name": "NoteEditor",
+              "width": 830,
+              "height": 923,
+              "fill": "#3e56de12",
+              "stroke": {
+                "align": "inside",
+                "thickness": 1,
+                "fill": "#0000001a"
+              },
+              "layout": "vertical",
+              "padding": [
+                50,
+                0,
+                0,
+                0
+              ],
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "3JztA",
+                  "name": "Frame 7",
+                  "clip": true,
+                  "width": 640,
+                  "height": 859,
+                  "fill": "#ffffffff",
+                  "cornerRadius": [
+                    10,
+                    10,
+                    0,
+                    0
+                  ],
+                  "layout": "none",
+                  "children": [
+                    {
+                      "type": "group",
+                      "id": "fBhuB",
+                      "x": 0,
+                      "y": -152,
+                      "name": "universal - text",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "kSryA",
+                          "x": 82,
+                          "y": 201,
+                          "fill": "#000000",
+                          "content": "Peaky Blinders: The Immortal Man",
+                          "fontFamily": "Inter",
+                          "fontSize": 23,
+                          "fontWeight": "700"
+                        },
+                        {
+                          "type": "text",
+                          "id": "WqI1b",
+                          "x": 82.50548824737325,
+                          "y": 260.0079333881895,
+                          "fill": "#000000",
+                          "textGrowth": "fixed-width-height",
+                          "width": 470,
+                          "height": 722,
+                          "content": "Anyone remember Michael Elphick’s “Private Schultz” (1981)? The nasty Nazis have counterfeited millions of Bank of England notes and plan to flood, and thereby ruin, the British economy and shrewdly shorten the war. “Beckett” (Tim Roth) is their agent and he determines to recruit “Duke” (Barry Keoghan) to help him smuggle and distribute some £70m of it. The increasingly audacious “Duke” has taken over the “Peaky Blinders” after his dad “Tommy” (Cillian Murphy) retired to a ramshackle country pile to write his memoirs, and is becoming more out of control. \n\nAnxious about his excesses, his aunt “Ada” (Sophie Rundle) decides she has to alert her brother to the dangers of his continuing absence. Moreover, she then uses her position as an MP to collect information on her nephew that should she get to the military police could see him swing. \n\nThat prospect doesn’t appeal to “Beckett” but to what lengths will he go; will Duke” actually go to get his hands on the loot and what will it take to prize “Tommy” from his self-imposed exile? Murphy himself makes it clear to us at the start that we are not to say any more to the potential television viewers, so I’d better stop there - but suffice to say this is a worthy successor to the gritty television series’ on which it is based. \n\nThat said, though, you don’t need to have seen those to pick this up. It’s a stand-alone drama that stylishly captures the poverty, violence and divided loyalties of a time where family and country were not necessarily on the same side. The more I see Keoghan act, the more limited I reckon his skills are - but here he is a perfect fit for the slightly maniacal but conflicted son of a father whom Murphy has characterised with just the right degree of menace and humanity. Roth, Ferguson and the always reliable Ned Dennehy all contribute well to a solid story that mixes the mystical Romany with the practical brutalities of modern warfare and, of course, some good old-fashioned greed. The production looks great and the whole film slides (sometimes quite muddily) along enjoyably for the best part of two hours. I even got a special bonnet at the screening, too!",
+                          "lineHeight": 1.7,
+                          "fontFamily": "Inter",
+                          "fontSize": 12,
+                          "fontWeight": "normal"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "group",
+              "id": "dIaTl",
+              "x": 11080.145376274973,
+              "y": 0,
+              "name": "NoteControls",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "AJ0uX",
+                  "x": -10983.508237362,
+                  "y": 0,
+                  "name": "NoteTitle",
+                  "fill": "#000000",
+                  "textGrowth": "fixed-width-height",
+                  "width": 638.6370279184854,
+                  "height": 50,
+                  "content": "Peaky Blinders: The Immortal Man",
+                  "textAlignVertical": "middle",
+                  "fontFamily": "Inter",
+                  "fontSize": 12,
+                  "fontWeight": "700"
+                },
+                {
+                  "type": "frame",
+                  "id": "Y2Jp7",
+                  "x": -10983.508237361984,
+                  "y": 0,
+                  "name": "NoteActions",
+                  "width": 638.6370279184854,
+                  "height": 48.039215686274495,
+                  "gap": 20,
+                  "justifyContent": "end",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "icon_font",
+                      "id": "eVAzX",
+                      "name": "pin",
+                      "width": 14.558628185001814,
+                      "height": 16,
+                      "iconFontName": "pin-off",
+                      "iconFontFamily": "lucide",
+                      "fill": "#3f57dfff"
+                    },
+                    {
+                      "type": "icon_font",
+                      "id": "i4T0g",
+                      "name": "integration",
+                      "width": 14.558628185001814,
+                      "height": 16,
+                      "iconFontName": "plug-zap",
+                      "iconFontFamily": "lucide",
+                      "fill": "#444444"
+                    },
+                    {
+                      "type": "icon_font",
+                      "id": "FjzNC",
+                      "name": "share",
+                      "width": 14.558628185001814,
+                      "height": 16,
+                      "iconFontName": "share",
+                      "iconFontFamily": "lucide",
+                      "fill": "#444444"
+                    },
+                    {
+                      "type": "icon_font",
+                      "id": "AN5zl",
+                      "name": "trash",
+                      "width": 14.558628185001814,
+                      "height": 16,
+                      "iconFontName": "trash-2",
+                      "iconFontFamily": "lucide",
+                      "fill": "#444444"
+                    },
+                    {
+                      "type": "icon_font",
+                      "id": "t5JhS",
+                      "name": "fullscreen",
+                      "width": 14.558628185001814,
+                      "height": 16,
+                      "iconFontName": "maximize-2",
+                      "iconFontFamily": "lucide",
+                      "fill": "#444444"
+                    },
+                    {
+                      "type": "icon_font",
+                      "id": "mppCI",
+                      "name": "favorite",
+                      "width": 14.558628185001814,
+                      "height": 16,
+                      "iconFontName": "star",
+                      "iconFontFamily": "lucide",
+                      "fill": "#3f57dfff"
+                    },
+                    {
+                      "type": "icon_font",
+                      "id": "F3tL1",
+                      "name": "share with user",
+                      "width": 14.558628185001814,
+                      "height": 16,
+                      "iconFontName": "user-plus",
+                      "iconFontFamily": "lucide",
+                      "fill": "#444444"
+                    },
+                    {
+                      "type": "icon_font",
+                      "id": "y4RTm",
+                      "name": "template selector",
+                      "width": 14.558628185001814,
+                      "height": 16,
+                      "iconFontName": "layout-template",
+                      "iconFontFamily": "lucide",
+                      "fill": "#444444"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "UN6Hj",
+          "x": 220,
+          "y": 0,
+          "name": "NotesListPanel",
+          "width": 370,
+          "fill": {
+            "type": "color",
+            "color": "#FFFFFF",
+            "enabled": false
+          },
+          "stroke": {
+            "align": "inside",
+            "thickness": {
+              "left": 1
+            },
+            "fill": "#eeeeee"
+          },
+          "layout": "vertical",
+          "children": [
+            {
+              "type": "frame",
+              "id": "EX7kb",
+              "name": "NotesListControls",
+              "clip": true,
+              "width": "fill_container",
+              "height": 50,
+              "fill": {
+                "type": "color",
+                "color": "#FFFFFF",
+                "enabled": false
+              },
+              "stroke": {
+                "align": "inside",
+                "thickness": {
+                  "bottom": 1
+                },
+                "fill": "#eeeeee"
+              },
+              "gap": 20,
+              "padding": [
+                0,
+                20
+              ],
+              "alignItems": "center",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "0mXaV",
+                  "name": "NotesSearch",
+                  "clip": true,
+                  "width": 270,
+                  "height": 30,
+                  "fill": "#FFFFFF",
+                  "cornerRadius": 10,
+                  "stroke": {
+                    "align": "inside",
+                    "thickness": 1,
+                    "fill": "#eeeeee"
+                  },
+                  "layout": "none",
+                  "children": [
+                    {
+                      "type": "group",
+                      "id": "wGrxo",
+                      "x": -22.50943783550929,
+                      "y": 7.550221680812612,
+                      "name": "ico magnifier",
+                      "children": [
+                        {
+                          "type": "path",
+                          "id": "FDisT",
+                          "x": 45.60874461571487,
+                          "y": 10.016734873983296,
+                          "geometry": "M0 0l5.5 5.5",
+                          "width": 2.9653936706137363,
+                          "height": 2.9653936706137336,
+                          "stroke": {
+                            "align": "center",
+                            "thickness": 2,
+                            "join": "round",
+                            "cap": "round",
+                            "fill": "#666666"
+                          }
+                        },
+                        {
+                          "type": "ellipse",
+                          "id": "mxlkb",
+                          "x": 38.50943783550932,
+                          "y": 2.917428093777744,
+                          "width": 8.154832594187766,
+                          "height": 8.154832594187768,
+                          "stroke": {
+                            "align": "center",
+                            "thickness": 2,
+                            "join": "round",
+                            "cap": "round",
+                            "fill": "#666666"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "type": "text",
+                      "id": "jCdzK",
+                      "x": 33,
+                      "y": 0.5,
+                      "fill": "#333333",
+                      "textGrowth": "fixed-width-height",
+                      "width": "fit_content(228.00000000000003)",
+                      "height": "fit_content(30)",
+                      "content": "Search in All Notes",
+                      "textAlignVertical": "middle",
+                      "fontFamily": "Inter",
+                      "fontSize": 11,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "group",
+                  "id": "i8ktO",
+                  "name": "NotesListActions",
+                  "children": [
+                    {
+                      "type": "path",
+                      "id": "mx14S",
+                      "x": 0,
+                      "y": 0,
+                      "name": "ico new note",
+                      "geometry": "M20 9.80237l0 9c0 1.65686-1.34314 3-3 3l-14 0c-1.65685 0-3-1.34314-3-3l0-14c0-1.65685 1.34315-3 3-3l7 0c0.55228 0 1 0.44772 1 1 0 0.55228-0.44772 1-1 1l-7 0c-0.55229 0-1 0.44771-1 1l0 14c0 0.55228 0.44771 1 1 1l14 0c0.55228 0 1-0.44772 1-1l0-9c0-0.55229 0.44772-1 1-1 0.55228 0 1 0.44771 1 1m0.42-8.92c1.16981 1.17127 1.16981 3.06873 0 4.24l-9.9 9.9c-0.13977 0.13816-0.31716 0.23207-0.51 0.27l-3.54 0.71-0.2 0c-0.30381 0.00615-0.59393-0.12617-0.78847-0.35961-0.19453-0.23344-0.27237-0.54267-0.21153-0.84039l0.73-3.51c0.03793-0.19284 0.13184-0.37023 0.27-0.51l9.9-9.9c0.56291-0.56486 1.32754-0.88237 2.125-0.88237 0.79745 0 1.56209 0.3175 2.125 0.88237m-1.12 2.12c-0.00111-0.26725-0.10914-0.52293-0.3-0.71-0.18777-0.18931-0.44336-0.2958-0.71-0.2958-0.26664 0-0.52223 0.10649-0.71 0.2958l-9.69 9.69-0.35 1.77 1.77-0.35 9.69-9.7c0.18841-0.18463 0.29624-0.43623 0.3-0.7",
+                      "fill": "#444444",
+                      "width": 16.000000000000004,
+                      "height": 16
+                    },
+                    {
+                      "type": "group",
+                      "id": "KSGab",
+                      "x": 36,
+                      "y": 2.5,
+                      "name": "ico dots",
+                      "children": [
+                        {
+                          "type": "ellipse",
+                          "id": "XeU7B",
+                          "x": 0,
+                          "y": 8,
+                          "fill": "#444444",
+                          "width": 3.0000000000000004,
+                          "height": 3
+                        },
+                        {
+                          "type": "ellipse",
+                          "id": "47thd",
+                          "x": 0,
+                          "y": 4,
+                          "fill": "#444444",
+                          "width": 3.0000000000000004,
+                          "height": 3
+                        },
+                        {
+                          "type": "ellipse",
+                          "id": "KpDey",
+                          "x": 0,
+                          "y": 0,
+                          "fill": "#444444",
+                          "width": 3.0000000000000004,
+                          "height": 3
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "hP001",
+              "name": "NotesList",
+              "clip": true,
+              "width": "fill_container",
+              "fill": "#FFFFFF",
+              "stroke": {
+                "align": "inside",
+                "thickness": {
+                  "left": 1
+                },
+                "fill": "#eeeeee"
+              },
+              "layout": "vertical",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "WGNZk",
+                  "name": "NotesListItem",
+                  "reusable": true,
+                  "width": "fill_container",
+                  "stroke": {
+                    "align": "inside",
+                    "thickness": {
+                      "left": 3
+                    }
+                  },
+                  "layout": "vertical",
+                  "gap": 2,
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "Sfrab",
+                      "name": "inner",
+                      "width": "fill_container",
+                      "stroke": {
+                        "align": "inside",
+                        "thickness": {
+                          "bottom": 1
+                        },
+                        "fill": "#eeeeee"
+                      },
+                      "layout": "vertical",
+                      "gap": 5,
+                      "padding": 20,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "AMfuF",
+                          "name": "heading",
+                          "fill": "#202020",
+                          "textGrowth": "fixed-width",
+                          "width": "fill_container",
+                          "content": "Orchestration is going to become mor...",
+                          "fontFamily": "Inter",
+                          "fontSize": 14,
+                          "fontWeight": "500"
+                        },
+                        {
+                          "type": "text",
+                          "id": "5Q8lF",
+                          "name": "description",
+                          "fill": "#6F6F6B",
+                          "textGrowth": "fixed-width",
+                          "width": "fill_container",
+                          "content": "I have a feeling that, for coding, orchestration tooling for AI agents will become more...",
+                          "lineHeight": 1.3,
+                          "fontFamily": "Inter",
+                          "fontSize": 11,
+                          "fontWeight": "normal"
+                        },
+                        {
+                          "type": "text",
+                          "id": "7d0mj",
+                          "name": "meta",
+                          "fill": "#9A9A96",
+                          "textGrowth": "fixed-width",
+                          "width": "fill_container",
+                          "content": "2d",
+                          "fontFamily": "Inter",
+                          "fontSize": 10,
+                          "fontWeight": "normal"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "id": "44Kzb",
+                  "type": "ref",
+                  "ref": "WGNZk",
+                  "x": 0,
+                  "y": 107,
+                  "stroke": {
+                    "align": "inside",
+                    "thickness": {
+                      "left": 5
+                    },
+                    "fill": "#3f57dfff"
+                  },
+                  "name": "NotesListItem selected",
+                  "width": "fill_container",
+                  "height": "fit_content",
+                  "descendants": {
+                    "Sfrab": {
+                      "width": "fill_container",
+                      "height": "fit_content"
+                    },
+                    "AMfuF": {
+                      "content": "There is only one bottleneck",
+                      "width": "fill_container",
+                      "x": 20,
+                      "y": 20
+                    },
+                    "5Q8lF": {
+                      "content": "Systems have a particular property: at any given time, there is only one bottleneck that l...",
+                      "lineHeight": 1.3,
+                      "width": "fill_container",
+                      "x": 20,
+                      "y": 42
+                    },
+                    "7d0mj": {
+                      "content": "Rating: 80%; Director: Sten Kubric",
+                      "width": "fill_container",
+                      "x": 20,
+                      "y": 75
+                    }
+                  }
+                },
+                {
+                  "id": "MnYAF",
+                  "type": "ref",
+                  "ref": "WGNZk",
+                  "x": 0,
+                  "y": 214,
+                  "width": "fill_container",
+                  "height": "fit_content",
+                  "descendants": {
+                    "Sfrab": {
+                      "width": "fill_container",
+                      "height": "fit_content"
+                    },
+                    "AMfuF": {
+                      "content": "Create bridges with people and walk ...",
+                      "width": "fill_container",
+                      "x": 20,
+                      "y": 20
+                    },
+                    "5Q8lF": {
+                      "content": "Kent Beck learned to build 'bridges' by reaching out halfway and then patiently...",
+                      "width": "fill_container",
+                      "x": 20,
+                      "y": 42
+                    },
+                    "7d0mj": {
+                      "content": "📅 22.1. 2025.         📍Lukasova 10, Praha",
+                      "width": "fill_container",
+                      "x": 20,
+                      "y": 75
+                    }
+                  }
+                },
+                {
+                  "id": "zbccN",
+                  "type": "ref",
+                  "ref": "WGNZk",
+                  "x": 0,
+                  "y": 321,
+                  "width": "fill_container",
+                  "height": "fit_content",
+                  "descendants": {
+                    "Sfrab": {
+                      "width": "fill_container",
+                      "height": "fit_content"
+                    },
+                    "AMfuF": {
+                      "content": "It's not sensible anymore to write cod...",
+                      "width": "fill_container",
+                      "x": 20,
+                      "y": 20
+                    },
+                    "5Q8lF": {
+                      "content": "In general, it is now clear that for most projects, writing the code yourself is no long...",
+                      "width": "fill_container",
+                      "x": 20,
+                      "y": 42
+                    },
+                    "7d0mj": {
+                      "width": "fill_container",
+                      "x": 20,
+                      "y": 75
+                    }
+                  }
+                },
+                {
+                  "id": "hvurn",
+                  "type": "ref",
+                  "ref": "WGNZk",
+                  "x": 0,
+                  "y": 428,
+                  "width": "fill_container",
+                  "height": "fit_content",
+                  "descendants": {
+                    "Sfrab": {
+                      "width": "fill_container",
+                      "height": "fit_content"
+                    },
+                    "AMfuF": {
+                      "content": "Follow your skills, not your passions",
+                      "width": "fill_container",
+                      "x": 20,
+                      "y": 20
+                    },
+                    "5Q8lF": {
+                      "content": "I've never thought 'follow your passion' was particularly good advice for young peop...",
+                      "width": "fill_container",
+                      "x": 20,
+                      "y": 42
+                    },
+                    "7d0mj": {
+                      "width": "fill_container",
+                      "x": 20,
+                      "y": 75
+                    }
+                  }
+                },
+                {
+                  "id": "4SNfH",
+                  "type": "ref",
+                  "ref": "WGNZk",
+                  "x": 0,
+                  "y": 535,
+                  "width": "fill_container",
+                  "height": "fit_content",
+                  "descendants": {
+                    "Sfrab": {
+                      "width": "fill_container",
+                      "height": "fit_content"
+                    },
+                    "AMfuF": {
+                      "width": "fill_container",
+                      "x": 20,
+                      "y": 20
+                    },
+                    "5Q8lF": {
+                      "width": "fill_container",
+                      "x": 20,
+                      "y": 42
+                    },
+                    "7d0mj": {
+                      "width": "fill_container",
+                      "x": 20,
+                      "y": 75
+                    }
+                  }
+                },
+                {
+                  "id": "Ah0Du",
+                  "type": "ref",
+                  "ref": "WGNZk",
+                  "x": 0,
+                  "y": 642,
+                  "width": "fill_container",
+                  "height": "fit_content",
+                  "descendants": {
+                    "Sfrab": {
+                      "width": "fill_container",
+                      "height": "fit_content"
+                    },
+                    "AMfuF": {
+                      "content": "There is only one bottleneck",
+                      "width": "fill_container",
+                      "x": 20,
+                      "y": 20
+                    },
+                    "5Q8lF": {
+                      "content": "Systems have a particular property: at any given time, there is only one bottleneck that l...",
+                      "width": "fill_container",
+                      "x": 20,
+                      "y": 42
+                    },
+                    "7d0mj": {
+                      "content": "Rating: 80%; Director: Sten Kubric",
+                      "width": "fill_container",
+                      "x": 20,
+                      "y": 75
+                    }
+                  }
+                },
+                {
+                  "id": "NmcAW",
+                  "type": "ref",
+                  "ref": "WGNZk",
+                  "x": 0,
+                  "y": 749,
+                  "width": "fill_container",
+                  "height": "fit_content",
+                  "descendants": {
+                    "Sfrab": {
+                      "width": "fill_container",
+                      "height": "fit_content"
+                    },
+                    "AMfuF": {
+                      "content": "Create bridges with people and walk ...",
+                      "width": "fill_container",
+                      "x": 20,
+                      "y": 20
+                    },
+                    "5Q8lF": {
+                      "content": "Kent Beck learned to build 'bridges' by reaching out halfway and then patiently...",
+                      "width": "fill_container",
+                      "x": 20,
+                      "y": 42
+                    },
+                    "7d0mj": {
+                      "content": "📅 22.1. 2025.         📍Lukasova 10, Praha",
+                      "width": "fill_container",
+                      "x": 20,
+                      "y": 75
+                    }
+                  }
+                },
+                {
+                  "id": "79h8n",
+                  "type": "ref",
+                  "ref": "WGNZk",
+                  "x": 0,
+                  "y": 856,
+                  "width": "fill_container",
+                  "height": "fit_content",
+                  "descendants": {
+                    "Sfrab": {
+                      "width": "fill_container",
+                      "height": "fit_content"
+                    },
+                    "AMfuF": {
+                      "content": "It's not sensible anymore to write cod...",
+                      "width": "fill_container",
+                      "x": 20,
+                      "y": 20
+                    },
+                    "5Q8lF": {
+                      "content": "In general, it is now clear that for most projects, writing the code yourself is no long...",
+                      "width": "fill_container",
+                      "x": 20,
+                      "y": 42
+                    },
+                    "7d0mj": {
+                      "width": "fill_container",
+                      "x": 20,
+                      "y": 75
+                    }
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "saLbd",
+          "x": 0,
+          "y": 51,
+          "name": "SidebarPanel",
+          "clip": true,
+          "width": 220,
+          "height": 1090,
+          "fill": "#fafafaff",
+          "stroke": {
+            "align": "inside",
+            "thickness": {
+              "right": 1
+            },
+            "fill": {
+              "type": "color",
+              "color": "#0000001a",
+              "enabled": false
+            }
+          },
+          "layout": "vertical",
+          "padding": [
+            0,
+            0,
+            0,
+            20
+          ],
+          "children": [
+            {
+              "type": "group",
+              "id": "UPz0a",
+              "name": "SidebarNavigation",
+              "layout": "vertical",
+              "children": [
+                {
+                  "id": "TFEGP",
+                  "type": "ref",
+                  "ref": "H5MwO",
+                  "x": 0,
+                  "y": 0,
+                  "fill": "#3f57dfff",
+                  "name": "SidebarNavigationItem - selected",
+                  "descendants": {
+                    "IxHw5": {
+                      "iconFontFamily": "lucide",
+                      "iconFontName": "layers",
+                      "fill": "#ffffff",
+                      "x": 10,
+                      "y": 9
+                    },
+                    "5rc5Q": {
+                      "fill": "#ffffff",
+                      "content": "All Notes",
+                      "x": 27,
+                      "y": 0
+                    }
+                  }
+                },
+                {
+                  "type": "frame",
+                  "id": "H5MwO",
+                  "name": "SidebarNavigationItem",
+                  "reusable": true,
+                  "clip": true,
+                  "width": 180,
+                  "height": 30,
+                  "cornerRadius": 5,
+                  "stroke": {
+                    "align": "inside",
+                    "thickness": {
+                      "left": 1
+                    }
+                  },
+                  "gap": 5,
+                  "padding": [
+                    0,
+                    0,
+                    0,
+                    10
+                  ],
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "icon_font",
+                      "id": "IxHw5",
+                      "name": "Icon stack (white)",
+                      "width": 12,
+                      "height": 12,
+                      "iconFontName": "list-todo",
+                      "iconFontFamily": "lucide",
+                      "fill": "#444444"
+                    },
+                    {
+                      "type": "text",
+                      "id": "5rc5Q",
+                      "fill": "#444444",
+                      "textGrowth": "fixed-width-height",
+                      "width": 150,
+                      "height": 30,
+                      "content": "Tasks",
+                      "lineHeight": 2.5,
+                      "textAlignVertical": "middle",
+                      "fontFamily": "Inter",
+                      "fontSize": 12,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "id": "aGMXS",
+                  "type": "ref",
+                  "ref": "H5MwO",
+                  "x": 0,
+                  "y": 60,
+                  "name": "SidebarNavigationItem",
+                  "descendants": {
+                    "IxHw5": {
+                      "iconFontFamily": "lucide",
+                      "iconFontName": "map-pin",
+                      "x": 10,
+                      "y": 9
+                    },
+                    "5rc5Q": {
+                      "content": "Map",
+                      "x": 27,
+                      "y": 0
+                    }
+                  }
+                },
+                {
+                  "id": "Yez2I",
+                  "type": "ref",
+                  "ref": "H5MwO",
+                  "x": 0,
+                  "y": 90,
+                  "name": "SidebarNavigationItem",
+                  "descendants": {
+                    "IxHw5": {
+                      "iconFontFamily": "lucide",
+                      "iconFontName": "calendar-days",
+                      "x": 10,
+                      "y": 9
+                    },
+                    "5rc5Q": {
+                      "content": "Calendar",
+                      "x": 27,
+                      "y": 0
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "type": "rectangle",
+              "id": "GAOrE",
+              "name": "spacer",
+              "width": 180,
+              "height": 30
+            },
+            {
+              "type": "group",
+              "id": "yGFLa",
+              "name": "SidebarFolders",
+              "children": [
+                {
+                  "type": "group",
+                  "id": "GeSw0",
+                  "x": 9,
+                  "y": 6,
+                  "name": "SidebarFoldersActions",
+                  "layout": "vertical",
+                  "children": [
+                    {
+                      "id": "24Nu0",
+                      "type": "ref",
+                      "ref": "H5MwO",
+                      "x": 0,
+                      "y": 0,
+                      "fill": [],
+                      "name": "SidebarFoldersList",
+                      "descendants": {
+                        "IxHw5": {
+                          "iconFontFamily": "lucide",
+                          "iconFontName": "car",
+                          "fill": "#444444",
+                          "x": 10,
+                          "y": 9
+                        },
+                        "5rc5Q": {
+                          "fill": "#444444",
+                          "content": "Traveling",
+                          "x": 27,
+                          "y": 0
+                        }
+                      }
+                    },
+                    {
+                      "id": "3ROii",
+                      "type": "ref",
+                      "ref": "H5MwO",
+                      "x": 0,
+                      "y": 30,
+                      "name": "SidebarFolderItem",
+                      "descendants": {
+                        "IxHw5": {
+                          "iconFontFamily": "lucide",
+                          "iconFontName": "book",
+                          "x": 10,
+                          "y": 9
+                        },
+                        "5rc5Q": {
+                          "content": "School",
+                          "x": 27,
+                          "y": 0
+                        }
+                      }
+                    },
+                    {
+                      "id": "f0G8s",
+                      "type": "ref",
+                      "ref": "H5MwO",
+                      "x": 0,
+                      "y": 60,
+                      "name": "SidebarFolderItem",
+                      "descendants": {
+                        "IxHw5": {
+                          "iconFontFamily": "lucide",
+                          "iconFontName": "chart-pie",
+                          "x": 10,
+                          "y": 9
+                        },
+                        "5rc5Q": {
+                          "content": "Work",
+                          "x": 27,
+                          "y": 0
+                        }
+                      }
+                    },
+                    {
+                      "id": "bcv0Q",
+                      "type": "ref",
+                      "ref": "H5MwO",
+                      "x": 0,
+                      "y": 90,
+                      "name": "SidebarFolderItem",
+                      "descendants": {
+                        "IxHw5": {
+                          "iconFontFamily": "lucide",
+                          "iconFontName": "apple",
+                          "x": 10,
+                          "y": 9
+                        },
+                        "5rc5Q": {
+                          "content": "Home",
+                          "x": 27,
+                          "y": 0
+                        }
+                      }
+                    }
+                  ]
+                },
+                {
+                  "type": "group",
+                  "id": "cWD23",
+                  "x": 0,
+                  "y": 0,
+                  "name": "SidebarFoldersControls",
+                  "children": [
+                    {
+                      "type": "rectangle",
+                      "cornerRadius": 7,
+                      "id": "jzr3s",
+                      "x": 9,
+                      "y": -24,
+                      "fill": "#f3f4f5ff",
+                      "width": 180,
+                      "height": 30
+                    },
+                    {
+                      "type": "text",
+                      "id": "qjZ2k",
+                      "x": 19,
+                      "y": -24,
+                      "name": "SidebarFoldersTitle",
+                      "fill": "#414244ff",
+                      "textGrowth": "fixed-width-height",
+                      "width": 122,
+                      "height": 30,
+                      "content": "Folders                                                   ",
+                      "lineHeight": 2,
+                      "textAlignVertical": "middle",
+                      "fontFamily": "Inter",
+                      "fontSize": 11,
+                      "fontWeight": "700"
+                    },
+                    {
+                      "type": "group",
+                      "id": "7UHlp",
+                      "x": 142,
+                      "y": -24,
+                      "name": "SidebarFoldersActions",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "2mjmr",
+                          "x": 0,
+                          "y": 0,
+                          "fill": "#989999ff",
+                          "textGrowth": "fixed-width-height",
+                          "width": 12,
+                          "height": 30,
+                          "content": "+",
+                          "textAlignVertical": "middle",
+                          "fontFamily": "Inter",
+                          "fontSize": 18,
+                          "fontWeight": "normal"
+                        },
+                        {
+                          "type": "icon_font",
+                          "id": "J2udA",
+                          "x": 15.338349765767816,
+                          "y": 7.681922148798549,
+                          "width": 16,
+                          "height": 16,
+                          "iconFontName": "chevron-down",
+                          "iconFontFamily": "lucide",
+                          "fill": "#989999"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "rectangle",
+              "id": "JtRe1",
+              "name": "spacer",
+              "width": 180,
+              "height": 30
+            },
+            {
+              "type": "group",
+              "id": "urfPl",
+              "name": "SidebarTags",
+              "children": [
+                {
+                  "type": "group",
+                  "id": "hETNO",
+                  "x": 0,
+                  "y": 6,
+                  "name": "SidebarTagsList",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "KvMUp",
+                      "x": 29,
+                      "y": -4,
+                      "name": "SidebarTagItem",
+                      "fill": "#444444",
+                      "textGrowth": "fixed-width",
+                      "width": "fit_content(69)",
+                      "content": "#engineering",
+                      "lineHeight": 2,
+                      "textAlignVertical": "middle",
+                      "fontFamily": "Inter",
+                      "fontSize": 11,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "text",
+                      "id": "MAFV2",
+                      "x": 107,
+                      "y": -4,
+                      "name": "SidebarTagItem",
+                      "fill": "#3f57dfff",
+                      "textGrowth": "fixed-width",
+                      "width": "fit_content(69)",
+                      "content": "#leadership",
+                      "lineHeight": 2,
+                      "textAlignVertical": "middle",
+                      "fontFamily": "Inter",
+                      "fontSize": 11,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "text",
+                      "id": "YSLKQ",
+                      "x": 29,
+                      "y": 18,
+                      "name": "SidebarTagItem",
+                      "fill": "#3f57dfff",
+                      "textGrowth": "fixed-width-height",
+                      "width": "fit_content(35)",
+                      "height": "fit_content(22)",
+                      "content": "#idea",
+                      "lineHeight": 2,
+                      "textAlignVertical": "middle",
+                      "fontFamily": "Inter",
+                      "fontSize": 11,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "text",
+                      "id": "QckFr",
+                      "x": 70,
+                      "y": 18,
+                      "name": "SidebarTagItem",
+                      "fill": "#444444",
+                      "textGrowth": "fixed-width",
+                      "width": "fit_content(45)",
+                      "content": "#dream",
+                      "lineHeight": 2,
+                      "textAlignVertical": "middle",
+                      "fontFamily": "Inter",
+                      "fontSize": 11,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "text",
+                      "id": "Cbzre",
+                      "x": 123,
+                      "y": 18,
+                      "name": "SidebarTagItem",
+                      "fill": "#444444",
+                      "textGrowth": "fixed-width",
+                      "width": "fit_content(45)",
+                      "content": "#ikea",
+                      "lineHeight": 2,
+                      "textAlignVertical": "middle",
+                      "fontFamily": "Inter",
+                      "fontSize": 11,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "group",
+                  "id": "68qH3",
+                  "x": 11,
+                  "y": 0,
+                  "name": "SidebarTagsControls",
+                  "children": [
+                    {
+                      "type": "rectangle",
+                      "cornerRadius": 7,
+                      "id": "k26ZV",
+                      "x": 9,
+                      "y": -24,
+                      "fill": {
+                        "type": "color",
+                        "color": "#f3f4f5ff",
+                        "enabled": false
+                      },
+                      "width": 180,
+                      "height": 30
+                    },
+                    {
+                      "type": "text",
+                      "id": "EHaOu",
+                      "x": 19,
+                      "y": -24,
+                      "name": "SidebarTagsTitle",
+                      "fill": "#414244ff",
+                      "textGrowth": "fixed-width-height",
+                      "width": 122,
+                      "height": 30,
+                      "content": "Tags                                                   ",
+                      "lineHeight": 2,
+                      "textAlignVertical": "middle",
+                      "fontFamily": "Inter",
+                      "fontSize": 11,
+                      "fontWeight": "700"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "sJ0sQ",
+          "x": 375,
+          "y": 56,
+          "name": "_modal menu",
+          "clip": true,
+          "width": 200,
+          "fill": "#FFFFFF",
+          "cornerRadius": 5,
+          "stroke": {
+            "align": "inside",
+            "thickness": 1,
+            "fill": "#0000001a"
+          },
+          "effect": {
+            "type": "shadow",
+            "shadowType": "outer",
+            "color": "#0000000d",
+            "offset": {
+              "x": 0,
+              "y": 5
+            },
+            "blur": 5
+          },
+          "layout": "vertical",
+          "padding": [
+            10,
+            20
+          ],
+          "children": [
+            {
+              "type": "text",
+              "id": "9OTOr",
+              "fill": "#000000",
+              "textGrowth": "fixed-width-height",
+              "width": 160,
+              "height": 30,
+              "content": "Show Properties",
+              "lineHeight": 2,
+              "textAlignVertical": "middle",
+              "fontFamily": "Inter",
+              "fontSize": 12,
+              "fontWeight": "normal"
+            },
+            {
+              "type": "text",
+              "id": "0QRRY",
+              "fill": "#000000",
+              "textGrowth": "fixed-width-height",
+              "width": 160,
+              "height": 30,
+              "content": "Hide Sidebar",
+              "lineHeight": 2,
+              "textAlignVertical": "middle",
+              "fontFamily": "Inter",
+              "fontSize": 12,
+              "fontWeight": "normal"
+            },
+            {
+              "type": "text",
+              "id": "qVPai",
+              "name": "xxx",
+              "fill": "#000000",
+              "textGrowth": "fixed-width-height",
+              "width": 160,
+              "height": 30,
+              "content": "Split View",
+              "lineHeight": 2,
+              "textAlignVertical": "middle",
+              "fontFamily": "Inter",
+              "fontSize": 12,
+              "fontWeight": "normal"
+            },
+            {
+              "type": "rectangle",
+              "id": "Uautb",
+              "name": "delimeter",
+              "fill": "#0000001a",
+              "width": 160,
+              "height": 1
+            },
+            {
+              "type": "text",
+              "id": "8NkBb",
+              "fill": "#000000",
+              "textGrowth": "fixed-width-height",
+              "width": 160,
+              "height": 30,
+              "content": "Sort by Name",
+              "lineHeight": 2,
+              "textAlignVertical": "middle",
+              "fontFamily": "Inter",
+              "fontSize": 12,
+              "fontWeight": "normal"
+            },
+            {
+              "type": "text",
+              "id": "cUx06",
+              "fill": "#000000",
+              "textGrowth": "fixed-width-height",
+              "width": 160,
+              "height": 30,
+              "content": "Sort By Date",
+              "lineHeight": 2,
+              "textAlignVertical": "middle",
+              "fontFamily": "Inter",
+              "fontSize": 12,
+              "fontWeight": "normal"
+            },
+            {
+              "type": "text",
+              "id": "wtvv8",
+              "fill": "#000000",
+              "textGrowth": "fixed-width-height",
+              "width": 160,
+              "height": 30,
+              "content": "Sort by Ranking",
+              "lineHeight": 2,
+              "textAlignVertical": "middle",
+              "fontFamily": "Inter",
+              "fontSize": 12,
+              "fontWeight": "normal"
+            },
+            {
+              "type": "rectangle",
+              "id": "BC6t8",
+              "name": "delimeter",
+              "fill": "#0000001a",
+              "width": 160,
+              "height": 1
+            },
+            {
+              "type": "text",
+              "id": "EAk3v",
+              "name": "xxx",
+              "fill": "#000000",
+              "textGrowth": "fixed-width-height",
+              "width": 160,
+              "height": 30,
+              "content": "Switch Vault",
+              "lineHeight": 2,
+              "textAlignVertical": "middle",
+              "fontFamily": "Inter",
+              "fontSize": 12,
+              "fontWeight": "normal"
+            },
+            {
+              "type": "text",
+              "id": "lSF62",
+              "name": "xxx",
+              "fill": "#000000",
+              "textGrowth": "fixed-width-height",
+              "width": 160,
+              "height": 30,
+              "content": "Application Settings",
+              "lineHeight": 2,
+              "textAlignVertical": "middle",
+              "fontFamily": "Inter",
+              "fontSize": 12,
+              "fontWeight": "normal"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "imports": {
+    "H": "pencil:shadcn.lib.pen"
+  }
+}

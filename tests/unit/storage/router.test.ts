@@ -7,9 +7,9 @@ const baseConfig: AppConfig = {
   applicationType: 'browser',
   vault: './vault',
   layout: {
-    showInspector: true,
-    showSidebar: true,
-    showNoteList: true,
+    showInspectorPanel: true,
+    showSidebarPanel: true,
+    showNotesListPanel: true,
   },
 }
 

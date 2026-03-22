@@ -34,6 +34,10 @@ Ideas
 - webhooks and integration with zapier / make
 - teams of editors for cloud
 - spaces of notes
+- shared with me
+- only cloud storage, rest of the app can be desktop
+- full screen toggle for note
+- note split view
 
 PROCESS IDEAS
 add "review the result, is it like a pro would do it?"
@@ -124,3 +128,44 @@ List of key - value pairs. Some items are:
 ## Style
 
 Light theme, modern, minimalistic, flat, purple as accent colour, shadcn components.
+
+# Layout structure
+
+AppLayout
+├── SidebarPanel
+│ ├── SidebarNavigation
+│ │ └── SidebarNavigationItem
+│ ├── SidebarFolders
+│ │ ├── SidebarFoldersControls
+│ │ │ ├── SidebarFoldersTitle
+│ │ │ └── SidebarFoldersActions
+│ │ └── SidebarFoldersList
+│ │ └── SidebarFolderItem
+│ └── SidebarTags
+│ ├── SidebarTagsControls
+│ │ ├── SidebarTagsTitle
+│ │ └── SidebarTagsActions
+│ └── SidebarTagsList
+│ └── SidebarTagItem
+├── NotesListPanel
+│ ├── NotesListControls
+│ │ ├── NotesSearch
+│ │ └── NotesListActions
+│ └── NotesList
+│ └── NotesListItem
+├── NotePanel
+│ ├── NoteControls
+│ │ ├── NoteTitle
+│ │ └── NoteActions
+│ └── NoteEditor
+└── InspectorPanel
+├── InspectorNavigation
+│ └── InspectorNavigationItem
+└── InspectorContent
+├── InspectorPropertiesView
+│ └── InspectorPropertiesList
+│ └── InspectorPropertyItem
+│ ├── PropertyKey
+│ └── PropertyValue
+├── InspectorStatsView
+└── InspectorStyleView
