@@ -6,11 +6,12 @@
     "node": ">=22"
   },
   "scripts": {
-    "dev": "nuxt dev",
+    "dev": "nuxt dev --https --no-fork",
     "build": "nuxt build",
     "generate": "nuxt generate",
     "preview": "nuxt preview",
     "postinstall": "nuxt prepare",
+    "playwright:install": "playwright install chromium",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "lint": "eslint .",
