@@ -54,7 +54,10 @@ identifier.
 - `NotePanel` (`app/components/NotePanel.vue`) — active note region.
   - `NoteControls` — note toolbar region.
     - `NoteActions` — note-scoped actions (for example favorite, delete).
-  - `NoteEditor` — Tiptap content editing region.
+  - `NoteView` (`app/components/NoteView.vue`) — bounded note display and
+    editing region.
+    - `NoteTemplate` — template (Liquid) output wrapper.
+      - `NoteEditor` — Tiptap content editing surface.
 - `InspectorPanel` (`app/components/InspectorPanel.vue`) — inspector shell.
   - `InspectorNavigation` (`app/components/InspectorNavigation.vue`) — tab bar
     for inspector views.
