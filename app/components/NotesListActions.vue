@@ -1,5 +1,8 @@
 <template>
-  <div data-testid="notes-list-actions" class="flex items-center gap-2">
-    <span class="text-sm text-muted-foreground">NotesListActions</span>
+  <div
+    data-testid="notes-list-actions"
+    class="notes-list-actions-shell flex items-center"
+  >
+    <span class="app-placeholder-label">NotesListActions</span>
   </div>
 </template>

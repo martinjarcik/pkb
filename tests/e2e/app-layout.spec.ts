@@ -9,29 +9,25 @@ test('renders the default application layout', async ({ page }) => {
   await expect(page.getByTestId('inspector-panel')).toBeVisible()
 })
 
-test('logs loaded notes from filesystem storage on app load', async ({
+test('renders loaded notes from filesystem storage in the notes list', async ({
   page,
 }) => {
-  const consoleMessagePromise = page.waitForEvent('console', {
-    predicate: (message) =>
-      message.type() === 'log' &&
-      message.text().includes('Loaded notes from storage'),
-  })
-
   await page.goto('/')
 
-  const consoleMessage = await consoleMessagePromise
-  const args = await Promise.all(
-    consoleMessage.args().map((argument) => argument.jsonValue()),
-  )
+  await expect(page.getByTestId('notes-list-item')).not.toHaveCount(0)
+  await expect(page.getByTestId('notes-list-empty')).toHaveCount(0)
 
-  expect(args[0]).toBe('Loaded notes from storage')
-  expect(args[1]).toEqual(
-    expect.arrayContaining([
-      expect.objectContaining({
-        id: 'first.md',
-        content: expect.stringContaining('Peaky Blinders: The Immortal Man'),
-      }),
-    ]),
-  )
+  const noteIds = await page
+    .getByTestId('notes-list-item')
+    .evaluateAll((items) =>
+      items.map((item) => item.getAttribute('data-note-id') ?? ''),
+    )
+  const noteTitles = await page
+    .getByTestId('notes-list-item-title')
+    .evaluateAll((titles) =>
+      titles.map((title) => title.textContent?.trim() ?? ''),
+    )
+
+  expect(noteIds.length).toBeGreaterThan(0)
+  expect(noteTitles).toEqual(noteIds)
 })

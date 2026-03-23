@@ -1,6 +1,9 @@
 <template>
-  <div data-testid="inspector-properties-view" class="flex flex-col gap-3">
-    <span class="text-sm text-muted-foreground">InspectorPropertiesView</span>
+  <div
+    data-testid="inspector-properties-view"
+    class="inspector-properties-view-shell flex flex-col"
+  >
+    <span class="app-placeholder-label">InspectorPropertiesView</span>
     <InspectorPropertiesList />
   </div>
 </template>

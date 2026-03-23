@@ -1,9 +1,9 @@
 <template>
   <div
     data-testid="notes-list-controls"
-    class="flex h-[50px] shrink-0 items-center gap-5 border-b border-border px-5"
+    class="notes-list-controls-shell flex shrink-0 items-center border-b border-border"
   >
-    <span class="text-sm text-muted-foreground">NotesListControls</span>
+    <span class="app-placeholder-label">NotesListControls</span>
     <NotesListActions />
   </div>
 </template>

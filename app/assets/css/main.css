@@ -4,7 +4,7 @@
 
 @layer base {
   :root {
-    --background: 0 0% 98%;
+    --background: 0 0% 100%;
     --foreground: 0 0% 3.9%;
     --card: 0 0% 100%;
     --card-foreground: 0 0% 3.9%;
@@ -27,6 +27,27 @@
     --sidebar-foreground: 0 0% 3.9%;
     --sidebar-border: 0 0% 89%;
     --radius: 0.625rem;
+    --app-panel-sidebar-width: 13.75rem;
+    --app-panel-notes-list-width: 23.125rem;
+    --app-panel-inspector-width: 15.625rem;
+    --app-panel-top-offset: 3.25rem;
+    --app-toolbar-height: 3.125rem;
+    --app-space-sm: 0.5rem;
+    --app-space-md: 0.75rem;
+    --app-space-lg: 1rem;
+    --app-space-xl: 1.25rem;
+    --app-space-inspector-nav-inline: 0.875rem;
+    --app-note-surface-padding-inline: 6.25rem;
+    --app-note-surface-padding-top: 3.125rem;
+    --app-note-template-background: #3e56de12;
+    --app-font-size-sm: 0.875rem;
+    --app-font-size-xs: 0.6875rem;
+    --app-font-size-2xs: 0.625rem;
+    --app-font-weight-medium: 500;
+    --app-line-height-tight: 1.3;
+    --app-notes-list-item-accent-width: 3px;
+    --app-notes-list-item-gap: 0.3125rem;
+    --app-notes-list-description-lines: 2;
   }
 
   .dark {
@@ -62,5 +83,135 @@
 
   body {
     @apply bg-background text-foreground;
+  }
+}
+
+@layer components {
+  .app-shell-sidebar {
+    width: var(--app-panel-sidebar-width);
+  }
+
+  .app-shell-notes-list {
+    width: var(--app-panel-notes-list-width);
+  }
+
+  .app-shell-inspector {
+    width: var(--app-panel-inspector-width);
+  }
+
+  .app-placeholder-label {
+    color: hsl(var(--muted-foreground));
+    font-size: var(--app-font-size-sm);
+  }
+
+  .sidebar-panel-shell {
+    background-color: hsl(var(--sidebar-background));
+    color: hsl(var(--sidebar-foreground));
+    padding-inline-start: var(--app-space-xl);
+    padding-top: var(--app-panel-top-offset);
+  }
+
+  .sidebar-navigation-shell {
+    gap: var(--app-space-sm);
+  }
+
+  .notes-list-controls-shell {
+    gap: var(--app-space-xl);
+    height: var(--app-toolbar-height);
+    padding-inline: var(--app-space-xl);
+  }
+
+  .notes-list-actions-shell {
+    gap: var(--app-space-sm);
+  }
+
+  .note-controls-shell {
+    gap: var(--app-space-lg);
+    height: var(--app-toolbar-height);
+    padding-inline: var(--app-space-lg);
+  }
+
+  .note-actions-shell {
+    gap: var(--app-space-sm);
+  }
+
+  .inspector-navigation-shell {
+    height: var(--app-panel-top-offset);
+    padding-inline: var(--app-space-inspector-nav-inline);
+  }
+
+  .inspector-content-shell {
+    gap: var(--app-space-sm);
+    padding: var(--app-space-xl);
+  }
+
+  .inspector-properties-view-shell {
+    gap: var(--app-space-md);
+  }
+
+  .inspector-properties-list-shell {
+    border-radius: calc(var(--radius) - 4px);
+    padding: var(--app-space-md);
+  }
+
+  .note-template-shell {
+    background-color: var(--app-note-template-background);
+    padding-inline: var(--app-note-surface-padding-inline);
+    padding-top: var(--app-note-surface-padding-top);
+  }
+
+  .note-editor-shell {
+    background-color: hsl(var(--card));
+    border-top-left-radius: var(--radius);
+    border-top-right-radius: var(--radius);
+    padding-inline: var(--app-note-surface-padding-inline);
+    padding-top: var(--app-note-surface-padding-top);
+  }
+
+  .notes-list-state {
+    font-size: var(--app-font-size-sm);
+    padding: var(--app-space-xl);
+  }
+
+  .notes-list-state-muted {
+    color: hsl(var(--muted-foreground));
+  }
+
+  .notes-list-state-error {
+    color: hsl(var(--destructive));
+  }
+
+  .notes-list-item {
+    border-bottom: 1px solid hsl(var(--border));
+    border-left: var(--app-notes-list-item-accent-width) solid transparent;
+    padding: var(--app-space-xl) var(--app-space-xl) var(--app-space-xl)
+      calc(var(--app-space-xl) - var(--app-notes-list-item-accent-width));
+  }
+
+  .notes-list-item-content {
+    display: flex;
+    flex-direction: column;
+    gap: var(--app-notes-list-item-gap);
+  }
+
+  .notes-list-item-title {
+    color: hsl(var(--foreground));
+    font-size: var(--app-font-size-sm);
+    font-weight: var(--app-font-weight-medium);
+  }
+
+  .notes-list-item-description {
+    color: hsl(var(--muted-foreground));
+    display: -webkit-box;
+    font-size: var(--app-font-size-xs);
+    line-height: var(--app-line-height-tight);
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: var(--app-notes-list-description-lines);
+    overflow: hidden;
+  }
+
+  .notes-list-item-meta {
+    color: hsl(var(--muted-foreground));
+    font-size: var(--app-font-size-2xs);
   }
 }

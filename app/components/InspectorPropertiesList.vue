@@ -1,8 +1,8 @@
 <template>
   <div
     data-testid="inspector-properties-list"
-    class="rounded-md border border-dashed border-border p-3"
+    class="inspector-properties-list-shell border border-dashed border-border"
   >
-    <span class="text-sm text-muted-foreground">InspectorPropertiesList</span>
+    <span class="app-placeholder-label">InspectorPropertiesList</span>
   </div>
 </template>

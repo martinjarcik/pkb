@@ -1,8 +1,8 @@
 <template>
   <nav
     data-testid="inspector-navigation"
-    class="flex h-[52px] shrink-0 items-center justify-around border-b border-border px-3.5"
+    class="inspector-navigation-shell flex shrink-0 items-center justify-around border-b border-border"
   >
-    <span class="text-sm text-muted-foreground">InspectorNavigation</span>
+    <span class="app-placeholder-label">InspectorNavigation</span>
   </nav>
 </template>

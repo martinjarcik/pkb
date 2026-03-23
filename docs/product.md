@@ -11,6 +11,10 @@
 Default visibility of the sidebar, note list, and inspector is set in
 `app/config/default.yaml`. The UI can override these values at runtime.
 
+When the application opens on the default route, the frontend loads notes from
+`GET /api/notes` and renders them in `NotesListPanel`. Each row shows the note
+`id` as its title, along with a short content preview and modified date.
+
 ## Configuration
 
 | Key                         | Type    | Default     | Description                                     |
@@ -34,6 +38,8 @@ the file path relative to the vault root.
 - `createdAt` and `modifiedAt` are derived from file system timestamps.
 - Notes are loaded in most-recently-modified-first order.
 - The vault path is set in `app/config/default.yaml` (default: `./vault`).
+- The frontend loads all notes on app open and displays them in
+  `NotesListPanel`.
 
 ### Browser Storage
 
