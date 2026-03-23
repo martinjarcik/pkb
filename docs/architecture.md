@@ -1,6 +1,6 @@
 # Architecture
 
-For rules and conventions, see `AI_RULES.md` (the single source of truth).
+For rules and conventions, see `AGENTS.md` (the single source of truth).
 For canonical terminology, see `docs/ubiquitous-language.md`.
 
 ## Overview

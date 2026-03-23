@@ -1,5 +1,7 @@
 # AI Development Workflow
 
+This document outlines 4 mandatory phases for every change. Do not skip any.
+
 ## Execution contract
 
 Follow these rules for the whole workflow:
@@ -8,7 +10,7 @@ Follow these rules for the whole workflow:
 - The feature spec is a conversation artifact only; do not commit it as a repo file.
 - Phases are strictly sequential: complete each phase before starting the next.
 - You MUST pass all unit tests and UAT (Playwright) before finalizing; do not proceed while any test fails.
-- You MUST satisfy `AI_RULES.md` and align with the authoritative docs where applicable.
+- You MUST satisfy `AGENTS.md` and align with the authoritative docs where applicable.
 - End with a pull request for human review.
 
 ## Authoritative docs
@@ -19,7 +21,7 @@ Use these paths when aligning language, structure, or code rules:
 | ----------------------------- | ----------------------------------------------------------- |
 | `docs/ubiquitous-language.md` | Canonical terms and domain language                         |
 | `docs/architecture.md`        | Architectural assumptions and boundaries                    |
-| `AI_RULES.md`                 | Naming, complexity, folders, types                          |
+| `AGENTS.md`                   | Naming, complexity, folders, types                          |
 | `design/design.png`           | Visual reference when Pencil MCP is unavailable (see below) |
 
 **Visual design (`design/design.png`).** When Pencil tools are not available and you need to understand the UI visually, use `design/design.png`. **Design style and layout in that image are final** (colors, typography, spacing, panel structure). **Depicted features, labels, and copy are speculative**—they illustrate the look and feel, not product scope or requirements unless a feature request or authoritative doc says otherwise.
@@ -59,6 +61,8 @@ This phase starts with the user's feature brief, which may already answer some o
 ## Phase 2: Feature Definition
 
 This phase takes the feature brief plus the answers gathered in Phase 1 and turns them into a completed feature spec in the conversation. The phase ends when the feature spec is complete, the vertical slices are defined, and unresolved assumptions have been answered by the user.
+
+Any alternative planning format is invalid. Planning output must follow the required Phase 1 -> Phase 2 -> Phase 3 structure and templates in this document.
 
 ### Feature spec template
 
@@ -114,7 +118,7 @@ Structure: One top-level title `# Feature: <name>`, then sections 1–5 once and
 
 ## Phase 3: Technical Plan
 
-This phase takes the completed feature spec from Phase 2 and translates it into concrete technical decisions. Resolve every ambiguity that would otherwise be decided ad hoc during the TDD loop, apply `AI_RULES.md` when pinning names, types, folders, and abstractions.
+This phase takes the completed feature spec from Phase 2 and translates it into concrete technical decisions. Resolve every ambiguity that would otherwise be decided ad hoc during the TDD loop, apply `AGENTS.md` when pinning names, types, folders, and abstractions.
 
 ### Technical plan template
 
@@ -203,7 +207,7 @@ Lens 2 — Safety and trustworthiness
 
 Lens 3 — Standards and maintainability
 
-- Code follows `AI_RULES.md` (naming, complexity, folder boundaries, types).
+- Code follows `AGENTS.md` (naming, complexity, folder boundaries, types).
 - YAGNI: every new file, type, and abstraction is required to pass the current tests; remove speculative “future” structure.
 
 Lens 4 — Performance and simplicity

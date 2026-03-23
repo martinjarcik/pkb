@@ -1,0 +1,12 @@
+---
+description: Mandate reading AGENTS.md and the ai-development workflow before plan or agent work
+alwaysApply: true
+---
+
+`AGENTS.md` and `docs/ai-development.md` are mandatory at full scope for every plan and every change.
+
+For planning work, follow the exact Phase 1 -> Phase 2 -> Phase 3 sequence and required templates in `docs/ai-development.md`.
+
+Any alternative planning format is invalid.
+
+If a required file is missing or contradictory, stop and call it out before proceeding.

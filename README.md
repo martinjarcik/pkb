@@ -34,7 +34,7 @@ Then open `http://localhost:3000`.
 
 | Document                                                   | Purpose                                                               |
 | ---------------------------------------------------------- | --------------------------------------------------------------------- |
-| [AI_RULES.md](AI_RULES.md)                                 | Coding rules, folder boundaries, naming, testing, quality constraints |
+| [AGENTS.md](AGENTS.md)                                     | Coding rules, folder boundaries, naming, testing, quality constraints |
 | [docs/ai-development.md](docs/ai-development.md)           | Step-by-step feature implementation workflow                          |
 | [docs/architecture.md](docs/architecture.md)               | Domain model and editor design                                        |
 | [docs/ubiquitous-language.md](docs/ubiquitous-language.md) | Canonical vocabulary                                                  |
