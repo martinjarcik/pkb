@@ -57,7 +57,7 @@ identifier.
   - `NoteView` (`app/components/NoteView.vue`) — bounded note display and
     editing region.
     - `NoteTemplate` — template (Liquid) output wrapper.
-      - `NoteEditor` — Tiptap content editing surface.
+      - `NoteEditor` — content editing surface.
 - `InspectorPanel` (`app/components/InspectorPanel.vue`) — inspector shell.
   - `InspectorNavigation` (`app/components/InspectorNavigation.vue`) — tab bar
     for inspector views.
@@ -89,12 +89,9 @@ New contexts may be introduced when corresponding features are specified.
 
 ## Editor architecture
 
-- Tiptap owns the entire note content section as one document.
+- The editor owns the entire note content section as one document.
 - Templates wrap content to provide rendered page context. Liquid and layout
-  code lives outside Tiptap. Templates are not edited inline.
-- Custom Liquid-compatible content blocks are implemented through custom Tiptap
-  extensions and nodes. Blocks that have no interactive editing render as
-  non-editable nodes.
+  code lives outside the editor. Templates are not edited inline.
 - Properties are edited separately in the InspectorPanel, not inside the editor.
 - In filesystem-backed storage, properties are serialized as YAML frontmatter.
 

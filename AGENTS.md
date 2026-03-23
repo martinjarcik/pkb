@@ -44,10 +44,6 @@ Avoid:
 - `index.ts` barrel files
 - abstract base classes
 
-Exception: Tiptap extensions and custom nodes are the sanctioned extensibility
-mechanism for the content editor. These follow Tiptap's own extension API and
-are not general-purpose plugin infrastructure.
-
 ### Examples
 
 Wrong - barrel file re-exporting everything:

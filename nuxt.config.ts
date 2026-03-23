@@ -10,7 +10,6 @@ export default defineNuxtConfig({
     '@nuxtjs/i18n',
     '@nuxt/icon',
     '@nuxt/fonts',
-    'nuxt-tiptap-editor',
     '@nuxt/eslint',
   ],
 
