@@ -119,14 +119,14 @@
                       "x": 0,
                       "y": 0,
                       "width": "fill_container",
-                      "height": 86.14101608889995,
+                      "height": 181.76162614996815,
                       "descendants": {
                         "ZYZFX": {
-                          "y": 35.57050804444997
+                          "y": 83.38081307498408
                         },
                         "Rv7um": {
-                          "x": 169,
-                          "y": 35.57050804444997
+                          "x": -39,
+                          "y": 83.38081307498408
                         }
                       }
                     },
@@ -135,17 +135,17 @@
                       "type": "ref",
                       "ref": "XpvfC",
                       "x": 0,
-                      "y": 86.14101608889995,
+                      "y": 181.76162614996815,
                       "width": "fill_container",
-                      "height": 86.14101608889995,
+                      "height": 181.76162614996815,
                       "descendants": {
                         "ZYZFX": {
                           "content": "modifiedAt",
-                          "y": 35.57050804444997
+                          "y": 83.38081307498408
                         },
                         "Rv7um": {
-                          "x": 169,
-                          "y": 35.57050804444997
+                          "x": -39,
+                          "y": 83.38081307498408
                         }
                       }
                     },
@@ -154,18 +154,18 @@
                       "type": "ref",
                       "ref": "XpvfC",
                       "x": 0,
-                      "y": 172.2820321777999,
+                      "y": 363.5232522999363,
                       "width": "fill_container",
-                      "height": 86.14101608889997,
+                      "height": 181.76162614996827,
                       "descendants": {
                         "ZYZFX": {
                           "content": "favorite",
-                          "y": 35.57050804444999
+                          "y": 83.38081307498413
                         },
                         "Rv7um": {
                           "content": "false",
-                          "x": 181,
-                          "y": 35.57050804444999
+                          "x": -27,
+                          "y": 83.38081307498413
                         }
                       }
                     },
@@ -174,18 +174,18 @@
                       "type": "ref",
                       "ref": "XpvfC",
                       "x": 0,
-                      "y": 258.4230482666999,
+                      "y": 545.2848784499046,
                       "width": "fill_container",
-                      "height": 86.14101608889993,
+                      "height": 181.76162614996818,
                       "descendants": {
                         "ZYZFX": {
                           "content": "pinned",
-                          "y": 35.570508044449966
+                          "y": 83.38081307498409
                         },
                         "Rv7um": {
                           "content": "false",
-                          "x": 181,
-                          "y": 35.570508044449966
+                          "x": -27,
+                          "y": 83.38081307498409
                         }
                       }
                     },
@@ -195,7 +195,7 @@
                       "name": "InspectorPropertyItem",
                       "reusable": true,
                       "width": "fill_container",
-                      "height": 86.14101608889995,
+                      "height": 181.76162614996815,
                       "justifyContent": "space_between",
                       "alignItems": "center",
                       "children": [
@@ -226,14 +226,14 @@
                       "id": "Xn4l2",
                       "name": "spacer",
                       "width": "fill_container",
-                      "height": 148.17071207768646
+                      "height": 312.6472242589372
                     },
                     {
                       "type": "frame",
                       "id": "KkocO",
                       "name": "addBtn",
                       "width": "fill_container",
-                      "height": 148.17071207768655,
+                      "height": 312.6472242589374,
                       "cornerRadius": 6,
                       "stroke": {
                         "thickness": 1,
@@ -1521,6 +1521,7 @@
           "x": 375,
           "y": 56,
           "name": "_modal menu",
+          "enabled": false,
           "clip": true,
           "width": 200,
           "fill": "#FFFFFF",

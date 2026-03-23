@@ -141,12 +141,17 @@ AppLayout
 │ │ │ └── SidebarFoldersActions
 │ │ └── SidebarFoldersList
 │ │ └── SidebarFolderItem
-│ └── SidebarTags
-│ ├── SidebarTagsControls
-│ │ ├── SidebarTagsTitle
-│ │ └── SidebarTagsActions
-│ └── SidebarTagsList
-│ └── SidebarTagItem
+│ ├── SidebarTags
+│ │ ├── SidebarTagsControls
+│ │ │ ├── SidebarTagsTitle
+│ │ │ └── SidebarTagsActions
+│ │ └── SidebarTagsList
+│ │ └── SidebarTagItem
+│ └── SidebarExtras
+│ ├── SidebarExtrasControls
+│ │ ├── SidebarExtrasTitle
+│ │ └── SidebarExtrasActions
+│ └── SidebarExtrasContent
 ├── NotesListPanel
 │ ├── NotesListControls
 │ │ ├── NotesSearch

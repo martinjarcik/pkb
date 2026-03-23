@@ -1,8 +1,9 @@
 <template>
   <aside
     data-testid="inspector-panel"
-    class="h-full border-l border-border bg-card p-4"
+    class="flex h-full min-h-0 flex-col gap-4 border-l border-border bg-card p-4"
   >
-    <span class="text-sm text-muted-foreground">InspectorPanel</span>
+    <InspectorNavigation />
+    <InspectorContent />
   </aside>
 </template>

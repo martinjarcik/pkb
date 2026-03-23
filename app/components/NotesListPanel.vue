@@ -1,8 +1,9 @@
 <template>
   <section
     data-testid="notes-list-panel"
-    class="h-full border-r border-border bg-card p-4"
+    class="flex h-full min-h-0 flex-col gap-4 border-r border-border bg-card p-4"
   >
-    <span class="text-sm text-muted-foreground">NotesListPanel</span>
+    <NotesListControls />
+    <NotesList />
   </section>
 </template>

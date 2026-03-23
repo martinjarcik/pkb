@@ -3,6 +3,8 @@
 This repository is developed exclusively by LLMs.
 Read this file before making any changes.
 
+Every project change MUST follow `docs/ai-development.md` and MUST do all phases.
+
 ## Philosophy
 
 This is a configurable application, not a plugin platform.
@@ -198,9 +200,5 @@ Run after every change:
 - `npm run typecheck` — type-check with nuxt typecheck
 - `npm run test:unit:ci` — unit tests (Vitest)
 
-Git hooks enforce lint, format, typecheck, unit tests, and conventional commit messages automatically on commit.
+Git hooks enforce lint, format, typecheck, unit tests, and conventional commit messages automatically on commit.  
 Allowed commit prefixes: `feat:`, `fix:`, `chore:`, `refactor:`, `docs:`, `test:`, `style:`, `build:`, `ci:`, `perf:`.
-
-## Workflow
-
-See `docs/ai-development.md` for the step-by-step feature implementation workflow.

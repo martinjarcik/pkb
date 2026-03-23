@@ -42,10 +42,29 @@ identifier.
 - `app/layouts/default.vue` — application shell composing SidebarPanel, NotesListPanel,
   page slot, and InspectorPanel in a horizontal flexbox.
 - `app/pages/index.vue` — renders `NotePanel`.
-- `app/components/SidebarPanel.vue` — sidebar region.
-- `app/components/NotesListPanel.vue` — note list region.
-- `app/components/NotePanel.vue` — main note editing region (always visible).
-- `app/components/InspectorPanel.vue` — inspector region.
+- `SidebarPanel` (`app/components/SidebarPanel.vue`) — sidebar shell.
+  - `SidebarNavigation` (`app/components/SidebarNavigation.vue`) — view-selection
+    navigation (for example `All Notes`, `Favorites`).
+- `NotesListPanel` (`app/components/NotesListPanel.vue`) — notes list shell.
+  - `NotesListControls` (`app/components/NotesListControls.vue`) — within-view
+    filtering and refinement controls.
+    - `NotesListActions` (`app/components/NotesListActions.vue`) — list-scoped
+      actions (for example create note).
+  - `NotesList` (`app/components/NotesList.vue`) — scrollable note list.
+- `NotePanel` (`app/components/NotePanel.vue`) — active note region.
+  - `NoteControls` — note toolbar region.
+    - `NoteActions` — note-scoped actions (for example favorite, delete).
+  - `NoteEditor` — Tiptap content editing region.
+- `InspectorPanel` (`app/components/InspectorPanel.vue`) — inspector shell.
+  - `InspectorNavigation` (`app/components/InspectorNavigation.vue`) — tab bar
+    for inspector views.
+  - `InspectorContent` (`app/components/InspectorContent.vue`) — active view
+    container.
+    - `InspectorPropertiesView`
+      (`app/components/InspectorPropertiesView.vue`) — properties editor.
+      - `InspectorPropertiesList`
+        (`app/components/InspectorPropertiesList.vue`) — property key-value
+        list.
 
 ## Bounded contexts
 
@@ -75,6 +94,17 @@ New contexts may be introduced when corresponding features are specified.
   non-editable nodes.
 - Properties are edited separately in the InspectorPanel, not inside the editor.
 - In filesystem-backed storage, properties are serialized as YAML frontmatter.
+
+## UI interaction patterns
+
+- Actions are scoped to their parent context: `NoteActions` operates on the
+  active note, while `NotesListActions` operates on the list as a whole.
+- Filtering happens in two levels: `SidebarNavigation` selects the view (the
+  broad note set), then `NotesListControls` refines that view. `NotesList`
+  renders the resulting set.
+- Property mutation is an in-memory concern. Persistence is a separate
+  cross-cutting concern and should not be part of an individual feature spec
+  unless the feature introduces new persistence behavior.
 
 ## Filesystem representation
 
