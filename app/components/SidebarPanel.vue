@@ -1,7 +1,7 @@
 <template>
   <aside
     data-testid="sidebar-panel"
-    class="h-full border-r border-border bg-card p-4"
+    class="h-full bg-sidebar pl-5 pt-[52px] text-sidebar-foreground"
   >
     <SidebarNavigation />
   </aside>

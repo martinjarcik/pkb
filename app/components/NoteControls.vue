@@ -1,5 +1,8 @@
 <template>
-  <div data-testid="note-controls" class="flex min-h-0 items-center gap-4">
+  <div
+    data-testid="note-controls"
+    class="flex h-[50px] shrink-0 items-center gap-4 px-4"
+  >
     <NoteTitle />
     <NoteActions />
   </div>
