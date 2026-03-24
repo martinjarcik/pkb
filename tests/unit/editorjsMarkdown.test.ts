@@ -1,21 +1,12 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { describe, expect, it } from 'vitest'
 import {
   editorjsBlocksToMarkdown,
   markdownToEditorjsBlocks,
-  resolveEditorjsMarkdownModule,
 } from '~/composables/useEditorjsMarkdown'
 
 describe('editorjsMarkdown', () => {
-  beforeEach(() => {
-    vi.stubGlobal('window', globalThis)
-  })
-
-  afterEach(() => {
-    vi.unstubAllGlobals()
-  })
-
-  it('converts markdown headings and paragraphs to Editor.js blocks', async () => {
-    const blocks = await markdownToEditorjsBlocks('# Title\n\nHello world')
+  it('converts markdown headings and paragraphs to Editor.js blocks', () => {
+    const blocks = markdownToEditorjsBlocks('# Title\n\nHello world')
 
     expect(blocks).toEqual([
       {
@@ -34,8 +25,8 @@ describe('editorjsMarkdown', () => {
     ])
   })
 
-  it('converts Editor.js blocks back to markdown', async () => {
-    const markdown = await editorjsBlocksToMarkdown([
+  it('converts Editor.js blocks back to markdown', () => {
+    const markdown = editorjsBlocksToMarkdown([
       {
         type: 'header',
         data: {
@@ -54,35 +45,57 @@ describe('editorjsMarkdown', () => {
     expect(markdown).toBe('# Title\n\nHello world')
   })
 
-  it('returns no blocks for empty markdown', async () => {
-    await expect(markdownToEditorjsBlocks('')).resolves.toEqual([])
-  })
+  it('converts markdown tables to Editor.js table blocks', () => {
+    const blocks = markdownToEditorjsBlocks(`| Name | Score | City |
+| :--- | :---: | ---: |
+| Ada | 10 | Prague |
+| Linus | 9 | Helsinki |`)
 
-  it('returns empty markdown for empty blocks', async () => {
-    await expect(editorjsBlocksToMarkdown([])).resolves.toBe('')
-  })
-
-  it('resolves the markdown converter from a plain module namespace', () => {
-    const converter = {
-      MDtoBlocks: vi.fn(),
-      MDfromBlocks: vi.fn(),
-    }
-
-    expect(resolveEditorjsMarkdownModule(converter)).toBe(converter)
-  })
-
-  it('resolves the markdown converter from nested default exports', () => {
-    const converter = {
-      MDtoBlocks: vi.fn(),
-      MDfromBlocks: vi.fn(),
-    }
-
-    expect(
-      resolveEditorjsMarkdownModule({
-        default: {
-          default: converter,
+    expect(blocks).toEqual([
+      {
+        type: 'table',
+        data: {
+          alignments: ['left', 'center', 'right'],
+          content: [
+            ['Name', 'Score', 'City'],
+            ['Ada', '10', 'Prague'],
+            ['Linus', '9', 'Helsinki'],
+          ],
+          stretched: false,
+          withHeadings: true,
         },
-      }),
-    ).toBe(converter)
+      },
+    ])
+  })
+
+  it('converts Editor.js table blocks back to markdown', () => {
+    const markdown = editorjsBlocksToMarkdown([
+      {
+        type: 'table',
+        data: {
+          alignments: ['left', 'center', 'right'],
+          content: [
+            ['Name', 'Score', 'City'],
+            ['Ada', '10', 'Prague'],
+            ['Linus', '9', 'Helsinki'],
+          ],
+          stretched: false,
+          withHeadings: true,
+        },
+      },
+    ])
+
+    expect(markdown).toBe(`| Name | Score | City |
+| :--- | :---: | ---: |
+| Ada | 10 | Prague |
+| Linus | 9 | Helsinki |`)
+  })
+
+  it('returns no blocks for empty markdown', () => {
+    expect(markdownToEditorjsBlocks('')).toEqual([])
+  })
+
+  it('returns empty markdown for empty blocks', () => {
+    expect(editorjsBlocksToMarkdown([])).toBe('')
   })
 })
