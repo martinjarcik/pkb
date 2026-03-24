@@ -13,3 +13,7 @@ Derive note timestamps from file system stats (birthtime for createdAt, mtime fo
 ## D004 — 2026-03
 
 Duplicate frontmatter serialization logic between browser and filesystem adapters rather than extracting it, per the three-place extraction rule. Extract to app/notes/ if a third adapter needs it.
+
+## D005 — 2026-03
+
+Load Editor.js and the community Markdown converter only in the browser while keeping Markdown as the canonical note Content format.

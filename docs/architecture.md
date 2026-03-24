@@ -90,10 +90,15 @@ New contexts may be introduced when corresponding features are specified.
 ## Editor architecture
 
 - The editor owns the entire note content section as one document.
+- `NoteEditor` uses Editor.js as the client-side editing surface.
+- Markdown remains the canonical Content format; the UI converts between
+  Markdown and Editor.js blocks in the browser.
 - Templates wrap content to provide rendered page context. Liquid and layout
   code lives outside the editor. Templates are not edited inline.
 - Properties are edited separately in the InspectorPanel, not inside the editor.
 - In filesystem-backed storage, properties are serialized as YAML frontmatter.
+- Until explicit note selection exists, `NoteTemplate` passes the first loaded
+  note's Content into `NoteEditor`.
 
 ## UI interaction patterns
 

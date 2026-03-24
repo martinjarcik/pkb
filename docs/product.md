@@ -15,6 +15,10 @@ When the application opens on the default route, the frontend loads notes from
 `GET /api/notes` and renders them in `NotesListPanel`. Each row shows the note
 `id` as its title, along with a short content preview and modified date.
 
+The `NotePanel` renders the first loaded note inside an Editor.js surface. This
+is a temporary active-note strategy until explicit note selection is
+implemented.
+
 ## Configuration
 
 | Key                         | Type    | Default     | Description                                     |
@@ -45,3 +49,12 @@ the file path relative to the vault root.
 
 When `applicationType` is `browser`, notes are stored in the browser's
 localStorage as JSON-serialized Markdown documents with YAML frontmatter.
+
+### Note Editor
+
+The note content area uses Editor.js as the editing surface.
+
+- Markdown remains the canonical note Content format.
+- The frontend translates between Markdown and Editor.js blocks in the browser.
+- Current editor changes stay local to the editor surface; persistence wiring is
+  still a separate feature.

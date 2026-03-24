@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+- Add an Editor.js-based note editor that loads the first note's Markdown
+  content through a client-side Markdown-to-block translation layer.
 - Add the default application layout with `SidebarPanel`, `NotesListPanel`, `NotePanel`,
   and `InspectorPanel`, including config-driven visibility for optional panels.
 - Load notes into shared frontend state on app open and render them in
