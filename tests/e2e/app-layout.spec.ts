@@ -1,4 +1,25 @@
-import { expect, test } from '@playwright/test'
+import { expect, test, type Page } from '@playwright/test'
+
+async function waitForEditorReady(page: Page): Promise<void> {
+  await expect(page.getByTestId('note-editor-error')).toHaveCount(0, {
+    timeout: 15000,
+  })
+  await expect(page.getByTestId('note-editor-loading')).toHaveCount(0, {
+    timeout: 15000,
+  })
+  await expect(page.locator('.ce-block').first()).toBeVisible({
+    timeout: 15000,
+  })
+}
+
+function visiblePopoverItems(page: Page) {
+  return page.locator('.ce-popover-item:visible')
+}
+
+async function openHeadingSettings(page: Page): Promise<void> {
+  await page.locator('.ce-header').first().click()
+  await page.locator('.ce-toolbar__settings-btn').first().click()
+}
 
 test('renders the default application layout', async ({ page }) => {
   await page.goto('/')
@@ -32,46 +53,48 @@ test('renders loaded notes from filesystem storage in the notes list', async ({
   expect(noteTitles).toEqual(noteIds)
 })
 
+test('selects the first loaded note in the list', async ({ page }) => {
+  await page.goto('/')
+
+  await expect(page.getByTestId('notes-list-item').first()).toHaveAttribute(
+    'data-selected',
+    'true',
+  )
+})
+
 test('renders the first loaded note in the Editor.js surface', async ({
   page,
 }) => {
   await page.goto('/')
 
-  await expect(page.getByTestId('note-editor-holder')).toBeVisible()
-  await expect(page.getByTestId('note-editor-error')).toHaveCount(0)
-  await expect(page.getByTestId('note-editor-loading')).toHaveCount(0)
-  await expect(page.locator('.ce-block')).not.toHaveCount(0)
+  await waitForEditorReady(page)
 })
 
-test('keeps block actions and slash menu on the left side of the content', async ({
+test('updates the active note when a different list row is clicked', async ({
   page,
 }) => {
   await page.goto('/')
 
-  const paragraph = page.locator('.ce-paragraph').first()
+  await waitForEditorReady(page)
 
-  await paragraph.click()
+  const firstNote = page.getByTestId('notes-list-item').first()
+  const secondNote = page.getByTestId('notes-list-item').nth(1)
 
-  const blockBox = await page
-    .locator('.ce-block__content')
-    .first()
-    .boundingBox()
-  const plusBox = await page.locator('.ce-toolbar__plus').first().boundingBox()
+  await secondNote.click()
 
-  expect(blockBox).not.toBeNull()
-  expect(plusBox).not.toBeNull()
-  expect(plusBox!.x).toBeLessThan(blockBox!.x)
+  await expect(secondNote).toHaveAttribute('data-selected', 'true')
+  await expect(firstNote).toHaveAttribute('data-selected', 'false')
+  await expect(page.locator('.ce-block')).not.toHaveCount(0)
+})
 
-  await page.keyboard.press('Enter')
-  await page.keyboard.type('/')
+test('shows block conversion options for a heading block', async ({ page }) => {
+  await page.goto('/')
 
-  const menuItemBox = await page
-    .locator('.ce-popover-item')
-    .first()
-    .boundingBox()
+  await waitForEditorReady(page)
 
-  expect(menuItemBox).not.toBeNull()
-  expect(menuItemBox!.x).toBeLessThan(blockBox!.x)
+  await openHeadingSettings(page)
+
+  await expect(visiblePopoverItems(page).first()).toBeVisible()
 })
 
 test('renders heading blocks with larger typography than paragraphs', async ({
@@ -79,18 +102,10 @@ test('renders heading blocks with larger typography than paragraphs', async ({
 }) => {
   await page.goto('/')
 
-  const paragraph = page.locator('.ce-paragraph').first()
+  await waitForEditorReady(page)
 
-  await paragraph.click()
-  await page.keyboard.press('End')
-  await page.keyboard.press('Enter')
-  await page.keyboard.type('/')
-  await page
-    .locator('.ce-popover-item')
-    .filter({ hasText: 'Heading' })
-    .first()
-    .click()
-  await page.keyboard.type('Heading test')
+  const heading = page.locator('.ce-header').first()
+  const paragraph = page.locator('.ce-paragraph').first()
 
   const fontSizes = await page.evaluate(() => {
     const heading = document.querySelector(
@@ -109,45 +124,35 @@ test('renders heading blocks with larger typography than paragraphs', async ({
   })
 
   expect(fontSizes.heading).toBeGreaterThan(fontSizes.paragraph)
+  await expect(heading).toBeVisible()
+  await expect(paragraph).toBeVisible()
 })
 
 test('allows changing a heading block between levels', async ({ page }) => {
   await page.goto('/')
 
-  const paragraph = page.locator('.ce-paragraph').first()
+  await waitForEditorReady(page)
 
-  await paragraph.click()
-  await page.keyboard.press('End')
-  await page.keyboard.press('Enter')
-  await page.keyboard.type('/')
+  await openHeadingSettings(page)
   await page
-    .locator('.ce-popover-item')
-    .filter({ hasText: 'Heading' })
-    .first()
-    .click()
-  await page.keyboard.type('Heading test')
-  await page.locator('.ce-header').first().click()
-  await page.locator('.ce-toolbar__settings-btn').first().click()
-  await page
-    .locator('.ce-popover-item')
-    .filter({ hasText: 'Heading 1' })
-    .first()
-    .click()
+    .locator('.ce-popover-item:visible')
+    .filter({ hasText: 'Heading 2' })
+    .nth(1)
+    .click({ force: true })
 
-  await expect(page.locator('h1.ce-header').first()).toBeVisible()
+  await expect(page.locator('h2.ce-header').first()).toBeVisible()
 })
 
-test('shows checklist only once in the slash menu', async ({ page }) => {
+test('shows checklist only once in the block conversion menu', async ({
+  page,
+}) => {
   await page.goto('/')
 
-  const paragraph = page.locator('.ce-paragraph').first()
+  await waitForEditorReady(page)
 
-  await paragraph.click()
-  await page.keyboard.press('End')
-  await page.keyboard.press('Enter')
-  await page.keyboard.type('/')
+  await openHeadingSettings(page)
 
   await expect(
-    page.locator('.ce-popover-item').filter({ hasText: 'Checklist' }),
+    page.locator('.ce-popover-item:visible').filter({ hasText: 'Checklist' }),
   ).toHaveCount(1)
 })

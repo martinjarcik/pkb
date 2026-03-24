@@ -15,9 +15,9 @@ When the application opens on the default route, the frontend loads notes from
 `GET /api/notes` and renders them in `NotesListPanel`. Each row shows the note
 `id` as its title, along with a short content preview and modified date.
 
-The `NotePanel` renders the first loaded note inside an Editor.js surface. This
-is a temporary active-note strategy until explicit note selection is
-implemented.
+After notes load, the first note becomes the active note automatically and is
+highlighted in `NotesListPanel`. Selecting a different row updates the active
+note shown in the `NotePanel` Editor.js surface.
 
 ## Configuration
 

@@ -1,7 +1,10 @@
 <script setup lang="ts">
-const { notes } = useNotes()
+const { notes, selectedNoteId } = useNotes()
 
-const noteContent = computed(() => notes.value[0]?.content ?? '')
+const noteContent = computed(
+  () =>
+    notes.value.find((note) => note.id === selectedNoteId.value)?.content ?? '',
+)
 </script>
 
 <template>

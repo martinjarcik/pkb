@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import {
   editorjsBlocksToMarkdown,
   markdownToEditorjsBlocks,
+  resolveEditorjsMarkdownModule,
 } from '~/composables/useEditorjsMarkdown'
 
 describe('editorjsMarkdown', () => {
@@ -59,5 +60,29 @@ describe('editorjsMarkdown', () => {
 
   it('returns empty markdown for empty blocks', async () => {
     await expect(editorjsBlocksToMarkdown([])).resolves.toBe('')
+  })
+
+  it('resolves the markdown converter from a plain module namespace', () => {
+    const converter = {
+      MDtoBlocks: vi.fn(),
+      MDfromBlocks: vi.fn(),
+    }
+
+    expect(resolveEditorjsMarkdownModule(converter)).toBe(converter)
+  })
+
+  it('resolves the markdown converter from nested default exports', () => {
+    const converter = {
+      MDtoBlocks: vi.fn(),
+      MDfromBlocks: vi.fn(),
+    }
+
+    expect(
+      resolveEditorjsMarkdownModule({
+        default: {
+          default: converter,
+        },
+      }),
+    ).toBe(converter)
   })
 })

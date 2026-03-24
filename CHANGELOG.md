@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+- Auto-select the first loaded note on app open, highlight it in
+  `NotesListPanel`, and let list clicks retarget the editor.
 - Add an Editor.js-based note editor that loads the first note's Markdown
   content through a client-side Markdown-to-block translation layer.
 - Add the default application layout with `SidebarPanel`, `NotesListPanel`, `NotePanel`,

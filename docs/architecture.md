@@ -97,7 +97,8 @@ New contexts may be introduced when corresponding features are specified.
   code lives outside the editor. Templates are not edited inline.
 - Properties are edited separately in the InspectorPanel, not inside the editor.
 - In filesystem-backed storage, properties are serialized as YAML frontmatter.
-- Until explicit note selection exists, `NoteTemplate` passes the first loaded
+- `useNotes()` owns the active note id in shared state. After a successful load,
+  it selects the first loaded note by default and `NoteTemplate` passes that
   note's Content into `NoteEditor`.
 
 ## UI interaction patterns

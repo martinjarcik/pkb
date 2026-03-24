@@ -39,8 +39,13 @@ describe('useNotes', () => {
     vi.unstubAllGlobals()
   })
 
-  it('loads notes into shared state', async () => {
+  it('selects the first loaded note', async () => {
     const loadedNotes = [
+      createNote(
+        'first.md',
+        '# First note\n\nA longer preview body for the first note.',
+        '2026-03-24',
+      ),
       createNote(
         'second.md',
         '# Second note\n\nSome note content',
@@ -50,25 +55,60 @@ describe('useNotes', () => {
 
     fetchMock.mockResolvedValue(loadedNotes)
 
-    const { notes, isLoading, loadError, loadNotes } = useNotes()
+    const { notes, isLoading, loadError, loadNotes, selectedNoteId } =
+      useNotes()
 
     await expect(loadNotes()).resolves.toEqual(loadedNotes)
 
     expect(fetchMock).toHaveBeenCalledWith('/api/notes')
     expect(notes.value).toEqual(loadedNotes)
+    expect(selectedNoteId.value).toBe('first.md')
     expect(isLoading.value).toBe(false)
     expect(loadError.value).toBeNull()
   })
 
-  it('handles empty payload', async () => {
+  it('clears the selected note for an empty payload', async () => {
     fetchMock.mockResolvedValue([])
 
-    const { notes, isLoading, loadNotes } = useNotes()
+    const { notes, isLoading, loadNotes, selectedNoteId } = useNotes()
 
     await expect(loadNotes()).resolves.toEqual([])
 
     expect(notes.value).toEqual([])
+    expect(selectedNoteId.value).toBeNull()
     expect(isLoading.value).toBe(false)
+  })
+
+  it('clears the selected note when loading fails', async () => {
+    fetchMock.mockRejectedValue(new Error('Network down'))
+
+    const { notes, loadNotes, selectedNoteId } = useNotes()
+
+    await expect(loadNotes()).rejects.toThrow('Network down')
+
+    expect(notes.value).toEqual([])
+    expect(selectedNoteId.value).toBeNull()
+  })
+
+  it('updates the selected note by id', () => {
+    const { notes, selectedNoteId, selectNoteById } = useNotes()
+
+    notes.value = [
+      createNote(
+        'first.md',
+        '# First note\n\nA longer preview body for the first note.',
+        '2026-03-24',
+      ),
+      createNote(
+        'second.md',
+        '# Second note\n\nSome note content',
+        '2026-03-23',
+      ),
+    ]
+
+    selectNoteById('second.md')
+
+    expect(selectedNoteId.value).toBe('second.md')
   })
 
   it('preserves display order and title source', () => {

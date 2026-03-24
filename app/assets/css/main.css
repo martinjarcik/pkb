@@ -286,10 +286,29 @@
   }
 
   .notes-list-item {
+    background: transparent;
+    border: 0;
     border-bottom: 1px solid hsl(var(--border));
     border-left: var(--app-notes-list-item-accent-width) solid transparent;
+    cursor: pointer;
     padding: var(--app-space-xl) var(--app-space-xl) var(--app-space-xl)
       calc(var(--app-space-xl) - var(--app-notes-list-item-accent-width));
+    text-align: left;
+    width: 100%;
+  }
+
+  .notes-list-item:hover {
+    background: hsl(var(--accent) / 0.5);
+  }
+
+  .notes-list-item:focus-visible {
+    outline: 2px solid hsl(var(--ring));
+    outline-offset: -2px;
+  }
+
+  .notes-list-item-selected {
+    background: hsl(var(--accent));
+    border-left-color: hsl(var(--primary));
   }
 
   .notes-list-item-content {

@@ -48,7 +48,16 @@ export function useNotes() {
   const notes = useState<Note[]>('notes.items', () => [])
   const isLoading = useState('notes.isLoading', () => false)
   const loadError = useState<string | null>('notes.loadError', () => null)
+  const selectedNoteId = useState<string | null>(
+    'notes.selectedNoteId',
+    () => null,
+  )
   const listItems = computed(() => createNotesListItems(notes.value))
+
+  function selectNoteById(id: string | null): void {
+    selectedNoteId.value =
+      id !== null && notes.value.some((note) => note.id === id) ? id : null
+  }
 
   async function loadNotes(): Promise<Note[]> {
     isLoading.value = true
@@ -58,10 +67,12 @@ export function useNotes() {
       const loadedNotes = await globalThis.$fetch<Note[]>('/api/notes')
 
       notes.value = loadedNotes
+      selectNoteById(loadedNotes[0]?.id ?? null)
 
       return loadedNotes
     } catch (error) {
       notes.value = []
+      selectNoteById(null)
       loadError.value =
         error instanceof Error ? error.message : 'Failed to load notes'
 
@@ -75,7 +86,9 @@ export function useNotes() {
     notes,
     isLoading,
     loadError,
+    selectedNoteId,
     listItems,
+    selectNoteById,
     loadNotes,
   }
 }

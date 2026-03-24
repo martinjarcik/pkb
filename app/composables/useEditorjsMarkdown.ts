@@ -15,6 +15,42 @@ type EditorjsMarkdownImport = {
 
 let editorjsMarkdownModulePromise: Promise<EditorjsMarkdownModule> | null = null
 
+function isEditorjsMarkdownModule(
+  value: unknown,
+): value is EditorjsMarkdownModule {
+  return (
+    typeof value === 'object' &&
+    value !== null &&
+    'MDtoBlocks' in value &&
+    typeof value.MDtoBlocks === 'function' &&
+    'MDfromBlocks' in value &&
+    typeof value.MDfromBlocks === 'function'
+  )
+}
+
+export function resolveEditorjsMarkdownModule(
+  module: unknown,
+): EditorjsMarkdownModule {
+  const candidates = [
+    module,
+    (module as EditorjsMarkdownImport | undefined)?.default,
+    (module as EditorjsMarkdownImport | undefined)?.['module.exports'],
+    (module as { default?: EditorjsMarkdownImport } | undefined)?.default
+      ?.default,
+    (module as { default?: EditorjsMarkdownImport } | undefined)?.default?.[
+      'module.exports'
+    ],
+  ]
+
+  for (const candidate of candidates) {
+    if (isEditorjsMarkdownModule(candidate)) {
+      return candidate
+    }
+  }
+
+  throw new Error('Editor.js markdown converter failed to load')
+}
+
 function withSuppressedConsoleLogs<T>(callback: () => Promise<T>): Promise<T> {
   const originalLog = console.log
 
@@ -38,17 +74,7 @@ async function loadEditorjsMarkdownModule(): Promise<EditorjsMarkdownModule> {
 
   if (!editorjsMarkdownModulePromise) {
     editorjsMarkdownModulePromise = import('editorjs-md-parser').then(
-      (module) => {
-        const resolvedModule =
-          (module as EditorjsMarkdownImport).default ??
-          (module as EditorjsMarkdownImport)['module.exports']
-
-        if (!resolvedModule) {
-          throw new Error('Editor.js markdown converter failed to load')
-        }
-
-        return resolvedModule
-      },
+      (module) => resolveEditorjsMarkdownModule(module),
     )
   }
 

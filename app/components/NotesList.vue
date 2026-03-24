@@ -1,5 +1,6 @@
 <script setup lang="ts">
-const { isLoading, listItems, loadError } = useNotes()
+const { isLoading, listItems, loadError, selectedNoteId, selectNoteById } =
+  useNotes()
 </script>
 
 <template>
@@ -21,12 +22,18 @@ const { isLoading, listItems, loadError } = useNotes()
     </div>
 
     <div v-else class="flex flex-col">
-      <article
+      <button
         v-for="item in listItems"
         :key="item.id"
+        type="button"
         :data-note-id="item.id"
+        :data-selected="item.id === selectedNoteId ? 'true' : 'false'"
         data-testid="notes-list-item"
         class="notes-list-item"
+        :class="{
+          'notes-list-item-selected': item.id === selectedNoteId,
+        }"
+        @click="selectNoteById(item.id)"
       >
         <div class="notes-list-item-content">
           <p
@@ -42,7 +49,7 @@ const { isLoading, listItems, loadError } = useNotes()
             {{ item.meta }}
           </p>
         </div>
-      </article>
+      </button>
     </div>
   </div>
 </template>
