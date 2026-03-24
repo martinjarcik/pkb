@@ -8,6 +8,7 @@ import { createFilesystemStorage } from '~/storage/filesystem'
 import type { NoteStorage } from '~/storage/types'
 
 type ServerNotesConfig = Pick<AppConfig, 'applicationType' | 'vault'>
+let filesystemStoragePromise: Promise<NoteStorage> | null = null
 
 async function loadServerNotesConfig(): Promise<ServerNotesConfig> {
   const rawConfig = await readFile(
@@ -31,9 +32,13 @@ async function loadServerNotesConfig(): Promise<ServerNotesConfig> {
 }
 
 async function getFilesystemStorage(): Promise<NoteStorage> {
-  const config = await loadServerNotesConfig()
+  if (!filesystemStoragePromise) {
+    filesystemStoragePromise = loadServerNotesConfig().then((config) =>
+      createFilesystemStorage(config.vault),
+    )
+  }
 
-  return createFilesystemStorage(config.vault)
+  return filesystemStoragePromise
 }
 
 export async function loadNotesResponse(

@@ -1,10 +1,5 @@
 <script setup lang="ts">
-const { notes, selectedNoteId } = useNotes()
-
-const noteContent = computed(
-  () =>
-    notes.value.find((note) => note.id === selectedNoteId.value)?.content ?? '',
-)
+const { selectedNote } = useNotes()
 </script>
 
 <template>
@@ -12,6 +7,6 @@ const noteContent = computed(
     data-testid="note-template"
     class="note-template-shell flex min-h-0 min-w-0 flex-1 flex-col"
   >
-    <NoteEditor :content="noteContent" />
+    <NoteEditor :content="selectedNote?.content ?? ''" />
   </div>
 </template>

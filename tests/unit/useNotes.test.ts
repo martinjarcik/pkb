@@ -111,6 +111,14 @@ describe('useNotes', () => {
     expect(selectedNoteId.value).toBe('second.md')
   })
 
+  it('truncates long description previews to 120 characters', () => {
+    const [listItem] = createNotesListItems([
+      createNote('long.md', `# Heading\n\n${'a'.repeat(121)}`, '2026-03-24'),
+    ])
+
+    expect(listItem?.description).toBe(`${'a'.repeat(117)}...`)
+  })
+
   it('preserves display order and title source', () => {
     const listItems = createNotesListItems([
       createNote(

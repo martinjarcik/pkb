@@ -9,6 +9,7 @@ export type NotesListItem = {
   meta: string
 }
 
+// Keep list presentation in this file until a second list-specific consumer appears.
 function createNotesListDescription(content: string): string {
   const previewLines: string[] = []
 
@@ -52,6 +53,9 @@ export function useNotes() {
     'notes.selectedNoteId',
     () => null,
   )
+  const selectedNote = computed(
+    () => notes.value.find((note) => note.id === selectedNoteId.value) ?? null,
+  )
   const listItems = computed(() => createNotesListItems(notes.value))
 
   function selectNoteById(id: string | null): void {
@@ -87,6 +91,7 @@ export function useNotes() {
     isLoading,
     loadError,
     selectedNoteId,
+    selectedNote,
     listItems,
     selectNoteById,
     loadNotes,

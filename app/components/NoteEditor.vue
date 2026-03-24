@@ -1,8 +1,5 @@
 <script setup lang="ts">
-type EditorjsBlock = {
-  type: string
-  data: Record<string, unknown>
-}
+import type { EditorjsBlock } from '~/composables/useEditorjsMarkdown'
 
 type EditorjsInstance = {
   blocks: {
