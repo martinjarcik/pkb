@@ -1,20 +1,22 @@
-import type { AppConfig } from '~/config/loader'
-import { loadConfig } from '~/config/loader'
+import type { ApplicationType } from '~/config/loader'
 import { browserStorage } from './browser'
 import { createFilesystemStorage } from './filesystem'
 import type { NoteStorage } from './types'
 
-export function getNoteStorage(config?: AppConfig): NoteStorage {
-  const resolvedConfig = config ?? loadConfig()
+export type StorageConfig = {
+  applicationType: ApplicationType
+  vault: string
+}
 
-  switch (resolvedConfig.applicationType) {
+export function getNoteStorage(config: StorageConfig): NoteStorage {
+  switch (config.applicationType) {
     case 'browser':
       return browserStorage
     case 'desktop':
-      return createFilesystemStorage(resolvedConfig.vault)
+      return createFilesystemStorage(config.vault)
     default:
       throw new Error(
-        `Unsupported application type: ${resolvedConfig.applicationType as string}`,
+        `Unsupported application type: ${config.applicationType as string}`,
       )
   }
 }

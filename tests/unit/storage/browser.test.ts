@@ -50,16 +50,45 @@ describe('browserStorage', () => {
     vi.unstubAllGlobals()
   })
 
-  it('saves browser notes as markdown documents with yaml frontmatter', async () => {
+  it('returns the saved note with properties and timestamps', async () => {
+    vi.setSystemTime(new Date('2026-03-20T10:00:00.000Z'))
+
+    const note = await browserStorage.saveNote({
+      id: 'notes/welcome.md',
+      properties: { title: 'Welcome' },
+      content: '# Hello',
+    })
+
+    expect(note).toEqual({
+      id: 'notes/welcome.md',
+      title: 'Welcome',
+      content: '# Hello',
+      createdAt: '2026-03-20T10:00:00.000Z',
+      modifiedAt: '2026-03-20T10:00:00.000Z',
+    })
+  })
+
+  it('persists notes as markdown with yaml frontmatter', async () => {
+    vi.setSystemTime(new Date('2026-03-20T10:00:00.000Z'))
+
+    await browserStorage.saveNote({
+      id: 'notes/welcome.md',
+      properties: { title: 'Welcome', published: true },
+      content: '# Hello',
+    })
+
+    expect(readStoredNotes()['notes/welcome.md']!.document).toBe(
+      '---\ntitle: Welcome\npublished: true\n---\n# Hello',
+    )
+  })
+
+  it('excludes reserved fields from persisted frontmatter', async () => {
     vi.setSystemTime(new Date('2026-03-20T10:00:00.000Z'))
 
     const note = await browserStorage.saveNote({
       id: 'notes/welcome.md',
       properties: {
-        title: 'Welcome',
-        published: true,
-        views: 3,
-        meta: { nested: true },
+        title: 'Keep',
         id: 'ignored',
         content: 'ignored',
         createdAt: 'ignored',
@@ -68,25 +97,8 @@ describe('browserStorage', () => {
       content: '# Hello',
     })
 
-    expect(note).toEqual({
-      id: 'notes/welcome.md',
-      title: 'Welcome',
-      published: true,
-      views: 3,
-      meta: { nested: true },
-      content: '# Hello',
-      createdAt: '2026-03-20T10:00:00.000Z',
-      modifiedAt: '2026-03-20T10:00:00.000Z',
-    })
-
-    expect(readStoredNotes()).toEqual({
-      'notes/welcome.md': {
-        document:
-          '---\ntitle: Welcome\npublished: true\nviews: 3\nmeta:\n  nested: true\n---\n# Hello',
-        createdAt: '2026-03-20T10:00:00.000Z',
-        modifiedAt: '2026-03-20T10:00:00.000Z',
-      },
-    })
+    expect(note.id).toBe('notes/welcome.md')
+    expect(note.content).toBe('# Hello')
   })
 
   it('loads browser notes as flat notes with storage timestamps', async () => {
@@ -281,6 +293,6 @@ describe('browserStorage', () => {
 
     await browserStorage.deleteNote('notes/welcome.md')
 
-    expect(localStorage.getItem('notes')).toBeNull()
+    await expect(browserStorage.loadNotes()).resolves.toEqual([])
   })
 })

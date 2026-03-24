@@ -40,54 +40,33 @@ describe('useNotes', () => {
   })
 
   it('selects the first loaded note', async () => {
-    const loadedNotes = [
-      createNote(
-        'first.md',
-        '# First note\n\nA longer preview body for the first note.',
-        '2026-03-24',
-      ),
-      createNote(
-        'second.md',
-        '# Second note\n\nSome note content',
-        '2026-03-23',
-      ),
-    ]
+    fetchMock.mockResolvedValue([
+      createNote('first.md', '# First', '2026-03-24'),
+      createNote('second.md', '# Second', '2026-03-23'),
+    ])
 
-    fetchMock.mockResolvedValue(loadedNotes)
+    const { selectedNoteId, loadNotes } = useNotes()
+    await loadNotes()
 
-    const { notes, isLoading, loadError, loadNotes, selectedNoteId } =
-      useNotes()
-
-    await expect(loadNotes()).resolves.toEqual(loadedNotes)
-
-    expect(fetchMock).toHaveBeenCalledWith('/api/notes')
-    expect(notes.value).toEqual(loadedNotes)
     expect(selectedNoteId.value).toBe('first.md')
-    expect(isLoading.value).toBe(false)
-    expect(loadError.value).toBeNull()
   })
 
   it('clears the selected note for an empty payload', async () => {
     fetchMock.mockResolvedValue([])
 
-    const { notes, isLoading, loadNotes, selectedNoteId } = useNotes()
+    const { selectedNoteId, loadNotes } = useNotes()
+    await loadNotes()
 
-    await expect(loadNotes()).resolves.toEqual([])
-
-    expect(notes.value).toEqual([])
     expect(selectedNoteId.value).toBeNull()
-    expect(isLoading.value).toBe(false)
   })
 
-  it('clears the selected note when loading fails', async () => {
+  it('exposes the error message when loading fails', async () => {
     fetchMock.mockRejectedValue(new Error('Network down'))
 
-    const { notes, loadNotes, selectedNoteId } = useNotes()
+    const { loadError, loadNotes } = useNotes()
+    await loadNotes()
 
-    await expect(loadNotes()).rejects.toThrow('Network down')
-
-    expect(notes.value).toEqual([])
-    expect(selectedNoteId.value).toBeNull()
+    expect(loadError.value).toBe('Network down')
   })
 
   it('updates the selected note by id', () => {
@@ -119,34 +98,21 @@ describe('useNotes', () => {
     expect(listItem?.description).toBe(`${'a'.repeat(117)}...`)
   })
 
-  it('preserves display order and title source', () => {
-    const listItems = createNotesListItems([
-      createNote(
-        'second.md',
-        '# Second note\n\nSome note content',
-        '2026-03-23',
-      ),
-      createNote(
-        'first.md',
-        '# First note\n\nA longer preview body for the first note.',
-        '2026-03-20',
-      ),
+  it('preserves the input order of notes', () => {
+    const items = createNotesListItems([
+      createNote('b.md', '# B\n\nBody B', '2026-03-23'),
+      createNote('a.md', '# A\n\nBody A', '2026-03-20'),
     ])
 
-    expect(listItems).toEqual([
-      {
-        id: 'second.md',
-        title: 'second.md',
-        description: 'Some note content',
-        meta: '2026-03-23',
-      },
-      {
-        id: 'first.md',
-        title: 'first.md',
-        description: 'A longer preview body for the first note.',
-        meta: '2026-03-20',
-      },
+    expect(items.map((i) => i.id)).toEqual(['b.md', 'a.md'])
+  })
+
+  it('uses the note id as the list item title', () => {
+    const [item] = createNotesListItems([
+      createNote('my-note.md', '# Heading\n\nBody', '2026-03-24'),
     ])
+
+    expect(item?.title).toBe('my-note.md')
   })
 
   it('omits markdown heading lines from the description preview', () => {

@@ -166,7 +166,7 @@ describe('filesystemStorage', () => {
     await expect(storage.deleteNote('missing.md')).resolves.toBeUndefined()
   })
 
-  it('rejects note IDs that traverse outside the vault', async () => {
+  it('rejects saving with a path-traversal note ID', async () => {
     await expect(
       storage.saveNote({
         id: '../outside.md',
@@ -174,13 +174,15 @@ describe('filesystemStorage', () => {
         content: 'escaped',
       }),
     ).rejects.toThrow('Note ID resolves outside the vault: ../outside.md')
+  })
 
+  it('rejects deleting with a path-traversal note ID', async () => {
     await expect(storage.deleteNote('../outside.md')).rejects.toThrow(
       'Note ID resolves outside the vault: ../outside.md',
     )
   })
 
-  it('rejects absolute paths as note IDs', async () => {
+  it('rejects saving with an absolute-path note ID', async () => {
     await expect(
       storage.saveNote({
         id: '/etc/passwd',
@@ -188,7 +190,9 @@ describe('filesystemStorage', () => {
         content: 'escaped',
       }),
     ).rejects.toThrow('Note ID resolves outside the vault: /etc/passwd')
+  })
 
+  it('rejects deleting with an absolute-path note ID', async () => {
     await expect(storage.deleteNote('/tmp/evil.md')).rejects.toThrow(
       'Note ID resolves outside the vault: /tmp/evil.md',
     )

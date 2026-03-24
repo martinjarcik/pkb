@@ -80,7 +80,7 @@ export function useNotes() {
       loadError.value =
         error instanceof Error ? error.message : 'Failed to load notes'
 
-      throw error
+      return []
     } finally {
       isLoading.value = false
     }

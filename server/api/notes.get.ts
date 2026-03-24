@@ -2,49 +2,45 @@ import { readFile } from 'node:fs/promises'
 import { resolve } from 'node:path'
 import { defineEventHandler } from 'h3'
 import yaml from 'yaml'
-import type { AppConfig } from '~/config/loader'
 import type { Note } from '~/notes/types'
-import { createFilesystemStorage } from '~/storage/filesystem'
+import type { StorageConfig } from '~/storage/router'
+import { getNoteStorage } from '~/storage/router'
 import type { NoteStorage } from '~/storage/types'
 
-type ServerNotesConfig = Pick<AppConfig, 'applicationType' | 'vault'>
-let filesystemStoragePromise: Promise<NoteStorage> | null = null
-
-async function loadServerNotesConfig(): Promise<ServerNotesConfig> {
+async function loadServerConfig(): Promise<StorageConfig> {
   const rawConfig = await readFile(
     resolve(process.cwd(), 'app/config/default.yaml'),
     'utf-8',
   )
-  const parsed = yaml.parse(rawConfig) as Partial<ServerNotesConfig> | null
+  const parsed = yaml.parse(rawConfig) as Record<string, unknown> | null
 
-  if (parsed?.applicationType !== 'desktop') {
-    throw new Error('Filesystem notes API requires desktop applicationType')
+  if (typeof parsed !== 'object' || parsed === null) {
+    throw new Error('Config must be an object')
   }
 
-  if (typeof parsed.vault !== 'string' || parsed.vault.length === 0) {
-    throw new Error('Filesystem notes API requires a non-empty vault path')
-  }
-
-  return {
-    applicationType: 'desktop',
-    vault: parsed.vault,
-  }
-}
-
-async function getFilesystemStorage(): Promise<NoteStorage> {
-  if (!filesystemStoragePromise) {
-    filesystemStoragePromise = loadServerNotesConfig().then((config) =>
-      createFilesystemStorage(config.vault),
+  if (
+    parsed.applicationType !== 'desktop' &&
+    parsed.applicationType !== 'browser'
+  ) {
+    throw new Error(
+      `Config applicationType must be "desktop" or "browser", got: ${String(parsed.applicationType)}`,
     )
   }
 
-  return filesystemStoragePromise
+  if (typeof parsed.vault !== 'string' || parsed.vault.length === 0) {
+    throw new Error('Config vault must be a non-empty string')
+  }
+
+  return {
+    applicationType: parsed.applicationType,
+    vault: parsed.vault,
+  }
 }
 
 export async function loadNotesResponse(
   storage?: NoteStorage,
 ): Promise<Note[]> {
-  const resolvedStorage = storage ?? (await getFilesystemStorage())
+  const resolvedStorage = storage ?? getNoteStorage(await loadServerConfig())
 
   return resolvedStorage.loadNotes()
 }

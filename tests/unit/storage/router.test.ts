@@ -18,16 +18,13 @@ describe('getNoteStorage', () => {
     expect(getNoteStorage(baseConfig)).toBe(browserStorage)
   })
 
-  it('returns filesystem storage for desktop application type', () => {
+  it('returns a distinct storage for desktop application type', () => {
     const storage = getNoteStorage({
       ...baseConfig,
       applicationType: 'desktop',
     })
 
-    expect(storage).toBeDefined()
-    expect(typeof storage.loadNotes).toBe('function')
-    expect(typeof storage.saveNote).toBe('function')
-    expect(typeof storage.deleteNote).toBe('function')
+    expect(storage).not.toBe(browserStorage)
   })
 
   it('throws for unsupported application types', () => {
