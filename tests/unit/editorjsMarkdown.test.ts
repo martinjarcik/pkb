@@ -19,6 +19,12 @@ describe('editorjsMarkdown', () => {
       {
         type: 'paragraph',
         data: {
+          text: '',
+        },
+      },
+      {
+        type: 'paragraph',
+        data: {
           text: 'Hello world',
         },
       },
@@ -42,7 +48,7 @@ describe('editorjsMarkdown', () => {
       },
     ])
 
-    expect(markdown).toBe('# Title\n\nHello world')
+    expect(markdown).toBe('# Title\nHello world')
   })
 
   it('converts markdown tables to Editor.js table blocks', () => {
@@ -243,6 +249,10 @@ describe('editorjsMarkdown', () => {
       },
       {
         type: 'paragraph',
+        data: { text: '' },
+      },
+      {
+        type: 'paragraph',
         data: { text: 'b' },
       },
     ])
@@ -285,9 +295,9 @@ describe('editorjsMarkdown', () => {
     expect(editorjsBlocksToMarkdown(markdownToEditorjsBlocks(md))).toBe(md)
   })
 
-  it('normalizes three newlines between paragraphs to the minimal two-newline gap', () => {
+  it('preserves three newlines between paragraphs', () => {
     expect(editorjsBlocksToMarkdown(markdownToEditorjsBlocks('a\n\n\nb'))).toBe(
-      'a\n\nb',
+      'a\n\n\nb',
     )
   })
 
@@ -295,23 +305,74 @@ describe('editorjsMarkdown', () => {
     const md = 'a\n\nb'
     const blocks = markdownToEditorjsBlocks(md)
     expect(editorjsBlocksToMarkdown(blocks)).toBe(md)
-    expect(markdownToEditorjsBlocks('a\n\n\nb')).toEqual(blocks)
+    expect(blocks).toEqual([
+      { type: 'paragraph', data: { text: 'a' } },
+      { type: 'paragraph', data: { text: '' } },
+      { type: 'paragraph', data: { text: 'b' } },
+    ])
   })
 
-  it('converts a single newline inside a paragraph to a line break in the editor', () => {
+  it('converts a single newline into separate paragraph blocks', () => {
     expect(markdownToEditorjsBlocks('Hello\nWorld')).toEqual([
       {
         type: 'paragraph',
-        data: { text: 'Hello<br>World' },
+        data: { text: 'Hello' },
+      },
+      {
+        type: 'paragraph',
+        data: { text: 'World' },
       },
     ])
   })
 
-  it('round-trips soft line breaks in paragraphs', () => {
+  it('round-trips single-newline paragraph separation', () => {
     const md = 'Hello\nWorld'
     const blocks = markdownToEditorjsBlocks(md)
     expect(editorjsBlocksToMarkdown(blocks)).toBe(md)
     expect(markdownToEditorjsBlocks(md)).toEqual(blocks)
+  })
+
+  it('treats attributed br tags as paragraph separators', () => {
+    expect(
+      editorjsBlocksToMarkdown([
+        {
+          type: 'paragraph',
+          data: {
+            text: 'Hello<br rtrvr-ls="12~ow,13~lc" rtrvr-ro="42">World',
+          },
+        },
+      ]),
+    ).toBe('Hello\nWorld')
+
+    expect(
+      markdownToEditorjsBlocks(
+        'Hello<br rtrvr-ls="12~ow,13~lc" rtrvr-ro="42">World',
+      ),
+    ).toEqual([
+      {
+        type: 'paragraph',
+        data: { text: 'Hello' },
+      },
+      {
+        type: 'paragraph',
+        data: { text: 'World' },
+      },
+    ])
+  })
+
+  it('ignores the editor trailing empty paragraph when saving markdown', () => {
+    expect(
+      editorjsBlocksToMarkdown([
+        {
+          type: 'paragraph',
+          data: { text: 'Hello world' },
+        },
+        {
+          type: 'paragraph',
+          data: { text: '' },
+        },
+      ]),
+    ).toBe('Hello world')
   })
 
   it('returns no blocks for empty markdown', () => {

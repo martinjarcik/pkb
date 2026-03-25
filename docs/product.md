@@ -56,5 +56,5 @@ The note content area uses Editor.js as the editing surface.
 
 - Markdown remains the canonical note Content format.
 - The frontend translates between Markdown and Editor.js blocks in the browser.
-- Current editor changes stay local to the editor surface; persistence wiring is
-  still a separate feature.
+- Content autosaves after 2 seconds of editor idle time.
+- Switching to a different note flushes any pending autosave before selection changes.

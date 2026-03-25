@@ -1,5 +1,6 @@
 import { useState } from '#app'
 import { computed } from 'vue'
+import { buildSaveNoteInput } from '~/notes/saveNoteInput'
 import type { Note } from '~/notes/types'
 
 export type NotesListItem = {
@@ -91,9 +92,16 @@ export function createNotesListItems(notes: Note[]): NotesListItem[] {
 }
 
 export function useNotes() {
+  type EditorFlush = () => Promise<void>
+
   const notes = useState<Note[]>('notes.items', () => [])
   const isLoading = useState('notes.isLoading', () => false)
   const loadError = useState<string | null>('notes.loadError', () => null)
+  const saveError = useState<string | null>('notes.saveError', () => null)
+  const editorFlush = useState<EditorFlush | null>(
+    'notes.editorFlush',
+    () => null,
+  )
   const selectedNoteId = useState<string | null>(
     'notes.selectedNoteId',
     () => null,
@@ -103,9 +111,60 @@ export function useNotes() {
   )
   const listItems = computed(() => createNotesListItems(notes.value))
 
-  function selectNoteById(id: string | null): void {
-    selectedNoteId.value =
+  function replaceNote(nextNote: Note): void {
+    notes.value = notes.value
+      .map((note) => (note.id === nextNote.id ? nextNote : note))
+      .sort(
+        (a, b) =>
+          new Date(b.modifiedAt).getTime() - new Date(a.modifiedAt).getTime(),
+      )
+  }
+
+  function updateSelectedNoteContent(content: string): void {
+    if (!selectedNote.value) {
+      return
+    }
+
+    notes.value = notes.value.map((note) =>
+      note.id === selectedNote.value?.id ? { ...note, content } : note,
+    )
+  }
+
+  function registerEditorFlush(flush: EditorFlush | null): void {
+    editorFlush.value = flush
+  }
+
+  async function selectNoteById(id: string | null): Promise<void> {
+    const nextSelectedNoteId =
       id !== null && notes.value.some((note) => note.id === id) ? id : null
+
+    if (nextSelectedNoteId === selectedNoteId.value) {
+      return
+    }
+
+    await editorFlush.value?.()
+    selectedNoteId.value = nextSelectedNoteId
+  }
+
+  async function saveSelectedNoteContent(content: string): Promise<void> {
+    if (!selectedNote.value) {
+      return
+    }
+
+    saveError.value = null
+    updateSelectedNoteContent(content)
+
+    try {
+      const savedNote = await globalThis.$fetch<Note>('/api/notes', {
+        method: 'PUT',
+        body: buildSaveNoteInput(selectedNote.value, content),
+      })
+
+      replaceNote(savedNote)
+    } catch (error) {
+      saveError.value =
+        error instanceof Error ? error.message : 'Failed to save note'
+    }
   }
 
   async function loadNotes(): Promise<Note[]> {
@@ -116,12 +175,12 @@ export function useNotes() {
       const loadedNotes = await globalThis.$fetch<Note[]>('/api/notes')
 
       notes.value = loadedNotes
-      selectNoteById(loadedNotes[0]?.id ?? null)
+      await selectNoteById(loadedNotes[0]?.id ?? null)
 
       return loadedNotes
     } catch (error) {
       notes.value = []
-      selectNoteById(null)
+      await selectNoteById(null)
       loadError.value =
         error instanceof Error ? error.message : 'Failed to load notes'
 
@@ -135,9 +194,12 @@ export function useNotes() {
     notes,
     isLoading,
     loadError,
+    saveError,
     selectedNoteId,
     selectedNote,
     listItems,
+    registerEditorFlush,
+    saveSelectedNoteContent,
     selectNoteById,
     loadNotes,
   }

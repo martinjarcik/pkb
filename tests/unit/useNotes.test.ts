@@ -69,7 +69,7 @@ describe('useNotes', () => {
     expect(loadError.value).toBe('Network down')
   })
 
-  it('updates the selected note by id', () => {
+  it('updates the selected note by id', async () => {
     const { notes, selectedNoteId, selectNoteById } = useNotes()
 
     notes.value = [
@@ -85,7 +85,7 @@ describe('useNotes', () => {
       ),
     ]
 
-    selectNoteById('second.md')
+    await selectNoteById('second.md')
 
     expect(selectedNoteId.value).toBe('second.md')
   })

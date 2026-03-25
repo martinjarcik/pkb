@@ -140,43 +140,20 @@ function countNewlines(text: string): number {
   return text.match(/\n/g)?.length ?? 0
 }
 
-function blankLineMirrorsParagraphSpacing(
-  prevType: string,
-  nextType: string,
-): boolean {
-  if (prevType === 'paragraph' && nextType === 'paragraph') {
-    return true
-  }
-
-  if (prevType === 'paragraph' && nextType === 'list') {
-    return true
-  }
-
-  if (prevType === 'list' && nextType === 'paragraph') {
-    return true
-  }
-
-  return false
-}
-
 function emptyParagraphsForBlockGap(
-  prevType: string,
-  nextType: string,
+  _prevType: string,
+  _nextType: string,
   gapNewlines: number,
 ): number {
   if (gapNewlines < 2) {
     return 0
   }
 
-  if (blankLineMirrorsParagraphSpacing(prevType, nextType)) {
-    return Math.max(1, gapNewlines - 2)
-  }
-
-  return Math.max(0, gapNewlines - 2)
+  return gapNewlines - 1
 }
 
 function editorHtmlLineBreaksToMarkdownNewlines(text: string): string {
-  return text.replace(/<br\s*\/?>/gi, '\n')
+  return text.replace(/<br\b[^>]*\/?>/gi, '\n')
 }
 
 function markdownNewlinesToEditorHtml(text: string): string {
@@ -185,13 +162,10 @@ function markdownNewlinesToEditorHtml(text: string): string {
 
 function newlinesBetweenSubstantive(blanksBefore: number): number {
   if (blanksBefore <= 0) {
-    return 2
-  }
-  if (blanksBefore === 1) {
-    return 2
+    return 1
   }
 
-  return blanksBefore + 2
+  return blanksBefore + 1
 }
 
 function emptyParagraphBlock(): EditorjsBlock {
@@ -245,10 +219,7 @@ function blocksFromRootWithBlankLines(
       }
     }
 
-    const block = parseMarkdownNode(node)
-    if (block !== null) {
-      out.push(block)
-    }
+    out.push(...parseMarkdownNode(node))
   }
 
   const last = children[children.length - 1]
@@ -303,13 +274,19 @@ function parseHeading(node: MarkdownNode): EditorjsBlock {
   }
 }
 
-function parseParagraph(node: MarkdownNode): EditorjsBlock {
+function createParagraphBlock(text: string): EditorjsBlock {
   return {
     type: 'paragraph',
     data: {
-      text: parseInlineNodesToHtml(node.children),
+      text,
     },
   }
+}
+
+function parseParagraph(node: MarkdownNode): EditorjsBlock[] {
+  return parseInlineNodesToHtml(node.children)
+    .split(/<br\b[^>]*\/?>/i)
+    .map((line) => createParagraphBlock(line))
 }
 
 function parseListItem(node: MarkdownNode): string {
@@ -379,7 +356,7 @@ function parseCode(node: MarkdownNode): EditorjsBlock {
 function normalizeSimpleQuoteText(text: string): string {
   return text
     .replace(/\r\n|\r|\n/g, ' ')
-    .replace(/<br\s*\/?>/gi, ' ')
+    .replace(/<br\b[^>]*\/?>/gi, ' ')
     .trim()
 }
 
@@ -416,24 +393,24 @@ function parseTable(node: MarkdownNode): EditorjsBlock {
   }
 }
 
-function parseMarkdownNode(node: MarkdownNode): EditorjsBlock | null {
+function parseMarkdownNode(node: MarkdownNode): EditorjsBlock[] {
   switch (node.type) {
     case 'heading':
-      return parseHeading(node)
+      return [parseHeading(node)]
     case 'paragraph':
       return parseParagraph(node)
     case 'list':
-      return parseList(node)
+      return [parseList(node)]
     case 'thematicBreak':
-      return parseDelimiter()
+      return [parseDelimiter()]
     case 'code':
-      return parseCode(node)
+      return [parseCode(node)]
     case 'blockquote':
-      return parseBlockquote(node)
+      return [parseBlockquote(node)]
     case 'table':
-      return parseTable(node)
+      return [parseTable(node)]
     default:
-      return null
+      return []
   }
 }
 
@@ -619,13 +596,25 @@ export function markdownToEditorjsBlocks(markdown: string): EditorjsBlock[] {
 }
 
 export function editorjsBlocksToMarkdown(blocks: EditorjsBlock[]): string {
-  if (blocks.length === 0) {
+  const normalizedBlocks = [...blocks]
+
+  while (
+    normalizedBlocks.length > 0 &&
+    isEmptyParagraphBlock(normalizedBlocks[normalizedBlocks.length - 1]!)
+  ) {
+    normalizedBlocks.pop()
+  }
+
+  if (normalizedBlocks.length === 0) {
     return ''
   }
 
   let i = 0
   let leadingBlanks = 0
-  while (i < blocks.length && isEmptyParagraphBlock(blocks[i]!)) {
+  while (
+    i < normalizedBlocks.length &&
+    isEmptyParagraphBlock(normalizedBlocks[i]!)
+  ) {
     leadingBlanks++
     i++
   }
@@ -634,8 +623,8 @@ export function editorjsBlocksToMarkdown(blocks: EditorjsBlock[]): string {
   const blanksBeforeEach: number[] = []
   let pendingBlanks = leadingBlanks
 
-  for (; i < blocks.length; i++) {
-    const block = blocks[i]!
+  for (; i < normalizedBlocks.length; i++) {
+    const block = normalizedBlocks[i]!
     if (isEmptyParagraphBlock(block)) {
       pendingBlanks++
     } else {

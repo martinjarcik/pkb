@@ -81,6 +81,16 @@ async function emitMarkdownContent(): Promise<void> {
   emit('content-change', markdown)
 }
 
+async function flushContentSync(): Promise<void> {
+  if (!contentSyncTimeout) {
+    return
+  }
+
+  clearTimeout(contentSyncTimeout)
+  contentSyncTimeout = null
+  await emitMarkdownContent()
+}
+
 function scheduleContentSync(): void {
   if (contentSyncTimeout) {
     clearTimeout(contentSyncTimeout)
@@ -89,7 +99,7 @@ function scheduleContentSync(): void {
   contentSyncTimeout = setTimeout(() => {
     contentSyncTimeout = null
     void emitMarkdownContent()
-  }, 250)
+  }, 2000)
 }
 
 onMounted(async () => {
@@ -212,6 +222,11 @@ onMounted(async () => {
 watch(
   () => props.content,
   (nextContent) => {
+    if (contentSyncTimeout) {
+      clearTimeout(contentSyncTimeout)
+      contentSyncTimeout = null
+    }
+
     if (!editor || nextContent === lastRenderedContent) {
       return
     }
@@ -219,6 +234,10 @@ watch(
     void renderMarkdownContent(nextContent)
   },
 )
+
+defineExpose({
+  flushContentSync,
+})
 
 onBeforeUnmount(() => {
   if (contentSyncTimeout) {

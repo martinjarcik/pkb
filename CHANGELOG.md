@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+- Add 2-second debounced autosave for note content, including flush-on-switch
+  behavior so pending edits persist before the active note changes.
 - Auto-select the first loaded note on app open, highlight it in
   `NotesListPanel`, and let list clicks retarget the editor.
 - Add an Editor.js-based note editor that loads the first note's Markdown

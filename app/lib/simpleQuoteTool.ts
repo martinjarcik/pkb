@@ -47,7 +47,7 @@ function makeFragment(htmlString: string): DocumentFragment {
 function normalizeSimpleQuoteHtml(html: string): string {
   return html
     .replace(/\r\n|\r|\n/g, ' ')
-    .replace(/<br\s*\/?>/gi, ' ')
+    .replace(/<br\b[^>]*\/?>/gi, ' ')
     .trim()
 }
 

@@ -1,6 +1,10 @@
 <script setup lang="ts">
 const { isLoading, listItems, loadError, selectedNoteId, selectNoteById } =
   useNotes()
+
+async function handleSelectNote(id: string): Promise<void> {
+  await selectNoteById(id)
+}
 </script>
 
 <template>
@@ -33,7 +37,7 @@ const { isLoading, listItems, loadError, selectedNoteId, selectNoteById } =
         :class="{
           'notes-list-item-selected': item.id === selectedNoteId,
         }"
-        @click="selectNoteById(item.id)"
+        @click="handleSelectNote(item.id)"
       >
         <div class="notes-list-item-content">
           <p
