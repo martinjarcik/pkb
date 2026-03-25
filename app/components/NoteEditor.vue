@@ -237,6 +237,11 @@ onMounted(async () => {
         scheduleContentSync()
       },
       tools: {
+        paragraph: {
+          config: {
+            preserveBlank: true,
+          },
+        },
         header: {
           class: Header,
           inlineToolbar: true,

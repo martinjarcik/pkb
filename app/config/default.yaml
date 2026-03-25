@@ -9,3 +9,6 @@ layout:
   showInspectorPanel: true
   showSidebarPanel: true
   showNotesListPanel: true
+
+theme:
+  accentColor: '#3f57dfff'

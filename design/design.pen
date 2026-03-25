@@ -27,7 +27,7 @@
           "name": "InspectorContent",
           "clip": true,
           "width": 250,
-          "height": "fill_container(1100)",
+          "height": "fill_container(959)",
           "fill": {
             "type": "color",
             "color": "#fafaf91a",
@@ -119,14 +119,14 @@
                       "x": 0,
                       "y": 0,
                       "width": "fill_container",
-                      "height": 1707.5712234510686,
+                      "height": 7602.619336055087,
                       "descendants": {
                         "ZYZFX": {
-                          "y": 846.2856117255343
+                          "y": 3793.8096680275435
                         },
                         "Rv7um": {
                           "x": -39,
-                          "y": 846.2856117255343
+                          "y": 3793.8096680275435
                         }
                       }
                     },
@@ -135,17 +135,17 @@
                       "type": "ref",
                       "ref": "XpvfC",
                       "x": 0,
-                      "y": 1707.5712234510686,
+                      "y": 7602.619336055087,
                       "width": "fill_container",
-                      "height": 1707.5712234510686,
+                      "height": 7602.619336055087,
                       "descendants": {
                         "ZYZFX": {
                           "content": "modifiedAt",
-                          "y": 846.2856117255343
+                          "y": 3793.8096680275435
                         },
                         "Rv7um": {
                           "x": -39,
-                          "y": 846.2856117255343
+                          "y": 3793.8096680275435
                         }
                       }
                     },
@@ -154,18 +154,18 @@
                       "type": "ref",
                       "ref": "XpvfC",
                       "x": 0,
-                      "y": 3415.142446902137,
+                      "y": 15205.238672110174,
                       "width": "fill_container",
-                      "height": 1707.57122345107,
+                      "height": 7602.619336055095,
                       "descendants": {
                         "ZYZFX": {
                           "content": "favorite",
-                          "y": 846.285611725535
+                          "y": 3793.8096680275476
                         },
                         "Rv7um": {
                           "content": "false",
                           "x": -27,
-                          "y": 846.285611725535
+                          "y": 3793.8096680275476
                         }
                       }
                     },
@@ -174,18 +174,18 @@
                       "type": "ref",
                       "ref": "XpvfC",
                       "x": 0,
-                      "y": 5122.713670353207,
+                      "y": 22807.85800816527,
                       "width": "fill_container",
-                      "height": 1707.571223451069,
+                      "height": 7602.619336055091,
                       "descendants": {
                         "ZYZFX": {
                           "content": "pinned",
-                          "y": 846.2856117255345
+                          "y": 3793.8096680275453
                         },
                         "Rv7um": {
                           "content": "false",
                           "x": -27,
-                          "y": 846.2856117255345
+                          "y": 3793.8096680275453
                         }
                       }
                     },
@@ -195,7 +195,7 @@
                       "name": "InspectorPropertyItem",
                       "reusable": true,
                       "width": "fill_container",
-                      "height": 1707.5712234510686,
+                      "height": 7602.619336055087,
                       "justifyContent": "space_between",
                       "alignItems": "center",
                       "children": [
@@ -226,14 +226,14 @@
                       "id": "Xn4l2",
                       "name": "spacer",
                       "width": "fill_container",
-                      "height": 2937.184347129079
+                      "height": 13077.225830681002
                     },
                     {
                       "type": "frame",
                       "id": "KkocO",
                       "name": "addBtn",
                       "width": "fill_container",
-                      "height": 2937.1843471290813,
+                      "height": 13077.22583068101,
                       "cornerRadius": 6,
                       "stroke": {
                         "thickness": 1,
@@ -1077,7 +1077,7 @@
           "name": "SidebarPanel",
           "clip": true,
           "width": 220,
-          "height": 1090,
+          "height": 908,
           "fill": "#fafafaff",
           "stroke": {
             "align": "inside",
@@ -1122,7 +1122,7 @@
                     },
                     "5rc5Q": {
                       "fill": "#ffffff",
-                      "content": "All Notes",
+                      "content": "Inbox",
                       "x": 27,
                       "y": 0
                     }
