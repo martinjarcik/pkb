@@ -1,6 +1,6 @@
 import { useState } from '#app'
 import { computed } from 'vue'
-import { noteNameFromId } from '~/notes/noteNameFromId'
+import { noteTitleFromId } from '~/notes/noteTitleFromId'
 import { buildSaveNoteInput } from '~/notes/saveNoteInput'
 import type { Note } from '~/notes/types'
 
@@ -82,7 +82,7 @@ function createNotesListMeta(modifiedAt: string): string {
 export function createNotesListItems(notes: Note[]): NotesListItem[] {
   return notes.map((note) => ({
     id: note.id,
-    title: noteNameFromId(note.id),
+    title: noteTitleFromId(note.id),
     description: createNotesListDescription(note.content),
     meta: createNotesListMeta(note.modifiedAt),
   }))
@@ -105,6 +105,9 @@ export function useNotes() {
   )
   const selectedNote = computed(
     () => notes.value.find((note) => note.id === selectedNoteId.value) ?? null,
+  )
+  const selectedNoteTitle = computed(() =>
+    selectedNote.value ? noteTitleFromId(selectedNote.value.id) : '',
   )
   const listItems = computed(() => createNotesListItems(notes.value))
 
@@ -194,6 +197,7 @@ export function useNotes() {
     saveError,
     selectedNoteId,
     selectedNote,
+    selectedNoteTitle,
     listItems,
     registerEditorFlush,
     saveSelectedNoteContent,

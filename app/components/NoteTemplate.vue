@@ -3,8 +3,12 @@ type NoteEditorHandle = {
   flushContentSync(): Promise<void>
 }
 
-const { registerEditorFlush, saveSelectedNoteContent, selectedNote } =
-  useNotes()
+const {
+  registerEditorFlush,
+  saveSelectedNoteContent,
+  selectedNote,
+  selectedNoteTitle,
+} = useNotes()
 const noteEditor = ref<NoteEditorHandle | null>(null)
 
 let pendingSave = Promise.resolve()
@@ -32,6 +36,7 @@ onBeforeUnmount(() => {
     data-testid="note-template"
     class="note-template-shell flex min-h-0 min-w-0 flex-1 flex-col"
   >
+    <NoteTitle v-if="selectedNoteTitle" :title="selectedNoteTitle" />
     <NoteEditor
       ref="noteEditor"
       :content="selectedNote?.content ?? ''"

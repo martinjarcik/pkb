@@ -53,6 +53,28 @@ test('renders the first loaded note in the Editor.js surface', async ({
   await waitForEditorReady(page)
 })
 
+test('shows the selected note title in the template and updates on selection change', async ({
+  page,
+}) => {
+  await page.goto('/')
+
+  await waitForEditorReady(page)
+
+  const noteTitle = page.getByTestId('note-title')
+  const firstListTitle = page.getByTestId('notes-list-item-title').first()
+  const secondListTitle = page.getByTestId('notes-list-item-title').nth(1)
+  const secondNote = page.getByTestId('notes-list-item').nth(1)
+
+  await expect(noteTitle).toHaveText(await firstListTitle.innerText())
+  await expect(
+    page.getByTestId('note-controls').getByTestId('note-title'),
+  ).toHaveCount(0)
+
+  await secondNote.click()
+
+  await expect(noteTitle).toHaveText(await secondListTitle.innerText())
+})
+
 test('updates the active note when a different list row is clicked', async ({
   page,
 }) => {

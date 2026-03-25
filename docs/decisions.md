@@ -17,3 +17,7 @@ Duplicate frontmatter serialization logic between browser and filesystem adapter
 ## D005 — 2026-03
 
 Load Editor.js and the community Markdown converter only in the browser while keeping Markdown as the canonical note Content format.
+
+## D006 — 2026-03
+
+Use `Note title` as the canonical term for the user-visible label derived from a note `id`, while treating any user-defined `title` property as ordinary note data unless a future feature wires it into the UI.

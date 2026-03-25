@@ -90,6 +90,44 @@ describe('useNotes', () => {
     expect(selectedNoteId.value).toBe('second.md')
   })
 
+  it('exposes the selected note title for the current selection', async () => {
+    const { notes, selectedNoteTitle, selectNoteById } = useNotes()
+
+    notes.value = [
+      createNote('backlog/first-note.md', '# First', '2026-03-24'),
+      createNote('second-note.md', '# Second', '2026-03-23'),
+    ]
+
+    await selectNoteById('backlog/first-note.md')
+
+    expect(selectedNoteTitle.value).toBe('first-note')
+  })
+
+  it('clears the selected note title when no note is selected', async () => {
+    const { notes, selectedNoteTitle, selectNoteById } = useNotes()
+
+    notes.value = [createNote('first.md', '# First', '2026-03-24')]
+
+    await selectNoteById('first.md')
+    await selectNoteById(null)
+
+    expect(selectedNoteTitle.value).toBe('')
+  })
+
+  it('updates the selected note title when the selection changes', async () => {
+    const { notes, selectedNoteTitle, selectNoteById } = useNotes()
+
+    notes.value = [
+      createNote('first.md', '# First', '2026-03-24'),
+      createNote('nested/second.md', '# Second', '2026-03-23'),
+    ]
+
+    await selectNoteById('first.md')
+    await selectNoteById('nested/second.md')
+
+    expect(selectedNoteTitle.value).toBe('second')
+  })
+
   it('truncates long description previews to 120 characters', () => {
     const [listItem] = createNotesListItems([
       createNote('long.md', `# Heading\n\n${'a'.repeat(121)}`, '2026-03-24'),

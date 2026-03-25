@@ -13,11 +13,13 @@ Default visibility of the sidebar, note list, and inspector is set in
 
 When the application opens on the default route, the frontend loads notes from
 `GET /api/notes` and renders them in `NotesListPanel`. Each row shows the note
-`id` as its title, along with a short content preview and modified date.
+title derived from its `id`, along with a short content preview and modified
+date.
 
 After notes load, the first note becomes the active note automatically and is
 highlighted in `NotesListPanel`. Selecting a different row updates the active
-note shown in the `NotePanel` Editor.js surface.
+note shown in the `NotePanel`, including the note title above the Editor.js
+surface.
 
 ## Configuration
 
@@ -54,6 +56,8 @@ localStorage as JSON-serialized Markdown documents with YAML frontmatter.
 
 The note content area uses Editor.js as the editing surface.
 
+- The selected note title is displayed above the editor surface inside the
+  template area.
 - Markdown remains the canonical note Content format.
 - The frontend translates between Markdown and Editor.js blocks in the browser.
 - Content autosaves after 2 seconds of editor idle time.

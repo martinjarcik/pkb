@@ -4,8 +4,8 @@ function noteFileBaseName(id: string): string {
   return slash === -1 ? normalized : normalized.slice(slash + 1)
 }
 
-/** Display name: last path segment of the note id without a `.md` suffix. */
-export function noteNameFromId(id: string): string {
+/** Display title: last path segment of the note id without a `.md` suffix. */
+export function noteTitleFromId(id: string): string {
   const base = noteFileBaseName(id)
   return base.endsWith('.md') ? base.slice(0, -3) : base
 }

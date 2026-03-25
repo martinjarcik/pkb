@@ -40,6 +40,9 @@
     --app-note-surface-padding-inline: 6.25rem;
     --app-note-surface-padding-top: 3.125rem;
     --app-note-template-background: #3e56de12;
+    --app-note-template-gap: 1.75rem;
+    --app-note-title-max-width: 39.5rem;
+    --app-note-title-font-size: 1.4375rem;
     --app-font-size-sm: 0.875rem;
     --app-font-size-xs: 0.6875rem;
     --app-font-size-2xs: 0.625rem;
@@ -128,6 +131,7 @@
   .note-controls-shell {
     gap: var(--app-space-lg);
     height: var(--app-toolbar-height);
+    justify-content: flex-end;
     padding-inline: var(--app-space-lg);
   }
 
@@ -156,8 +160,20 @@
 
   .note-template-shell {
     background-color: var(--app-note-template-background);
+    gap: var(--app-note-template-gap);
     padding-inline: clamp(1.5rem, 3vw, var(--app-note-surface-padding-inline));
     padding-top: clamp(1.5rem, 4vh, var(--app-note-surface-padding-top));
+  }
+
+  .note-title-shell {
+    color: hsl(var(--foreground));
+    font-size: var(--app-note-title-font-size);
+    font-weight: 700;
+    line-height: 1.2;
+    margin-inline: auto;
+    max-width: var(--app-note-title-max-width);
+    text-align: center;
+    width: 100%;
   }
 
   .note-editor-shell {

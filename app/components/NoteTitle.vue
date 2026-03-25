@@ -1,5 +1,11 @@
+<script setup lang="ts">
+defineProps<{
+  title: string
+}>()
+</script>
+
 <template>
-  <div data-testid="note-title" class="min-w-0 flex-1">
-    <span class="app-placeholder-label">NoteTitle</span>
-  </div>
+  <h1 data-testid="note-title" class="note-title-shell">
+    {{ title }}
+  </h1>
 </template>
