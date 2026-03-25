@@ -132,6 +132,10 @@ function parseMarkdown(markdown: string): MarkdownNode {
   return remark().use(remarkGfm).parse(markdown) as MarkdownNode
 }
 
+function normalizeMarkdownProse(markdown: string): string {
+  return dedentContiguousMarkdownListRuns(inlineHtmlToMarkdown(markdown))
+}
+
 function isNonEmptyString(value: unknown): value is string {
   return typeof value === 'string' && value.length > 0
 }
@@ -154,6 +158,44 @@ function emptyParagraphsForBlockGap(
 
 function editorHtmlLineBreaksToMarkdownNewlines(text: string): string {
   return text.replace(/<br\b[^>]*\/?>/gi, '\n')
+}
+
+function inlineHtmlToMarkdown(text: string): string {
+  let normalized = editorHtmlLineBreaksToMarkdownNewlines(text)
+
+  const replacements: Array<[RegExp, (...args: string[]) => string]> = [
+    [
+      /<code\b[^>]*>([\s\S]*?)<\/code>/gi,
+      (_match, content) => `\`${content}\``,
+    ],
+    [
+      /<(i|em)\b[^>]*>([\s\S]*?)<\/\1>/gi,
+      (_match, _tag, content) => `*${content}*`,
+    ],
+    [
+      /<(b|strong)\b[^>]*>([\s\S]*?)<\/\1>/gi,
+      (_match, _tag, content) => `**${content}**`,
+    ],
+    [
+      /<(s|del)\b[^>]*>([\s\S]*?)<\/\1>/gi,
+      (_match, _tag, content) => `~~${content}~~`,
+    ],
+    [
+      /<a\b[^>]*href=(["'])(.*?)\1[^>]*>([\s\S]*?)<\/a>/gi,
+      (_match, _quote, href, content) => `[${content}](${href})`,
+    ],
+  ]
+
+  for (const [pattern, replacer] of replacements) {
+    let previous = ''
+
+    while (normalized !== previous) {
+      previous = normalized
+      normalized = normalized.replace(pattern, replacer)
+    }
+  }
+
+  return normalized
 }
 
 function markdownNewlinesToEditorHtml(text: string): string {
@@ -417,7 +459,7 @@ function parseMarkdownNode(node: MarkdownNode): EditorjsBlock[] {
 function normalizeCellValue(value: unknown): string {
   const normalizedValue = value === undefined || value === null ? '' : value
 
-  return String(normalizedValue)
+  return inlineHtmlToMarkdown(String(normalizedValue))
     .replace(/\r\n/g, '\n')
     .replace(/\n/g, '<br>')
     .replace(/\|/g, '\\|')
@@ -517,17 +559,13 @@ function renderMarkdownBlock(block: EditorjsBlock): string {
   switch (block.type) {
     case 'header': {
       const level = Math.min(Math.max(Number(block.data.level ?? 1) || 1, 1), 6)
-      const text = editorHtmlLineBreaksToMarkdownNewlines(
-        String(block.data.text ?? ''),
-      )
+      const text = inlineHtmlToMarkdown(String(block.data.text ?? ''))
       return `${'#'.repeat(level)} ${text}`.trimEnd()
     }
     case 'paragraph':
-      return editorHtmlLineBreaksToMarkdownNewlines(
-        String(block.data.text ?? ''),
-      )
+      return inlineHtmlToMarkdown(String(block.data.text ?? ''))
     case 'simpleQuote':
-      return `> ${normalizeSimpleQuoteText(String(block.data.text ?? ''))}`
+      return `> ${inlineHtmlToMarkdown(String(block.data.text ?? ''))}`
     case 'list': {
       const items = Array.isArray(block.data.items) ? block.data.items : []
       const style =
@@ -541,7 +579,7 @@ function renderMarkdownBlock(block: EditorjsBlock): string {
         return items
           .map((item) => {
             const { content, checked } = normalizeListItemRecord(item)
-            const line = editorHtmlLineBreaksToMarkdownNewlines(content)
+            const line = inlineHtmlToMarkdown(content)
             const mark = checked ? '[x]' : '[ ]'
 
             return `- ${mark} ${line}`.trimEnd()
@@ -552,7 +590,7 @@ function renderMarkdownBlock(block: EditorjsBlock): string {
       return items
         .map((item, index) => {
           const { content } = normalizeListItemRecord(item)
-          const line = editorHtmlLineBreaksToMarkdownNewlines(content)
+          const line = inlineHtmlToMarkdown(content)
 
           return style === 'ordered' ? `${index + 1}. ${line}` : `- ${line}`
         })
@@ -576,7 +614,7 @@ export function markdownToEditorjsBlocks(markdown: string): EditorjsBlock[] {
 
   const normalizedMarkdown = transformProseOutsideFencedCodeBlocks(
     markdown,
-    dedentContiguousMarkdownListRuns,
+    normalizeMarkdownProse,
   )
   const parsedMarkdown = parseMarkdown(normalizedMarkdown)
   const children = parsedMarkdown.children ?? []

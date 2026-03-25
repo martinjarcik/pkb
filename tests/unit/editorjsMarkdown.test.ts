@@ -97,6 +97,30 @@ describe('editorjsMarkdown', () => {
 | Linus | 9 | Helsinki |`)
   })
 
+  it('converts inline html inside table cells back to markdown syntax', () => {
+    const markdown = editorjsBlocksToMarkdown([
+      {
+        type: 'table',
+        data: {
+          alignments: ['left', 'left'],
+          content: [
+            ['Token', 'Role'],
+            [
+              '<code class="inline-code">Klong Test</code>',
+              '<i>Search fixture</i> with <a href="https://example.com/fixtures/sn-02">link</a>',
+            ],
+          ],
+          stretched: false,
+          withHeadings: true,
+        },
+      },
+    ])
+
+    expect(markdown).toBe(`| Token | Role |
+| :--- | :--- |
+| \`Klong Test\` | *Search fixture* with [link](https://example.com/fixtures/sn-02) |`)
+  })
+
   it('converts markdown blockquotes to simple quote blocks', () => {
     const blocks = markdownToEditorjsBlocks('> Quoted text')
 
@@ -330,6 +354,48 @@ describe('editorjsMarkdown', () => {
     const blocks = markdownToEditorjsBlocks(md)
     expect(editorjsBlocksToMarkdown(blocks)).toBe(md)
     expect(markdownToEditorjsBlocks(md)).toEqual(blocks)
+  })
+
+  it('translates inline html markup to markdown on save', () => {
+    expect(
+      editorjsBlocksToMarkdown([
+        {
+          type: 'paragraph',
+          data: {
+            text: '<i>Secondary seeds:</i> <a href="https://example.com/fixtures/sn-02">SN-02 index</a>',
+          },
+        },
+        {
+          type: 'paragraph',
+          data: {
+            text: 'Use <code class="inline-code">fixture</code> with <b>bold</b> text.',
+          },
+        },
+      ]),
+    ).toBe(
+      '*Secondary seeds:* [SN-02 index](https://example.com/fixtures/sn-02)\nUse `fixture` with **bold** text.',
+    )
+  })
+
+  it('translates inline html markup from markdown input into editor formatting', () => {
+    expect(
+      markdownToEditorjsBlocks(
+        '<i>Secondary seeds:</i> <a href="https://example.com/fixtures/sn-02">SN-02 index</a>\nUse <code class="inline-code">fixture</code> with <b>bold</b> text.',
+      ),
+    ).toEqual([
+      {
+        type: 'paragraph',
+        data: {
+          text: '<i>Secondary seeds:</i> <a href="https://example.com/fixtures/sn-02">SN-02 index</a>',
+        },
+      },
+      {
+        type: 'paragraph',
+        data: {
+          text: 'Use <code class="inline-code">fixture</code> with <b>bold</b> text.',
+        },
+      },
+    ])
   })
 
   it('treats attributed br tags as paragraph separators', () => {
