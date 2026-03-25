@@ -1,4 +1,5 @@
 applicationType: desktop
+locale: en
 vault: ./vault
 
 editor:

@@ -25,3 +25,7 @@ Use `Note title` as the canonical term for the user-visible label derived from a
 ## D007 — 2026-03
 
 Persist note title edits by renaming the note `id` basename, keeping the current folder and using numeric suffixes when the target filename already exists.
+
+## D008 — 2026-03
+
+Use `@nuxtjs/i18n` locale files for user-facing UI strings while selecting the active locale from `AppConfig`, with English as the default fallback.

@@ -5,6 +5,7 @@ import { getNoteStorage } from '~/storage/router'
 
 const baseConfig: AppConfig = {
   applicationType: 'browser',
+  locale: 'en',
   vault: './vault',
   editor: {
     autosaveDelay: 2000,

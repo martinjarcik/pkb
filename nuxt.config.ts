@@ -20,7 +20,9 @@ export default defineNuxtConfig({
 
   i18n: {
     defaultLocale: 'en',
-    locales: ['en'],
+    restructureDir: 'app',
+    langDir: 'locales',
+    locales: [{ code: 'en', file: 'en.json' }],
   },
 
   tailwindcss: {

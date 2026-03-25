@@ -34,6 +34,7 @@ const emit = defineEmits<{
 
 const { editorjsBlocksToMarkdown, markdownToEditorjsBlocks } =
   useEditorjsMarkdown()
+const { t } = useI18n()
 
 const holder = ref<HTMLDivElement | null>(null)
 const editorError = ref<string | null>(null)
@@ -104,11 +105,77 @@ function scheduleContentSync(): void {
   }, props.autosaveDelay)
 }
 
+function createEditorMessages() {
+  return {
+    ui: {
+      blockTunes: {
+        toggler: {
+          'Click to tune': t('editor.uiClickToTune'),
+          'or drag to move': t('editor.uiOrDragToMove'),
+        },
+      },
+      inlineToolbar: {
+        converter: {
+          'Convert to': t('editor.uiConvertTo'),
+        },
+      },
+      popover: {
+        Filter: t('editor.uiFilter'),
+        'Nothing found': t('editor.uiNothingFound'),
+        'Convert to': t('editor.uiConvertTo'),
+      },
+      toolbar: {
+        toolbox: {
+          Add: t('editor.uiAdd'),
+        },
+      },
+    },
+    toolNames: {
+      Text: t('editor.toolText'),
+      Heading: t('editor.toolHeading'),
+      List: t('editor.toolList'),
+      Code: t('editor.toolCode'),
+      Delimiter: t('editor.toolDelimiter'),
+      'Inline Code': t('editor.toolInlineCode'),
+      InlineCode: t('editor.toolInlineCode'),
+      Table: t('editor.toolTable'),
+      'Simple Quote': t('editor.toolSimpleQuote'),
+      'Ordered List': t('editor.toolOrderedList'),
+      'Unordered List': t('editor.toolUnorderedList'),
+      Checklist: t('editor.toolChecklist'),
+    },
+    tools: {
+      header: {
+        'Heading 1': t('editor.toolHeading1'),
+        'Heading 2': t('editor.toolHeading2'),
+        'Heading 3': t('editor.toolHeading3'),
+      },
+      list: {
+        Ordered: t('editor.toolOrderedList'),
+        Unordered: t('editor.toolUnorderedList'),
+        Checklist: t('editor.toolChecklist'),
+      },
+    },
+    blockTunes: {
+      delete: {
+        Delete: t('editor.uiDelete'),
+        'Click to delete': t('editor.uiClickToDelete'),
+      },
+      moveUp: {
+        'Move up': t('editor.uiMoveUp'),
+      },
+      moveDown: {
+        'Move down': t('editor.uiMoveDown'),
+      },
+    },
+  }
+}
+
 onMounted(async () => {
   await nextTick()
 
   if (!holder.value) {
-    editorError.value = 'Editor container is unavailable'
+    editorError.value = t('noteEditor.errorContainerUnavailable')
     isEditorLoading.value = false
 
     return
@@ -147,6 +214,9 @@ onMounted(async () => {
     editor = new Editorjs({
       holder: holder.value,
       autofocus: false,
+      i18n: {
+        messages: createEditorMessages(),
+      },
       data: {
         blocks,
       },
@@ -160,28 +230,28 @@ onMounted(async () => {
           toolbox: [
             {
               icon: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24" rtrvr-ls="0~hs"><path stroke="currentColor" stroke-linecap="round" stroke-width="2" d="M6 7L6 12M6 17L6 12M6 12L12 12M12 7V12M12 17L12 12"></path><path stroke="currentColor" stroke-linecap="round" stroke-width="2" d="M19 17V10.2135C19 10.1287 18.9011 10.0824 18.836 10.1367L16 12.5"></path></svg>',
-              title: 'Heading 1',
+              title: t('editor.toolHeading1'),
               data: {
                 level: 1,
               },
             },
             {
               icon: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-linecap="round" stroke-width="2" d="M6 7L6 12M6 17L6 12M6 12L12 12M12 7V12M12 17L12 12"></path><path stroke="currentColor" stroke-linecap="round" stroke-width="2" d="M16 11C16 10 19 9.5 19 12C19 13.9771 16.0684 13.9997 16.0012 16.8981C15.9999 16.9533 16.0448 17 16.1 17L19.3 17"></path></svg>',
-              title: 'Heading 2',
+              title: t('editor.toolHeading2'),
               data: {
                 level: 2,
               },
             },
             {
               icon: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-linecap="round" stroke-width="2" d="M6 7L6 12M6 17L6 12M6 12L12 12M12 7V12M12 17L12 12"></path><path stroke="currentColor" stroke-linecap="round" stroke-width="2" d="M16 11C16 10.5 16.8323 10 17.6 10C18.3677 10 19.5 10.311 19.5 11.5C19.5 12.5315 18.7474 12.9022 18.548 12.9823C18.5378 12.9864 18.5395 13.0047 18.5503 13.0063C18.8115 13.0456 20 13.3065 20 14.8C20 16 19.5 17 17.8 17C17.8 17 16 17 16 16.3"></path></svg>',
-              title: 'Heading 3',
+              title: t('editor.toolHeading3'),
               data: {
                 level: 3,
               },
             },
           ],
           config: {
-            placeholder: 'Heading',
+            placeholder: t('editor.placeholderHeading'),
             levels: [1, 2, 3],
             defaultLevel: 2,
           },
@@ -215,7 +285,7 @@ onMounted(async () => {
     lastRenderedContent = props.content
   } catch (error) {
     editorError.value =
-      error instanceof Error ? error.message : 'Failed to load the editor'
+      error instanceof Error ? error.message : t('noteEditor.errorFallback')
   } finally {
     isEditorLoading.value = false
   }
@@ -269,7 +339,7 @@ onBeforeUnmount(() => {
           data-testid="note-editor-loading"
           class="notes-list-state notes-list-state-muted absolute inset-0 z-10 bg-card/80 backdrop-blur-sm"
         >
-          Loading editor...
+          {{ $t('noteEditor.loading') }}
         </div>
 
         <div
@@ -284,7 +354,7 @@ onBeforeUnmount(() => {
           data-testid="note-editor-loading"
           class="notes-list-state notes-list-state-muted"
         >
-          Loading editor...
+          {{ $t('noteEditor.loading') }}
         </div>
       </template>
     </ClientOnly>

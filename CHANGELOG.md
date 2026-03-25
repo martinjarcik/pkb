@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+- Add config-backed i18n infrastructure with an English locale file and
+  translated UI/editor strings wired through `@nuxtjs/i18n`.
 - Display the active note title in `NoteTemplate`, make it editable inline, and
   save title changes by renaming the note filename with collision-safe suffixes.
 - Add 2-second debounced autosave for note content, including flush-on-switch

@@ -9,6 +9,13 @@ const { fetchMock, stateStore } = vi.hoisted(() => ({
 
 vi.mock('#app', () => {
   return {
+    useNuxtApp() {
+      return {
+        $i18n: {
+          t: (key: string) => key,
+        },
+      }
+    },
     useState<T>(key: string, init: () => T) {
       if (!stateStore.has(key)) {
         stateStore.set(key, { value: init() })
@@ -170,7 +177,9 @@ describe('useNotes', () => {
     const renamePromise = renameSelectedNoteTitle('Renamed')
 
     await selectNoteById('second.md')
-    resolveRename?.(createNote('Renamed.md', '# First', '2026-03-24'))
+    if (resolveRename) {
+      resolveRename(createNote('Renamed.md', '# First', '2026-03-24'))
+    }
     await renamePromise
 
     expect(selectedNoteId.value).toBe('second.md')

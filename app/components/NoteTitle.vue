@@ -96,7 +96,7 @@ onMounted(() => {
 <template>
   <div
     ref="titleElement"
-    aria-label="Note title"
+    :aria-label="$t('noteTitle.ariaLabel')"
     class="note-title-shell"
     contenteditable="true"
     data-testid="note-title"

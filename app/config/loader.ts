@@ -5,6 +5,7 @@ export type ApplicationType = 'desktop' | 'browser'
 
 export type AppConfig = {
   applicationType: ApplicationType
+  locale: string
   vault: string
   editor: {
     autosaveDelay: number
@@ -18,7 +19,7 @@ export type AppConfig = {
 
 const VALID_APPLICATION_TYPES: ApplicationType[] = ['desktop', 'browser']
 
-function assertAppConfig(value: unknown): AppConfig {
+export function parseAppConfig(value: unknown): AppConfig {
   if (typeof value !== 'object' || value === null) {
     throw new Error('Config must be an object')
   }
@@ -31,6 +32,10 @@ function assertAppConfig(value: unknown): AppConfig {
     throw new Error(
       `Config applicationType must be one of: ${VALID_APPLICATION_TYPES.join(', ')}`,
     )
+  }
+
+  if (typeof obj.locale !== 'string' || obj.locale.length === 0) {
+    throw new Error('Config locale must be a non-empty string')
   }
 
   if (typeof obj.vault !== 'string' || obj.vault.length === 0) {
@@ -66,7 +71,7 @@ function assertAppConfig(value: unknown): AppConfig {
   return value as AppConfig
 }
 
-const DEFAULT_CONFIG = assertAppConfig(yaml.parse(rawDefaultConfig) as unknown)
+const DEFAULT_CONFIG = parseAppConfig(yaml.parse(rawDefaultConfig) as unknown)
 
 export function loadConfig(): AppConfig {
   return DEFAULT_CONFIG

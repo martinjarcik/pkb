@@ -1,5 +1,8 @@
 import { defineConfig, devices } from '@playwright/test'
 
+const port = process.env.PLAYWRIGHT_PORT ?? '3000'
+const baseURL = `https://localhost:${port}`
+
 export default defineConfig({
   testDir: './tests/e2e',
   fullyParallel: true,
@@ -8,14 +11,14 @@ export default defineConfig({
   workers: process.env.CI ? 1 : undefined,
   reporter: 'html',
   use: {
-    baseURL: 'https://localhost:3000',
+    baseURL,
     ignoreHTTPSErrors: true,
     trace: 'on-first-retry',
   },
   projects: [{ name: 'chromium', use: { ...devices['Desktop Chrome'] } }],
   webServer: {
-    command: 'npm run dev',
-    url: 'https://localhost:3000',
+    command: `npm run dev -- --port ${port}`,
+    url: baseURL,
     ignoreHTTPSErrors: true,
     reuseExistingServer: !process.env.CI,
   },

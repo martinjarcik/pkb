@@ -1,0 +1,46 @@
+{
+  "notesList": {
+    "loading": "Loading notes...",
+    "empty": "No notes yet"
+  },
+  "noteEditor": {
+    "loading": "Loading editor...",
+    "errorContainerUnavailable": "Editor container is unavailable",
+    "errorFallback": "Failed to load the editor"
+  },
+  "noteTitle": {
+    "ariaLabel": "Note title"
+  },
+  "notes": {
+    "errorSaveFallback": "Failed to save note",
+    "errorRenameFallback": "Failed to rename note title",
+    "errorLoadFallback": "Failed to load notes"
+  },
+  "editor": {
+    "toolHeading": "Heading",
+    "toolHeading1": "Heading 1",
+    "toolHeading2": "Heading 2",
+    "toolHeading3": "Heading 3",
+    "toolList": "List",
+    "toolCode": "Code",
+    "toolDelimiter": "Delimiter",
+    "toolInlineCode": "Inline Code",
+    "toolSimpleQuote": "Simple Quote",
+    "toolTable": "Table",
+    "toolText": "Text",
+    "toolOrderedList": "Ordered List",
+    "toolUnorderedList": "Unordered List",
+    "toolChecklist": "Checklist",
+    "placeholderHeading": "Heading",
+    "uiAdd": "Add",
+    "uiFilter": "Filter",
+    "uiNothingFound": "Nothing found",
+    "uiConvertTo": "Convert to",
+    "uiClickToTune": "Click to tune",
+    "uiOrDragToMove": "or drag to move",
+    "uiMoveUp": "Move up",
+    "uiMoveDown": "Move down",
+    "uiDelete": "Delete",
+    "uiClickToDelete": "Click to delete"
+  }
+}

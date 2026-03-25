@@ -1,4 +1,4 @@
-import { useState } from '#app'
+import { useNuxtApp, useState } from '#app'
 import { computed } from 'vue'
 import { loadConfig } from '~/config/loader'
 import { noteTitleFromId } from '~/notes/noteTitleFromId'
@@ -94,6 +94,7 @@ const defaultEditor = loadConfig().editor
 export function useNotes() {
   type EditorFlush = () => Promise<void>
 
+  const { $i18n } = useNuxtApp()
   const editorAutosaveDelay = defaultEditor.autosaveDelay
   const notes = useState<Note[]>('notes.items', () => [])
   const isLoading = useState('notes.isLoading', () => false)
@@ -178,7 +179,9 @@ export function useNotes() {
       replaceNote(savedNote)
     } catch (error) {
       saveError.value =
-        error instanceof Error ? error.message : 'Failed to save note'
+        error instanceof Error
+          ? error.message
+          : $i18n.t('notes.errorSaveFallback')
     }
   }
 
@@ -219,7 +222,9 @@ export function useNotes() {
       return renamedNote
     } catch (error) {
       saveError.value =
-        error instanceof Error ? error.message : 'Failed to rename note title'
+        error instanceof Error
+          ? error.message
+          : $i18n.t('notes.errorRenameFallback')
 
       return null
     } finally {
@@ -242,7 +247,9 @@ export function useNotes() {
       notes.value = []
       await selectNoteById(null)
       loadError.value =
-        error instanceof Error ? error.message : 'Failed to load notes'
+        error instanceof Error
+          ? error.message
+          : $i18n.t('notes.errorLoadFallback')
 
       return []
     } finally {

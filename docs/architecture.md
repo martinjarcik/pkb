@@ -36,7 +36,9 @@ identifier.
   files with YAML frontmatter in a configurable vault directory. Timestamps
   derived from file stats. Notes loaded in mtime-descending order.
 - `app/storage/router.ts` — active storage selection from `applicationType`.
-- `app/config/loader.ts` — typed `AppConfig` parsed from `app/config/default.yaml`.
+- `app/config/loader.ts` — typed `AppConfig` parsed from `app/config/default.yaml`,
+  including the active locale.
+- `app/app.vue` — root app shell that applies the configured locale to Nuxt i18n.
 - `app/composables/useLayout.ts` — layout panel visibility state initialized
   from config defaults.
 - `app/layouts/default.vue` — application shell composing SidebarPanel, NotesListPanel,
@@ -153,8 +155,8 @@ concurrent requests. Module-scope state leaks across requests.
 
 ## Config (`app/config/`)
 
-- `AppConfig` — typed configuration covering layout, theming, feature flags,
-  and storage settings.
+- `AppConfig` — typed configuration covering layout, theming, localization,
+  feature flags, and storage settings.
 - `loadConfig()` — parses the YAML default config into `AppConfig`.
 - `app/config/default.yaml` provides initial default values. Runtime
   configuration state (e.g. panel visibility toggles) lives in composables

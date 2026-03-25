@@ -10,7 +10,7 @@ async function handleSelectNote(id: string): Promise<void> {
 <template>
   <div data-testid="notes-list" class="min-h-0 flex-1 overflow-y-auto">
     <div v-if="isLoading" class="notes-list-state notes-list-state-muted">
-      Loading notes...
+      {{ $t('notesList.loading') }}
     </div>
 
     <div v-else-if="loadError" class="notes-list-state notes-list-state-error">
@@ -22,7 +22,7 @@ async function handleSelectNote(id: string): Promise<void> {
       data-testid="notes-list-empty"
       class="notes-list-state notes-list-state-muted"
     >
-      No notes yet
+      {{ $t('notesList.empty') }}
     </div>
 
     <div v-else class="flex flex-col">

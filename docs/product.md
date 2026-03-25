@@ -26,6 +26,7 @@ surface.
 | Key                         | Type    | Default     | Description                                        |
 | --------------------------- | ------- | ----------- | -------------------------------------------------- |
 | `applicationType`           | string  | `"desktop"` | Application mode: `browser`, `desktop`, `cloud`    |
+| `locale`                    | string  | `"en"`      | Active application locale                          |
 | `vault`                     | string  | `"./vault"` | Path to the vault directory for desktop storage    |
 | `editor.autosaveDelay`      | number  | `2000`      | Milliseconds of idle time before content autosaves |
 | `layout.showInspectorPanel` | boolean | `true`      | Show the InspectorPanel                            |
@@ -67,3 +68,12 @@ The note content area uses Editor.js as the editing surface.
 - The frontend translates between Markdown and Editor.js blocks in the browser.
 - Content autosaves after `editor.autosaveDelay` milliseconds of editor idle time (default 2000 ms).
 - Switching to a different note flushes any pending autosave before selection changes.
+
+### Internationalization
+
+The application uses `@nuxtjs/i18n` for UI translations.
+
+- English (`en`) is the default and currently the only bundled locale.
+- The active locale is selected through `app/config/default.yaml` via the `locale` key.
+- User-facing UI strings and Editor.js labels are sourced from `app/locales/en.json`.
+- Adding another language requires a new locale file, a matching entry in `nuxt.config.ts`, and an updated config value.
