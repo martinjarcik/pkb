@@ -195,6 +195,22 @@ test('preserves headings between checklists after save and reload', async ({
     await expect(page.locator('.cdx-list__item')).toHaveCount(6, {
       timeout: 3000,
     })
+
+    const savedNote = await loadFixtureNote(request)
+
+    expect(savedNote.content).toBe(
+      [
+        '## Section A',
+        '- [ ] task one edited',
+        '- [x] task two',
+        '## Section B',
+        '- [ ] task three',
+        '- [ ] task four',
+        '## Section C',
+        '- [x] task five',
+        '- [ ] task six',
+      ].join('\n'),
+    )
   } finally {
     await restoreNote(request, originalNote)
   }

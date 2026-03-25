@@ -213,6 +213,13 @@ function newlinesBetweenSubstantive(
 ): number {
   if (blanksBefore <= 0) {
     if (
+      (prevType === 'header' && nextType === 'list') ||
+      (prevType === 'list' && nextType === 'header')
+    ) {
+      return 1
+    }
+
+    if (
       blockRequiresBlankLineSeparator(prevType) ||
       blockRequiresBlankLineSeparator(nextType)
     ) {

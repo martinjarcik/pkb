@@ -218,10 +218,11 @@ Lens 4 — Performance and simplicity
 ### Step 6: Finalize
 
 1. Run all unit and UAT tests again; fix failures.
-2. Update `CHANGELOG.md`.
-3. Update `docs/product.md` (feature and how to use it).
-4. If the canonical model or terminology changed: update `docs/architecture.md` and `docs/ubiquitous-language.md`.
-5. If component mappings changed: update `design/design.pen` (Pencil MCP tools).
-6. If there is a notable architectural decision: record it in `docs/decisions.md`.
-7. Commit: `docs(<slug>): update changelog and documentation`
-8. Open a pull request for human review.
+2. Validate the app boots on the default dev URL. If `https://localhost:3000` returns `503` or stale output, confirm the problem with a direct request, inspect the current listener with `lsof -nP -iTCP:3000 -sTCP:LISTEN`, kill the stale PID, restart with `npm run dev -- --port 3000`, then verify `/` returns `200`.
+3. Update `CHANGELOG.md`.
+4. Update `docs/product.md` (feature and how to use it).
+5. If the canonical model or terminology changed: update `docs/architecture.md` and `docs/ubiquitous-language.md`.
+6. If component mappings changed: update `design/design.pen` (Pencil MCP tools).
+7. If there is a notable architectural decision: record it in `docs/decisions.md`.
+8. Commit: `docs(<slug>): update changelog and documentation`
+9. Open a pull request for human review.

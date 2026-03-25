@@ -34,7 +34,17 @@ const emit = defineEmits<{
 
 const { editorjsBlocksToMarkdown, markdownToEditorjsBlocks } =
   useEditorjsMarkdown()
-const { t } = useI18n()
+const componentInstance = getCurrentInstance()
+
+function translate(key: string): string {
+  const translator = componentInstance?.proxy?.$t
+
+  if (typeof translator === 'function') {
+    return String(translator(key))
+  }
+
+  return key
+}
 
 const holder = ref<HTMLDivElement | null>(null)
 const editorError = ref<string | null>(null)
@@ -110,65 +120,65 @@ function createEditorMessages() {
     ui: {
       blockTunes: {
         toggler: {
-          'Click to tune': t('editor.ui.clickToTune'),
-          'or drag to move': t('editor.ui.orDragToMove'),
+          'Click to tune': 'Click to tune',
+          'or drag to move': 'or drag to move',
         },
       },
       inlineToolbar: {
         converter: {
-          'Convert to': t('editor.ui.convertTo'),
+          'Convert to': 'Convert to',
         },
       },
       popover: {
-        Filter: t('editor.ui.filter'),
-        'Nothing found': t('editor.ui.nothingFound'),
-        'Convert to': t('editor.ui.convertTo'),
+        Filter: 'Filter',
+        'Nothing found': 'Nothing found',
+        'Convert to': 'Convert to',
       },
       toolbar: {
         toolbox: {
-          Add: t('editor.ui.add'),
+          Add: 'Add',
         },
       },
     },
     toolNames: {
-      Text: t('editor.toolNames.text'),
-      Heading: t('editor.toolNames.heading'),
-      List: t('editor.toolNames.list'),
-      Code: t('editor.toolNames.code'),
-      Delimiter: t('editor.toolNames.delimiter'),
-      'Inline Code': t('editor.toolNames.inlineCode'),
-      InlineCode: t('editor.toolNames.inlineCode'),
-      Table: t('editor.toolNames.table'),
-      'Simple Quote': t('editor.toolNames.simpleQuote'),
-      'Ordered List': t('editor.toolNames.orderedList'),
-      'Unordered List': t('editor.toolNames.unorderedList'),
-      Checklist: t('editor.toolNames.checklist'),
+      Text: 'Text',
+      Heading: 'Heading',
+      List: 'List',
+      Code: 'Code',
+      Delimiter: 'Delimiter',
+      'Inline Code': 'Inline Code',
+      InlineCode: 'Inline Code',
+      Table: 'Table',
+      'Simple Quote': 'Simple Quote',
+      'Ordered List': 'Ordered List',
+      'Unordered List': 'Unordered List',
+      Checklist: 'Checklist',
     },
     tools: {
       header: {
-        'Heading 1': t('editor.tools.header.heading1'),
-        'Heading 2': t('editor.tools.header.heading2'),
-        'Heading 3': t('editor.tools.header.heading3'),
+        'Heading 1': 'Heading 1',
+        'Heading 2': 'Heading 2',
+        'Heading 3': 'Heading 3',
       },
       list: {
-        Ordered: t('editor.tools.list.ordered'),
-        Unordered: t('editor.tools.list.unordered'),
-        Checklist: t('editor.tools.list.checklist'),
+        Ordered: 'Ordered List',
+        Unordered: 'Unordered List',
+        Checklist: 'Checklist',
       },
       paragraph: {
-        'Enter something': t('editor.tools.paragraph.placeholder'),
+        'Enter something': '',
       },
     },
     blockTunes: {
       delete: {
-        Delete: t('editor.blockTunes.delete'),
-        'Click to delete': t('editor.blockTunes.clickToDelete'),
+        Delete: 'Delete',
+        'Click to delete': 'Click to delete',
       },
       moveUp: {
-        'Move up': t('editor.blockTunes.moveUp'),
+        'Move up': 'Move up',
       },
       moveDown: {
-        'Move down': t('editor.blockTunes.moveDown'),
+        'Move down': 'Move down',
       },
     },
   }
@@ -178,7 +188,7 @@ onMounted(async () => {
   await nextTick()
 
   if (!holder.value) {
-    editorError.value = t('noteEditor.errorContainerUnavailable')
+    editorError.value = translate('noteEditor.errorContainerUnavailable')
     isEditorLoading.value = false
 
     return
@@ -233,28 +243,28 @@ onMounted(async () => {
           toolbox: [
             {
               icon: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24" rtrvr-ls="0~hs"><path stroke="currentColor" stroke-linecap="round" stroke-width="2" d="M6 7L6 12M6 17L6 12M6 12L12 12M12 7V12M12 17L12 12"></path><path stroke="currentColor" stroke-linecap="round" stroke-width="2" d="M19 17V10.2135C19 10.1287 18.9011 10.0824 18.836 10.1367L16 12.5"></path></svg>',
-              title: t('editor.tools.header.heading1'),
+              title: 'Heading 1',
               data: {
                 level: 1,
               },
             },
             {
               icon: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-linecap="round" stroke-width="2" d="M6 7L6 12M6 17L6 12M6 12L12 12M12 7V12M12 17L12 12"></path><path stroke="currentColor" stroke-linecap="round" stroke-width="2" d="M16 11C16 10 19 9.5 19 12C19 13.9771 16.0684 13.9997 16.0012 16.8981C15.9999 16.9533 16.0448 17 16.1 17L19.3 17"></path></svg>',
-              title: t('editor.tools.header.heading2'),
+              title: 'Heading 2',
               data: {
                 level: 2,
               },
             },
             {
               icon: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-linecap="round" stroke-width="2" d="M6 7L6 12M6 17L6 12M6 12L12 12M12 7V12M12 17L12 12"></path><path stroke="currentColor" stroke-linecap="round" stroke-width="2" d="M16 11C16 10.5 16.8323 10 17.6 10C18.3677 10 19.5 10.311 19.5 11.5C19.5 12.5315 18.7474 12.9022 18.548 12.9823C18.5378 12.9864 18.5395 13.0047 18.5503 13.0063C18.8115 13.0456 20 13.3065 20 14.8C20 16 19.5 17 17.8 17C17.8 17 16 17 16 16.3"></path></svg>',
-              title: t('editor.tools.header.heading3'),
+              title: 'Heading 3',
               data: {
                 level: 3,
               },
             },
           ],
           config: {
-            placeholder: t('editor.tools.header.placeholder'),
+            placeholder: 'Heading',
             levels: [1, 2, 3],
             defaultLevel: 2,
           },
@@ -288,7 +298,9 @@ onMounted(async () => {
     lastRenderedContent = props.content
   } catch (error) {
     editorError.value =
-      error instanceof Error ? error.message : t('noteEditor.errorFallback')
+      error instanceof Error
+        ? error.message
+        : translate('noteEditor.errorFallback')
   } finally {
     isEditorLoading.value = false
   }

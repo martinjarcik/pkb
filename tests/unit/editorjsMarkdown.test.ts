@@ -491,14 +491,12 @@ describe('editorjsMarkdown', () => {
     expect(editorjsBlocksToMarkdown(blocks)).toBe(md)
   })
 
-  it('normalizes headings interleaved with checklists by adding blank lines', () => {
+  it('keeps headings interleaved with checklists compact on save', () => {
     const input =
       '## Section A\n- [ ] task 1\n- [x] task 2\n## Section B\n- [ ] task 3\n- [ ] task 4\n## Section C\n- [x] task 5\n- [ ] task 6'
-    const expected =
-      '## Section A\n\n- [ ] task 1\n- [x] task 2\n\n## Section B\n\n- [ ] task 3\n- [ ] task 4\n\n## Section C\n\n- [x] task 5\n- [ ] task 6'
 
     const blocks = markdownToEditorjsBlocks(input)
-    expect(editorjsBlocksToMarkdown(blocks)).toBe(expected)
+    expect(editorjsBlocksToMarkdown(blocks)).toBe(input)
   })
 
   it('parses headings between checklists without blank lines', () => {
@@ -524,5 +522,24 @@ describe('editorjsMarkdown', () => {
         },
       },
     ])
+  })
+
+  it('does not add a blank line between a checklist and the following heading', () => {
+    expect(
+      editorjsBlocksToMarkdown([
+        {
+          type: 'list',
+          data: {
+            style: 'checklist',
+            meta: {},
+            items: [{ content: 'task 1', meta: { checked: false }, items: [] }],
+          },
+        },
+        {
+          type: 'header',
+          data: { text: 'Section B', level: 2 },
+        },
+      ]),
+    ).toBe('- [ ] task 1\n## Section B')
   })
 })

@@ -96,7 +96,7 @@ const defaultEditor = loadConfig().editor
 export function useNotes() {
   type EditorFlush = () => Promise<void>
 
-  const { t } = useI18n()
+  const { t } = useI18n({ useScope: 'global' })
   const editorAutosaveDelay = defaultEditor.autosaveDelay
   const notes = useState<Note[]>('notes.items', () => [])
   const isLoading = useState('notes.isLoading', () => false)
@@ -198,7 +198,12 @@ export function useNotes() {
   }
 
   async function createNote(): Promise<Note | null> {
-    const defaultTitle = t('notes.newNoteTitle').trim()
+    const translatedDefaultTitle = t('notes.newNoteTitle').trim()
+    const defaultTitle =
+      translatedDefaultTitle.length === 0 ||
+      translatedDefaultTitle === 'notes.newNoteTitle'
+        ? 'New Note'
+        : translatedDefaultTitle
 
     if (defaultTitle.length === 0) {
       return null
