@@ -3,6 +3,7 @@ import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { loadConfig } from '~/config/loader'
 import { noteTitleFromId } from '~/notes/noteTitleFromId'
+import { resolveUniqueNoteId } from '~/notes/renameNoteTitle'
 import { buildSaveNoteInput } from '~/notes/saveNoteInput'
 import type { Note } from '~/notes/types'
 
@@ -106,6 +107,7 @@ export function useNotes() {
     'notes.editorFlush',
     () => null,
   )
+  const shouldFocusTitle = useState('notes.shouldFocusTitle', () => false)
   const selectedNoteId = useState<string | null>(
     'notes.selectedNoteId',
     () => null,
@@ -137,6 +139,13 @@ export function useNotes() {
     )
   }
 
+  function prependNote(nextNote: Note): void {
+    notes.value = [
+      nextNote,
+      ...notes.value.filter((note) => note.id !== nextNote.id),
+    ]
+  }
+
   function updateSelectedNoteContent(content: string): void {
     if (!selectedNote.value) {
       return
@@ -149,6 +158,10 @@ export function useNotes() {
 
   function registerEditorFlush(flush: EditorFlush | null): void {
     editorFlush.value = flush
+  }
+
+  function clearShouldFocusTitle(): void {
+    shouldFocusTitle.value = false
   }
 
   async function selectNoteById(id: string | null): Promise<void> {
@@ -181,6 +194,45 @@ export function useNotes() {
     } catch (error) {
       saveError.value =
         error instanceof Error ? error.message : t('notes.errorSaveFallback')
+    }
+  }
+
+  async function createNote(): Promise<Note | null> {
+    const defaultTitle = t('notes.newNoteTitle').trim()
+
+    if (defaultTitle.length === 0) {
+      return null
+    }
+
+    saveError.value = null
+    shouldFocusTitle.value = false
+
+    try {
+      await editorFlush.value?.()
+
+      const createdNote = await globalThis.$fetch<Note>('/api/notes', {
+        method: 'PUT',
+        body: {
+          id: resolveUniqueNoteId(
+            '',
+            defaultTitle,
+            notes.value.map((note) => note.id),
+          ),
+          properties: {},
+          content: '',
+        },
+      })
+
+      prependNote(createdNote)
+      selectedNoteId.value = createdNote.id
+      shouldFocusTitle.value = true
+
+      return createdNote
+    } catch (error) {
+      saveError.value =
+        error instanceof Error ? error.message : t('notes.errorCreateFallback')
+
+      return null
     }
   }
 
@@ -259,10 +311,13 @@ export function useNotes() {
     isRenamingNoteTitle,
     loadError,
     saveError,
+    shouldFocusTitle,
     selectedNoteId,
     selectedNote,
     selectedNoteTitle,
     listItems,
+    clearShouldFocusTitle,
+    createNote,
     registerEditorFlush,
     renameSelectedNoteTitle,
     saveSelectedNoteContent,

@@ -21,6 +21,11 @@ highlighted in `NotesListPanel`. Selecting a different row updates the active
 note shown in the `NotePanel`, including the note title above the Editor.js
 surface.
 
+The notes list toolbar includes a create-note action. Clicking it creates a new
+note titled `New Note` (or the next available suffixed variant such as
+`New Note (2)`), places that note at the top of `NotesListPanel`, selects it,
+and focuses the title for immediate renaming.
+
 ## Configuration
 
 | Key                         | Type    | Default     | Description                                        |
@@ -58,6 +63,8 @@ localStorage as JSON-serialized Markdown documents with YAML frontmatter.
 
 The note content area uses Editor.js as the editing surface.
 
+- Creating a note opens it immediately and moves keyboard focus to the note
+  title editing area so the title can be changed inline.
 - The selected note title is displayed above the editor surface inside the
   template area.
 - Clicking the title lets the user edit it inline. Pressing Enter or clicking

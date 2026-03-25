@@ -88,8 +88,27 @@ function handlePaste(event: ClipboardEvent): void {
   document.execCommand('insertText', false, text.replace(/[\r\n]+/g, ' '))
 }
 
+function focus(): void {
+  if (!titleElement.value) {
+    return
+  }
+
+  const selection = window.getSelection()
+  const range = document.createRange()
+
+  titleElement.value.focus()
+  range.selectNodeContents(titleElement.value)
+  range.collapse(false)
+  selection?.removeAllRanges()
+  selection?.addRange(range)
+}
+
 onMounted(() => {
   writeText(props.title)
+})
+
+defineExpose({
+  focus,
 })
 </script>
 

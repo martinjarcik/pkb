@@ -11,7 +11,12 @@
   "noteTitle": {
     "ariaLabel": "Note title"
   },
+  "notesListActions": {
+    "createNote": "Create note"
+  },
   "notes": {
+    "newNoteTitle": "New Note",
+    "errorCreateFallback": "Failed to create note",
     "errorSaveFallback": "Failed to save note",
     "errorRenameFallback": "Failed to rename note title",
     "errorLoadFallback": "Failed to load notes"

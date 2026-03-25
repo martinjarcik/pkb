@@ -4,6 +4,9 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+- Add a create-note action to `NotesListActions` that inserts a new localized
+  note at the top of the list, opens it immediately, and focuses the note
+  title for inline renaming.
 - Add config-backed i18n infrastructure with an English locale file and
   translated UI/editor strings wired through `@nuxtjs/i18n`.
 - Display the active note title in `NoteTemplate`, make it editable inline, and

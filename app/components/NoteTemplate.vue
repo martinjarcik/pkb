@@ -3,7 +3,12 @@ type NoteEditorHandle = {
   flushContentSync(): Promise<void>
 }
 
+type NoteTitleHandle = {
+  focus(): void
+}
+
 const {
+  clearShouldFocusTitle,
   editorAutosaveDelay,
   isRenamingNoteTitle,
   renameSelectedNoteTitle,
@@ -11,8 +16,10 @@ const {
   saveSelectedNoteContent,
   selectedNote,
   selectedNoteTitle,
+  shouldFocusTitle,
 } = useNotes()
 const noteEditor = ref<NoteEditorHandle | null>(null)
+const noteTitle = ref<NoteTitleHandle | null>(null)
 
 let pendingSave = Promise.resolve()
 
@@ -36,6 +43,16 @@ onMounted(() => {
 onBeforeUnmount(() => {
   registerEditorFlush(null)
 })
+
+watch(shouldFocusTitle, async (nextShouldFocusTitle) => {
+  if (!nextShouldFocusTitle) {
+    return
+  }
+
+  await nextTick()
+  noteTitle.value?.focus()
+  clearShouldFocusTitle()
+})
 </script>
 
 <template>
@@ -45,6 +62,7 @@ onBeforeUnmount(() => {
   >
     <NoteTitle
       v-if="selectedNoteTitle"
+      ref="noteTitle"
       :is-saving="isRenamingNoteTitle"
       :title="selectedNoteTitle"
       @commit="handleTitleCommit"

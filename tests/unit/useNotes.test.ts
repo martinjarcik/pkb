@@ -20,10 +20,18 @@ vi.mock('#app', () => {
 })
 
 vi.mock('vue-i18n', () => ({
-  useI18n: () => ({ t: (key: string) => key }),
+  useI18n: () => ({
+    t: (key: string) =>
+      (
+        ({
+          'notes.newNoteTitle': 'New Note',
+          'notes.errorCreateFallback': 'Failed to create note',
+        }) as Record<string, string>
+      )[key] ?? key,
+  }),
 }))
 
-function createNote(id: string, content: string, modifiedAt: string): Note {
+function createTestNote(id: string, content: string, modifiedAt: string): Note {
   return {
     id,
     content,
@@ -45,8 +53,8 @@ describe('useNotes', () => {
 
   it('selects the first loaded note', async () => {
     fetchMock.mockResolvedValue([
-      createNote('first.md', '# First', '2026-03-24'),
-      createNote('second.md', '# Second', '2026-03-23'),
+      createTestNote('first.md', '# First', '2026-03-24'),
+      createTestNote('second.md', '# Second', '2026-03-23'),
     ])
 
     const { selectedNoteId, loadNotes } = useNotes()
@@ -77,12 +85,12 @@ describe('useNotes', () => {
     const { notes, selectedNoteId, selectNoteById } = useNotes()
 
     notes.value = [
-      createNote(
+      createTestNote(
         'first.md',
         '# First note\n\nA longer preview body for the first note.',
         '2026-03-24',
       ),
-      createNote(
+      createTestNote(
         'second.md',
         '# Second note\n\nSome note content',
         '2026-03-23',
@@ -98,8 +106,8 @@ describe('useNotes', () => {
     const { notes, selectedNoteTitle, selectNoteById } = useNotes()
 
     notes.value = [
-      createNote('backlog/first-note.md', '# First', '2026-03-24'),
-      createNote('second-note.md', '# Second', '2026-03-23'),
+      createTestNote('backlog/first-note.md', '# First', '2026-03-24'),
+      createTestNote('second-note.md', '# Second', '2026-03-23'),
     ]
 
     await selectNoteById('backlog/first-note.md')
@@ -110,7 +118,7 @@ describe('useNotes', () => {
   it('clears the selected note title when no note is selected', async () => {
     const { notes, selectedNoteTitle, selectNoteById } = useNotes()
 
-    notes.value = [createNote('first.md', '# First', '2026-03-24')]
+    notes.value = [createTestNote('first.md', '# First', '2026-03-24')]
 
     await selectNoteById('first.md')
     await selectNoteById(null)
@@ -122,8 +130,8 @@ describe('useNotes', () => {
     const { notes, selectedNoteTitle, selectNoteById } = useNotes()
 
     notes.value = [
-      createNote('first.md', '# First', '2026-03-24'),
-      createNote('nested/second.md', '# Second', '2026-03-23'),
+      createTestNote('first.md', '# First', '2026-03-24'),
+      createTestNote('nested/second.md', '# Second', '2026-03-23'),
     ]
 
     await selectNoteById('first.md')
@@ -135,10 +143,10 @@ describe('useNotes', () => {
   it('renames the selected note title and retargets selection to the new id', async () => {
     const { notes, selectedNoteId, renameSelectedNoteTitle } = useNotes()
 
-    notes.value = [createNote('nested/first.md', '# First', '2026-03-24')]
+    notes.value = [createTestNote('nested/first.md', '# First', '2026-03-24')]
     selectedNoteId.value = 'nested/first.md'
     fetchMock.mockResolvedValue({
-      ...createNote('nested/Renamed title.md', '# First', '2026-03-24'),
+      ...createTestNote('nested/Renamed title.md', '# First', '2026-03-24'),
     })
 
     await renameSelectedNoteTitle('Renamed title')
@@ -160,8 +168,8 @@ describe('useNotes', () => {
     let resolveRename: ((value: Note) => void) | null = null
 
     notes.value = [
-      createNote('first.md', '# First', '2026-03-24'),
-      createNote('second.md', '# Second', '2026-03-23'),
+      createTestNote('first.md', '# First', '2026-03-24'),
+      createTestNote('second.md', '# Second', '2026-03-23'),
     ]
     selectedNoteId.value = 'first.md'
     fetchMock.mockImplementation(
@@ -175,16 +183,103 @@ describe('useNotes', () => {
 
     await selectNoteById('second.md')
     if (resolveRename) {
-      resolveRename(createNote('Renamed.md', '# First', '2026-03-24'))
+      resolveRename(createTestNote('Renamed.md', '# First', '2026-03-24'))
     }
     await renamePromise
 
     expect(selectedNoteId.value).toBe('second.md')
   })
 
+  it('creates a new note, prepends it, and selects it', async () => {
+    const {
+      createNote: createNewNote,
+      notes,
+      selectedNoteId,
+      shouldFocusTitle,
+      clearShouldFocusTitle,
+    } = useNotes()
+
+    notes.value = [createTestNote('existing.md', '# Existing', '2026-03-24')]
+    fetchMock.mockResolvedValue(createTestNote('New Note.md', '', '2026-03-25'))
+
+    await createNewNote()
+
+    expect(notes.value.map((note) => note.id)).toEqual([
+      'New Note.md',
+      'existing.md',
+    ])
+    expect(selectedNoteId.value).toBe('New Note.md')
+    expect(shouldFocusTitle.value).toBe(true)
+
+    clearShouldFocusTitle()
+
+    expect(shouldFocusTitle.value).toBe(false)
+  })
+
+  it('appends a suffix when the default title already exists', async () => {
+    const { createNote: createNewNote, notes } = useNotes()
+
+    notes.value = [createTestNote('New Note.md', '# Existing', '2026-03-24')]
+    fetchMock.mockResolvedValue(
+      createTestNote('New Note (2).md', '', '2026-03-25'),
+    )
+
+    await createNewNote()
+
+    expect(fetchMock).toHaveBeenCalledWith('/api/notes', {
+      method: 'PUT',
+      body: {
+        id: 'New Note (2).md',
+        properties: {},
+        content: '',
+      },
+    })
+  })
+
+  it('calls PUT /api/notes with an empty note payload', async () => {
+    const { createNote: createNewNote } = useNotes()
+
+    fetchMock.mockResolvedValue(createTestNote('New Note.md', '', '2026-03-25'))
+
+    await createNewNote()
+
+    expect(fetchMock).toHaveBeenCalledWith('/api/notes', {
+      method: 'PUT',
+      body: {
+        id: 'New Note.md',
+        properties: {},
+        content: '',
+      },
+    })
+  })
+
+  it('sets the save error when note creation fails', async () => {
+    const { createNote: createNewNote, saveError } = useNotes()
+
+    fetchMock.mockRejectedValue(new Error('Create failed'))
+
+    await createNewNote()
+
+    expect(saveError.value).toBe('Create failed')
+  })
+
+  it('creates a new note when the list is empty', async () => {
+    const { createNote: createNewNote, notes } = useNotes()
+
+    fetchMock.mockResolvedValue(createTestNote('New Note.md', '', '2026-03-25'))
+
+    await createNewNote()
+
+    expect(notes.value[0]?.id).toBe('New Note.md')
+  })
+
   it('truncates long description previews to 120 characters', () => {
     const [listItem] = createNotesListItems([
-      createNote('long.md', `# Heading\n\n${'a'.repeat(121)}`, '2026-03-24'),
+      createTestNote(
+        'long.md',
+        `# Heading\n\n${'a'.repeat(121)}`,
+        '2026-03-24',
+      ),
     ])
 
     expect(listItem?.description).toBe(`${'a'.repeat(117)}...`)
@@ -192,8 +287,8 @@ describe('useNotes', () => {
 
   it('preserves the input order of notes', () => {
     const items = createNotesListItems([
-      createNote('b.md', '# B\n\nBody B', '2026-03-23'),
-      createNote('a.md', '# A\n\nBody A', '2026-03-20'),
+      createTestNote('b.md', '# B\n\nBody B', '2026-03-23'),
+      createTestNote('a.md', '# A\n\nBody A', '2026-03-20'),
     ])
 
     expect(items.map((i) => i.id)).toEqual(['b.md', 'a.md'])
@@ -201,12 +296,12 @@ describe('useNotes', () => {
 
   it('uses note id basename without .md as the list item title', () => {
     const [flat] = createNotesListItems([
-      createNote('my-note.md', '# Heading\n\nBody', '2026-03-24'),
+      createTestNote('my-note.md', '# Heading\n\nBody', '2026-03-24'),
     ])
     expect(flat?.title).toBe('my-note')
 
     const [nested] = createNotesListItems([
-      createNote(
+      createTestNote(
         'backlog/this-is-file-name.md',
         '# Heading\n\nBody',
         '2026-03-24',
@@ -217,7 +312,7 @@ describe('useNotes', () => {
 
   it('omits markdown heading lines from the description preview', () => {
     const [listItem] = createNotesListItems([
-      createNote(
+      createTestNote(
         'headings.md',
         '# Heading one\n\n## Heading two\n\nBody paragraph that should be shown.',
         '2026-03-24',
@@ -234,7 +329,7 @@ describe('useNotes', () => {
 
   it('strips markdown formatting symbols from the description preview', () => {
     const [listItem] = createNotesListItems([
-      createNote(
+      createTestNote(
         'formatted.md',
         [
           '# Heading',
@@ -253,7 +348,7 @@ describe('useNotes', () => {
 
   it('omits markdown table separator rows from the description preview', () => {
     const [listItem] = createNotesListItems([
-      createNote(
+      createTestNote(
         'table.md',
         ['| Name | Value |', '| --- | --- |', '| Width | 120px |'].join('\n'),
         '2026-03-24',
