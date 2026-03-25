@@ -39,9 +39,11 @@ async function loadFixtureNote(request: APIRequestContext): Promise<Note> {
   expect(response.ok()).toBeTruthy()
 
   const notes = (await response.json()) as Note[]
-  const note = notes.find(
-    (entry) => entry.title === FIXTURE_NOTE_PROPERTY_TITLE,
-  )
+  const note =
+    notes.find(
+      (entry) =>
+        entry.title === FIXTURE_NOTE_PROPERTY_TITLE && !entry.id.includes('/'),
+    ) ?? notes.find((entry) => !entry.id.includes('/'))
 
   expect(note).toBeDefined()
 

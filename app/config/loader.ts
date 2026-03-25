@@ -15,6 +15,9 @@ export type AppConfig = {
     showSidebarPanel: boolean
     showNotesListPanel: boolean
   }
+  theme: {
+    accentColor: string
+  }
 }
 
 const VALID_APPLICATION_TYPES: ApplicationType[] = ['desktop', 'browser']
@@ -66,6 +69,19 @@ export function parseAppConfig(value: unknown): AppConfig {
     if (typeof layout[key] !== 'boolean') {
       throw new Error(`Config layout.${key} must be a boolean`)
     }
+  }
+
+  if (typeof obj.theme !== 'object' || obj.theme === null) {
+    throw new Error('Config theme must be an object')
+  }
+
+  const theme = obj.theme as Record<string, unknown>
+
+  if (
+    typeof theme.accentColor !== 'string' ||
+    theme.accentColor.trim().length === 0
+  ) {
+    throw new Error('Config theme.accentColor must be a non-empty string')
   }
 
   return value as AppConfig

@@ -21,6 +21,9 @@
     "errorRenameFallback": "Failed to rename note title",
     "errorLoadFallback": "Failed to load notes"
   },
+  "sidebarNavigation": {
+    "inbox": "Inbox"
+  },
   "editor": {
     "ui": {
       "add": "Add",

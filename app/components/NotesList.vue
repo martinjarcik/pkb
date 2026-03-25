@@ -1,9 +1,21 @@
 <script setup lang="ts">
-const { isLoading, listItems, loadError, selectedNoteId, selectNoteById } =
-  useNotes()
+const { isLoading, loadError, selectedNoteId, selectNoteById } = useNotes()
+const { accentColor, visibleListItems } = useSidebarNavigation()
 
 async function handleSelectNote(id: string): Promise<void> {
   await selectNoteById(id)
+}
+
+function getItemStyle(
+  isSelected: boolean,
+): { [key: string]: string } | undefined {
+  if (!isSelected) {
+    return undefined
+  }
+
+  return {
+    '--notes-list-item-selected-border-color': accentColor.value,
+  }
 }
 </script>
 
@@ -18,7 +30,7 @@ async function handleSelectNote(id: string): Promise<void> {
     </div>
 
     <div
-      v-else-if="listItems.length === 0"
+      v-else-if="visibleListItems.length === 0"
       data-testid="notes-list-empty"
       class="notes-list-state notes-list-state-muted"
     >
@@ -27,7 +39,7 @@ async function handleSelectNote(id: string): Promise<void> {
 
     <div v-else class="flex flex-col">
       <button
-        v-for="item in listItems"
+        v-for="item in visibleListItems"
         :key="item.id"
         type="button"
         :data-note-id="item.id"
@@ -37,6 +49,7 @@ async function handleSelectNote(id: string): Promise<void> {
         :class="{
           'notes-list-item-selected': item.id === selectedNoteId,
         }"
+        :style="getItemStyle(item.id === selectedNoteId)"
         @click="handleSelectNote(item.id)"
       >
         <div class="notes-list-item-content">

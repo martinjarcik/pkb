@@ -42,16 +42,22 @@ identifier.
   derived from file stats. Notes loaded in mtime-descending order.
 - `app/storage/router.ts` — active storage selection from `applicationType`.
 - `app/config/loader.ts` — typed `AppConfig` parsed from `app/config/default.yaml`,
-  including the active locale.
+  including the active locale and theme settings.
 - `app/app.vue` — root app shell that applies the configured locale to Nuxt i18n.
 - `app/composables/useLayout.ts` — layout panel visibility state initialized
   from config defaults.
+- `app/composables/useSidebarNavigation.ts` — sidebar view state initialized
+  from config defaults, including the Inbox-selected note filter.
 - `app/layouts/default.vue` — application shell composing SidebarPanel, NotesListPanel,
   page slot, and InspectorPanel in a horizontal flexbox.
-- `app/pages/index.vue` — renders `NotePanel`.
+- `app/pages/index.vue` — renders `NotePanel` and retargets selection to the
+  first note visible in the active sidebar view after load.
 - `SidebarPanel` (`app/components/SidebarPanel.vue`) — sidebar shell.
   - `SidebarNavigation` (`app/components/SidebarNavigation.vue`) — view-selection
-    navigation (for example `All Notes`, `Favorites`).
+    navigation.
+    - `SidebarNavigationItem`
+      (`app/components/SidebarNavigationItem.vue`) — individual sidebar view item
+      (for example `Inbox`).
 - `NotesListPanel` (`app/components/NotesListPanel.vue`) — notes list shell.
   - `NotesListControls` (`app/components/NotesListControls.vue`) — within-view
     filtering and refinement controls.
@@ -108,6 +114,9 @@ New contexts may be introduced when corresponding features are specified.
 - `useNotes()` owns the active note id in shared state. After a successful load,
   it selects the first loaded note by default and `NoteTemplate` passes that
   note's title into `NoteTitle` and its Content into `NoteEditor`.
+- `useSidebarNavigation()` owns the active sidebar view id in shared state. The
+  default `Inbox` view filters `NotesList` to notes whose `id` lives at the
+  vault root.
 - Renaming a note title changes the note `id` by replacing its basename with the
   edited title plus `.md`, while keeping the parent folder unchanged. On
   collisions, storage selects a unique suffixed filename.
@@ -119,6 +128,9 @@ New contexts may be introduced when corresponding features are specified.
 - Filtering happens in two levels: `SidebarNavigation` selects the view (the
   broad note set), then `NotesListControls` refines that view. `NotesList`
   renders the resulting set.
+- The default `Inbox` sidebar view narrows the broad note set to notes whose
+  `id` contains no `/`, which corresponds to notes stored directly in the
+  Vault root.
 - Property mutation is an in-memory concern. Persistence is a separate
   cross-cutting concern and should not be part of an individual feature spec
   unless the feature introduces new persistence behavior.

@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+- Add an Inbox item to `SidebarNavigation`, select it by default on app open,
+  and filter `NotesListPanel` to notes that live directly in the vault root.
 - Add a create-note action to `NotesListActions` that inserts a new localized
   note at the top of the list, opens it immediately, and focuses the note
   title for inline renaming.

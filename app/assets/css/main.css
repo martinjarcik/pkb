@@ -118,6 +118,46 @@
     gap: var(--app-space-sm);
   }
 
+  .sidebar-navigation-item-shell {
+    align-items: center;
+    background: transparent;
+    border: 0;
+    border-radius: 5px;
+    color: #444444;
+    cursor: pointer;
+    display: flex;
+    font-size: 12px;
+    gap: 5px;
+    height: 30px;
+    line-height: 2.5;
+    padding-left: 10px;
+    text-align: left;
+    width: 180px;
+  }
+
+  .sidebar-navigation-item-shell:hover:not(.sidebar-navigation-item-selected) {
+    background-color: hsl(var(--accent) / 0.5);
+  }
+
+  .sidebar-navigation-item-shell:focus-visible {
+    outline: 2px solid hsl(var(--ring));
+    outline-offset: 2px;
+  }
+
+  .sidebar-navigation-item-selected {
+    color: #ffffff;
+  }
+
+  .sidebar-navigation-item-icon {
+    color: currentColor;
+    flex-shrink: 0;
+  }
+
+  .sidebar-navigation-item-label {
+    display: block;
+    line-height: 2.5;
+  }
+
   .notes-list-controls-shell {
     gap: var(--app-space-xl);
     height: var(--app-toolbar-height);
@@ -347,7 +387,10 @@
 
   .notes-list-item-selected {
     background: hsl(var(--accent));
-    border-left-color: hsl(var(--primary));
+    border-left-color: var(
+      --notes-list-item-selected-border-color,
+      hsl(var(--primary))
+    );
   }
 
   .notes-list-item-content {

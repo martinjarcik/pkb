@@ -3,6 +3,8 @@
 ## Application Layout
 
 - **SidebarPanel** (left) — navigation and app-level actions.
+- **SidebarNavigation** (inside SidebarPanel) — starts in the `Inbox` view and
+  highlights the selected item with `theme.accentColor`.
 - **NotesListPanel** (left panel) — lists all notes, allows selecting one.
 - **NotePanel** (center) — hosts the main note area and fills the remaining
   space.
@@ -12,14 +14,14 @@ Default visibility of the sidebar, note list, and inspector is set in
 `app/config/default.yaml`. The UI can override these values at runtime.
 
 When the application opens on the default route, the frontend loads notes from
-`GET /api/notes` and renders them in `NotesListPanel`. Each row shows the note
-title derived from its `id`, along with a short content preview and modified
-date.
+`GET /api/notes`, selects the `Inbox` sidebar item, and renders only notes from
+the vault root in `NotesListPanel`. Each row shows the note title derived from
+its `id`, along with a short content preview and modified date.
 
-After notes load, the first note becomes the active note automatically and is
-highlighted in `NotesListPanel`. Selecting a different row updates the active
-note shown in the `NotePanel`, including the note title above the Editor.js
-surface.
+After notes load, the first visible Inbox note becomes the active note
+automatically and is highlighted in `NotesListPanel`. Selecting a different row
+updates the active note shown in the `NotePanel`, including the note title
+above the Editor.js surface.
 
 The notes list toolbar includes a create-note action. Clicking it creates a new
 note titled `New Note` (or the next available suffixed variant such as
@@ -28,15 +30,16 @@ and focuses the title for immediate renaming.
 
 ## Configuration
 
-| Key                         | Type    | Default     | Description                                        |
-| --------------------------- | ------- | ----------- | -------------------------------------------------- |
-| `applicationType`           | string  | `"desktop"` | Application mode: `browser`, `desktop`, `cloud`    |
-| `locale`                    | string  | `"en"`      | Active application locale                          |
-| `vault`                     | string  | `"./vault"` | Path to the vault directory for desktop storage    |
-| `editor.autosaveDelay`      | number  | `2000`      | Milliseconds of idle time before content autosaves |
-| `layout.showInspectorPanel` | boolean | `true`      | Show the InspectorPanel                            |
-| `layout.showSidebarPanel`   | boolean | `true`      | Show the SidebarPanel                              |
-| `layout.showNotesListPanel` | boolean | `true`      | Show the NotesListPanel                            |
+| Key                         | Type    | Default       | Description                                        |
+| --------------------------- | ------- | ------------- | -------------------------------------------------- |
+| `applicationType`           | string  | `"desktop"`   | Application mode: `browser`, `desktop`, `cloud`    |
+| `locale`                    | string  | `"en"`        | Active application locale                          |
+| `vault`                     | string  | `"./vault"`   | Path to the vault directory for desktop storage    |
+| `editor.autosaveDelay`      | number  | `2000`        | Milliseconds of idle time before content autosaves |
+| `layout.showInspectorPanel` | boolean | `true`        | Show the InspectorPanel                            |
+| `layout.showSidebarPanel`   | boolean | `true`        | Show the SidebarPanel                              |
+| `layout.showNotesListPanel` | boolean | `true`        | Show the NotesListPanel                            |
+| `theme.accentColor`         | string  | `"#3f57dfff"` | Accent color used for the selected Inbox item      |
 
 ## Features
 
@@ -53,6 +56,16 @@ the file path relative to the vault root.
 - The vault path is set in `app/config/default.yaml` (default: `./vault`).
 - The frontend loads all notes on app open and displays them in
   `NotesListPanel`.
+
+### Inbox View
+
+The default sidebar view is `Inbox`.
+
+- `Inbox` shows only notes whose `id` has no `/`, which means the note is
+  stored directly in the vault root.
+- Notes stored in subdirectories are excluded from the Inbox list.
+- The selected Inbox item uses `theme.accentColor` from
+  `app/config/default.yaml`.
 
 ### Browser Storage
 
