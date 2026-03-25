@@ -1,5 +1,6 @@
 import { useState } from '#app'
 import { computed } from 'vue'
+import { noteNameFromId } from '~/notes/noteNameFromId'
 import { buildSaveNoteInput } from '~/notes/saveNoteInput'
 import type { Note } from '~/notes/types'
 
@@ -78,14 +79,10 @@ function createNotesListMeta(modifiedAt: string): string {
   return modifiedAt.slice(0, 10)
 }
 
-function createNotesListTitle(noteId: string): string {
-  return noteId.replace(/\.md$/, '')
-}
-
 export function createNotesListItems(notes: Note[]): NotesListItem[] {
   return notes.map((note) => ({
     id: note.id,
-    title: createNotesListTitle(note.id),
+    title: noteNameFromId(note.id),
     description: createNotesListDescription(note.content),
     meta: createNotesListMeta(note.modifiedAt),
   }))

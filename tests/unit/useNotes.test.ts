@@ -107,12 +107,20 @@ describe('useNotes', () => {
     expect(items.map((i) => i.id)).toEqual(['b.md', 'a.md'])
   })
 
-  it('removes the markdown suffix from the list item title', () => {
-    const [item] = createNotesListItems([
+  it('uses note id basename without .md as the list item title', () => {
+    const [flat] = createNotesListItems([
       createNote('my-note.md', '# Heading\n\nBody', '2026-03-24'),
     ])
+    expect(flat?.title).toBe('my-note')
 
-    expect(item?.title).toBe('my-note')
+    const [nested] = createNotesListItems([
+      createNote(
+        'backlog/this-is-file-name.md',
+        '# Heading\n\nBody',
+        '2026-03-24',
+      ),
+    ])
+    expect(nested?.title).toBe('this-is-file-name')
   })
 
   it('omits markdown heading lines from the description preview', () => {
