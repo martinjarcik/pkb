@@ -1,4 +1,10 @@
-import { expect, test, type Page } from '@playwright/test'
+import {
+  expect,
+  test,
+  type APIRequestContext,
+  type Page,
+} from '@playwright/test'
+import type { Note } from '~/notes/types'
 
 async function waitForEditorReady(page: Page): Promise<void> {
   await expect(page.getByTestId('note-editor-error')).toHaveCount(0, {
@@ -19,6 +25,19 @@ function visiblePopoverItems(page: Page) {
 async function openHeadingSettings(page: Page): Promise<void> {
   await page.locator('.ce-header').first().click()
   await page.locator('.ce-toolbar__settings-btn').first().click()
+}
+
+async function loadNoteWithHeading(request: APIRequestContext): Promise<Note> {
+  const response = await request.get('/api/notes')
+
+  expect(response.ok()).toBeTruthy()
+
+  const notes = (await response.json()) as Note[]
+  const note = notes.find((entry) => /^#\s+/m.test(entry.content))
+
+  expect(note).toBeDefined()
+
+  return note!
 }
 
 test('renders the default application layout', async ({ page }) => {
@@ -92,8 +111,14 @@ test('updates the active note when a different list row is clicked', async ({
   await expect(page.locator('.ce-block')).not.toHaveCount(0)
 })
 
-test('shows block conversion options for a heading block', async ({ page }) => {
+test('shows block conversion options for a heading block', async ({
+  page,
+  request,
+}) => {
+  const note = await loadNoteWithHeading(request)
+
   await page.goto('/')
+  await page.locator(`[data-note-id="${note.id}"]`).click()
 
   await waitForEditorReady(page)
 
@@ -104,8 +129,12 @@ test('shows block conversion options for a heading block', async ({ page }) => {
 
 test('renders heading blocks with larger typography than paragraphs', async ({
   page,
+  request,
 }) => {
+  const note = await loadNoteWithHeading(request)
+
   await page.goto('/')
+  await page.locator(`[data-note-id="${note.id}"]`).click()
 
   await waitForEditorReady(page)
 
@@ -133,8 +162,14 @@ test('renders heading blocks with larger typography than paragraphs', async ({
   await expect(paragraph).toBeVisible()
 })
 
-test('allows changing a heading block between levels', async ({ page }) => {
+test('allows changing a heading block between levels', async ({
+  page,
+  request,
+}) => {
+  const note = await loadNoteWithHeading(request)
+
   await page.goto('/')
+  await page.locator(`[data-note-id="${note.id}"]`).click()
 
   await waitForEditorReady(page)
 
@@ -150,8 +185,12 @@ test('allows changing a heading block between levels', async ({ page }) => {
 
 test('shows checklist only once in the block conversion menu', async ({
   page,
+  request,
 }) => {
+  const note = await loadNoteWithHeading(request)
+
   await page.goto('/')
+  await page.locator(`[data-note-id="${note.id}"]`).click()
 
   await waitForEditorReady(page)
 

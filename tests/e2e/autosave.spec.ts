@@ -5,8 +5,9 @@ import {
   type Page,
 } from '@playwright/test'
 import type { Note, NoteProperties } from '~/notes/types'
+import { noteTitleFromId } from '~/notes/noteTitleFromId'
 
-const NOTE_ID = 'Second note.md'
+const FIXTURE_NOTE_PROPERTY_TITLE = 'Second note (test seed)'
 
 function getNoteProperties(note: Note): NoteProperties {
   const {
@@ -32,13 +33,15 @@ async function waitForEditorReady(page: Page): Promise<void> {
   })
 }
 
-async function loadNote(request: APIRequestContext, id: string): Promise<Note> {
+async function loadFixtureNote(request: APIRequestContext): Promise<Note> {
   const response = await request.get('/api/notes')
 
   expect(response.ok()).toBeTruthy()
 
   const notes = (await response.json()) as Note[]
-  const note = notes.find((entry) => entry.id === id)
+  const note = notes.find(
+    (entry) => entry.title === FIXTURE_NOTE_PROPERTY_TITLE,
+  )
 
   expect(note).toBeDefined()
 
@@ -58,6 +61,23 @@ async function restoreNote(
   })
 
   expect(response.ok()).toBeTruthy()
+}
+
+async function renameNote(
+  request: APIRequestContext,
+  id: string,
+  title: string,
+): Promise<Note> {
+  const response = await request.patch('/api/notes', {
+    data: {
+      id,
+      title,
+    },
+  })
+
+  expect(response.ok()).toBeTruthy()
+
+  return (await response.json()) as Note
 }
 
 async function openNote(page: Page, id: string): Promise<void> {
@@ -93,16 +113,18 @@ test.describe.configure({ mode: 'serial' })
 
 test('discards editor changes if the page reloads before 2 seconds', async ({
   page,
+  request,
 }) => {
+  const note = await loadFixtureNote(request)
   const marker = `autosave-pending-${Date.now()}`
 
   await page.goto('/')
-  await openNote(page, NOTE_ID)
+  await openNote(page, note.id)
   await appendMarkerToFirstParagraph(page, marker)
 
   await page.waitForTimeout(1000)
   await page.reload()
-  await openNote(page, NOTE_ID)
+  await openNote(page, note.id)
 
   await expect(page.locator('.ce-paragraph').first()).not.toContainText(marker)
 })
@@ -112,19 +134,61 @@ test('persists editor changes after 2 seconds of idle time', async ({
   request,
 }) => {
   const marker = `autosave-saved-${Date.now()}`
-  const originalNote = await loadNote(request, NOTE_ID)
+  const originalNote = await loadFixtureNote(request)
 
   try {
     await page.goto('/')
-    await openNote(page, NOTE_ID)
+    await openNote(page, originalNote.id)
     await appendMarkerToFirstParagraph(page, marker)
 
     await page.waitForTimeout(2500)
     await page.reload()
-    await openNote(page, NOTE_ID)
+    await openNote(page, originalNote.id)
 
     await expect(page.locator('.ce-paragraph').first()).toContainText(marker)
   } finally {
     await restoreNote(request, originalNote)
+  }
+})
+
+test('renames the note title on Enter and blur', async ({ page, request }) => {
+  const originalNote = await loadFixtureNote(request)
+  const originalTitle = noteTitleFromId(originalNote.id)
+  const renamedTitle = `Renamed note ${Date.now()}`
+  let currentId = originalNote.id
+
+  try {
+    await page.goto('/')
+    await openNote(page, currentId)
+
+    const noteTitle = page.getByTestId('note-title')
+
+    await noteTitle.click()
+    await noteTitle.fill(renamedTitle)
+    await page.keyboard.press('Enter')
+
+    currentId = `${renamedTitle}.md`
+
+    await expect(noteTitle).toHaveText(renamedTitle)
+    await expect(page.locator(`[data-note-id="${currentId}"]`)).toHaveAttribute(
+      'data-selected',
+      'true',
+    )
+
+    await noteTitle.click()
+    await noteTitle.fill(originalTitle)
+    await page.locator('.ce-paragraph').first().click()
+
+    currentId = originalNote.id
+
+    await expect(noteTitle).toHaveText(originalTitle)
+    await expect(page.locator(`[data-note-id="${currentId}"]`)).toHaveAttribute(
+      'data-selected',
+      'true',
+    )
+  } finally {
+    if (currentId !== originalNote.id) {
+      await renameNote(request, currentId, originalTitle)
+    }
   }
 })

@@ -21,3 +21,7 @@ Load Editor.js and the community Markdown converter only in the browser while ke
 ## D006 — 2026-03
 
 Use `Note title` as the canonical term for the user-visible label derived from a note `id`, while treating any user-defined `title` property as ordinary note data unless a future feature wires it into the UI.
+
+## D007 — 2026-03
+
+Persist note title edits by renaming the note `id` basename, keeping the current folder and using numeric suffixes when the target filename already exists.

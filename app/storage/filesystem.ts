@@ -1,7 +1,16 @@
-import { mkdir, readdir, readFile, stat, unlink, writeFile } from 'fs/promises'
+import {
+  mkdir,
+  readdir,
+  readFile,
+  rename,
+  stat,
+  unlink,
+  writeFile,
+} from 'fs/promises'
 import { dirname, relative, resolve } from 'path'
 import type { Note } from '~/notes/types'
-import type { NoteStorage, SaveNoteInput } from './types'
+import { resolveUniqueNoteId } from '~/notes/renameNoteTitle'
+import type { NoteStorage, RenameNoteTitleInput, SaveNoteInput } from './types'
 import {
   parseDocument,
   sanitizeProperties,
@@ -78,6 +87,34 @@ export function createFilesystemStorage(vaultPath: string): NoteStorage {
         id: input.id,
         ...sanitizeProperties(input.properties),
         content: input.content,
+        createdAt: fileStats.birthtime.toISOString(),
+        modifiedAt: fileStats.mtime.toISOString(),
+      }
+    },
+
+    async renameNoteTitle(input: RenameNoteTitleInput): Promise<Note> {
+      const normalizedVault = resolve(vaultPath)
+      const currentPath = assertSafeId(vaultPath, input.id)
+      const existingFilePaths = await findMarkdownFiles(normalizedVault)
+      const existingIds = existingFilePaths.map((filePath) =>
+        relative(normalizedVault, filePath),
+      )
+      const nextId = resolveUniqueNoteId(input.id, input.title, existingIds)
+      const raw = await readFile(currentPath, 'utf-8')
+
+      if (nextId !== input.id) {
+        const nextPath = assertSafeId(vaultPath, nextId)
+
+        await rename(currentPath, nextPath)
+      }
+
+      const fileStats = await stat(assertSafeId(vaultPath, nextId))
+      const { properties, content } = parseDocument(raw)
+
+      return {
+        id: nextId,
+        ...properties,
+        content,
         createdAt: fileStats.birthtime.toISOString(),
         modifiedAt: fileStats.mtime.toISOString(),
       }

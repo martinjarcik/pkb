@@ -119,14 +119,14 @@
                       "x": 0,
                       "y": 0,
                       "width": "fill_container",
-                      "height": 809.2572857533648,
+                      "height": 1707.5712234510686,
                       "descendants": {
                         "ZYZFX": {
-                          "y": 397.1286428766824
+                          "y": 846.2856117255343
                         },
                         "Rv7um": {
                           "x": -39,
-                          "y": 397.1286428766824
+                          "y": 846.2856117255343
                         }
                       }
                     },
@@ -135,17 +135,17 @@
                       "type": "ref",
                       "ref": "XpvfC",
                       "x": 0,
-                      "y": 809.2572857533648,
+                      "y": 1707.5712234510686,
                       "width": "fill_container",
-                      "height": 809.2572857533648,
+                      "height": 1707.5712234510686,
                       "descendants": {
                         "ZYZFX": {
                           "content": "modifiedAt",
-                          "y": 397.1286428766824
+                          "y": 846.2856117255343
                         },
                         "Rv7um": {
                           "x": -39,
-                          "y": 397.1286428766824
+                          "y": 846.2856117255343
                         }
                       }
                     },
@@ -154,18 +154,18 @@
                       "type": "ref",
                       "ref": "XpvfC",
                       "x": 0,
-                      "y": 1618.5145715067297,
+                      "y": 3415.142446902137,
                       "width": "fill_container",
-                      "height": 809.2572857533653,
+                      "height": 1707.57122345107,
                       "descendants": {
                         "ZYZFX": {
                           "content": "favorite",
-                          "y": 397.12864287668265
+                          "y": 846.285611725535
                         },
                         "Rv7um": {
                           "content": "false",
                           "x": -27,
-                          "y": 397.12864287668265
+                          "y": 846.285611725535
                         }
                       }
                     },
@@ -174,18 +174,18 @@
                       "type": "ref",
                       "ref": "XpvfC",
                       "x": 0,
-                      "y": 2427.771857260095,
+                      "y": 5122.713670353207,
                       "width": "fill_container",
-                      "height": 809.2572857533648,
+                      "height": 1707.571223451069,
                       "descendants": {
                         "ZYZFX": {
                           "content": "pinned",
-                          "y": 397.1286428766824
+                          "y": 846.2856117255345
                         },
                         "Rv7um": {
                           "content": "false",
                           "x": -27,
-                          "y": 397.1286428766824
+                          "y": 846.2856117255345
                         }
                       }
                     },
@@ -195,7 +195,7 @@
                       "name": "InspectorPropertyItem",
                       "reusable": true,
                       "width": "fill_container",
-                      "height": 809.2572857533648,
+                      "height": 1707.5712234510686,
                       "justifyContent": "space_between",
                       "alignItems": "center",
                       "children": [
@@ -226,14 +226,14 @@
                       "id": "Xn4l2",
                       "name": "spacer",
                       "width": "fill_container",
-                      "height": 1391.999232518725
+                      "height": 2937.184347129079
                     },
                     {
                       "type": "frame",
                       "id": "KkocO",
                       "name": "addBtn",
                       "width": "fill_container",
-                      "height": 1391.9992325187259,
+                      "height": 2937.1843471290813,
                       "cornerRadius": 6,
                       "stroke": {
                         "thickness": 1,
@@ -336,6 +336,19 @@
                   "alignItems": "center",
                   "children": [
                     {
+                      "type": "text",
+                      "id": "kSryA",
+                      "name": "NoteTitle",
+                      "fill": "#000000",
+                      "textGrowth": "fixed-width",
+                      "width": 632,
+                      "content": "Peaky Blinders: The Immortal Man\n",
+                      "textAlign": "center",
+                      "fontFamily": "Inter",
+                      "fontSize": 23,
+                      "fontWeight": "700"
+                    },
+                    {
                       "type": "frame",
                       "id": "t614C",
                       "name": "NoteEditor",
@@ -363,15 +376,6 @@
                           "layout": "vertical",
                           "width": "fill_container",
                           "children": [
-                            {
-                              "type": "text",
-                              "id": "kSryA",
-                              "fill": "#000000",
-                              "content": "Peaky Blinders: The Immortal Man\n",
-                              "fontFamily": "Inter",
-                              "fontSize": 23,
-                              "fontWeight": "700"
-                            },
                             {
                               "type": "text",
                               "id": "WqI1b",
@@ -406,6 +410,7 @@
                   "x": -10983.508237362,
                   "y": 0,
                   "name": "NoteTitle",
+                  "enabled": false,
                   "fill": "#000000",
                   "textGrowth": "fixed-width-height",
                   "width": 638.6370279184854,
@@ -422,93 +427,108 @@
                   "x": -10983.508237361984,
                   "y": 0,
                   "name": "NoteActions",
+                  "enabled": false,
                   "width": 638.6370279184854,
                   "height": 48.039215686274495,
                   "gap": 20,
-                  "justifyContent": "end",
-                  "alignItems": "center",
-                  "children": [
-                    {
-                      "type": "icon_font",
-                      "id": "eVAzX",
-                      "name": "pin",
-                      "width": 14.558628185001814,
-                      "height": 16,
-                      "iconFontName": "pin-off",
-                      "iconFontFamily": "lucide",
-                      "fill": "#3f57dfff"
-                    },
-                    {
-                      "type": "icon_font",
-                      "id": "i4T0g",
-                      "name": "integration",
-                      "width": 14.558628185001814,
-                      "height": 16,
-                      "iconFontName": "plug-zap",
-                      "iconFontFamily": "lucide",
-                      "fill": "#444444"
-                    },
-                    {
-                      "type": "icon_font",
-                      "id": "FjzNC",
-                      "name": "share",
-                      "width": 14.558628185001814,
-                      "height": 16,
-                      "iconFontName": "share",
-                      "iconFontFamily": "lucide",
-                      "fill": "#444444"
-                    },
-                    {
-                      "type": "icon_font",
-                      "id": "AN5zl",
-                      "name": "trash",
-                      "width": 14.558628185001814,
-                      "height": 16,
-                      "iconFontName": "trash-2",
-                      "iconFontFamily": "lucide",
-                      "fill": "#444444"
-                    },
-                    {
-                      "type": "icon_font",
-                      "id": "t5JhS",
-                      "name": "fullscreen",
-                      "width": 14.558628185001814,
-                      "height": 16,
-                      "iconFontName": "maximize-2",
-                      "iconFontFamily": "lucide",
-                      "fill": "#444444"
-                    },
-                    {
-                      "type": "icon_font",
-                      "id": "mppCI",
-                      "name": "favorite",
-                      "width": 14.558628185001814,
-                      "height": 16,
-                      "iconFontName": "star",
-                      "iconFontFamily": "lucide",
-                      "fill": "#3f57dfff"
-                    },
-                    {
-                      "type": "icon_font",
-                      "id": "F3tL1",
-                      "name": "share with user",
-                      "width": 14.558628185001814,
-                      "height": 16,
-                      "iconFontName": "user-plus",
-                      "iconFontFamily": "lucide",
-                      "fill": "#444444"
-                    },
-                    {
-                      "type": "icon_font",
-                      "id": "y4RTm",
-                      "name": "template selector",
-                      "width": 14.558628185001814,
-                      "height": 16,
-                      "iconFontName": "layout-template",
-                      "iconFontFamily": "lucide",
-                      "fill": "#444444"
-                    }
-                  ]
+                  "justifyContent": "center",
+                  "alignItems": "center"
+                },
+                {
+                  "type": "icon_font",
+                  "id": "y4RTm",
+                  "x": -10550.513838847735,
+                  "y": 16.019607843137244,
+                  "name": "template selector",
+                  "width": 14.558628185001814,
+                  "height": 16,
+                  "iconFontName": "layout-template",
+                  "iconFontFamily": "lucide",
+                  "fill": "#444444"
+                },
+                {
+                  "type": "icon_font",
+                  "id": "F3tL1",
+                  "x": -10585.072467032738,
+                  "y": 16.019607843137244,
+                  "name": "share with user",
+                  "width": 14.558628185001814,
+                  "height": 16,
+                  "iconFontName": "user-plus",
+                  "iconFontFamily": "lucide",
+                  "fill": "#444444"
+                },
+                {
+                  "type": "icon_font",
+                  "id": "mppCI",
+                  "x": -10619.63109521774,
+                  "y": 16.019607843137244,
+                  "name": "favorite",
+                  "width": 14.558628185001814,
+                  "height": 16,
+                  "iconFontName": "star",
+                  "iconFontFamily": "lucide",
+                  "fill": "#3f57dfff"
+                },
+                {
+                  "type": "icon_font",
+                  "id": "t5JhS",
+                  "x": -10654.189723402742,
+                  "y": 16.019607843137244,
+                  "name": "fullscreen",
+                  "width": 14.558628185001814,
+                  "height": 16,
+                  "iconFontName": "maximize-2",
+                  "iconFontFamily": "lucide",
+                  "fill": "#444444"
+                },
+                {
+                  "type": "icon_font",
+                  "id": "AN5zl",
+                  "x": -10688.748351587743,
+                  "y": 16.019607843137244,
+                  "name": "trash",
+                  "width": 14.558628185001814,
+                  "height": 16,
+                  "iconFontName": "trash-2",
+                  "iconFontFamily": "lucide",
+                  "fill": "#444444"
+                },
+                {
+                  "type": "icon_font",
+                  "id": "FjzNC",
+                  "x": -10723.306979772746,
+                  "y": 16.019607843137244,
+                  "name": "share",
+                  "width": 14.558628185001814,
+                  "height": 16,
+                  "iconFontName": "share",
+                  "iconFontFamily": "lucide",
+                  "fill": "#444444"
+                },
+                {
+                  "type": "icon_font",
+                  "id": "i4T0g",
+                  "x": -10757.865607957747,
+                  "y": 16.019607843137244,
+                  "name": "integration",
+                  "width": 14.558628185001814,
+                  "height": 16,
+                  "iconFontName": "plug-zap",
+                  "iconFontFamily": "lucide",
+                  "fill": "#444444"
+                },
+                {
+                  "type": "icon_font",
+                  "id": "eVAzX",
+                  "x": -10792.42423614275,
+                  "y": 16.019607843137244,
+                  "name": "pin",
+                  "width": 14.558628185001814,
+                  "height": 16,
+                  "iconFontName": "pin-off",
+                  "iconFontFamily": "lucide",
+                  "fill": "#3f57dfff"
                 }
               ]
             }

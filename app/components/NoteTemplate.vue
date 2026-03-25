@@ -4,6 +4,9 @@ type NoteEditorHandle = {
 }
 
 const {
+  editorAutosaveDelay,
+  isRenamingNoteTitle,
+  renameSelectedNoteTitle,
   registerEditorFlush,
   saveSelectedNoteContent,
   selectedNote,
@@ -22,6 +25,10 @@ async function flushPendingContentSync(): Promise<void> {
   await pendingSave
 }
 
+async function handleTitleCommit(title: string): Promise<void> {
+  await renameSelectedNoteTitle(title)
+}
+
 onMounted(() => {
   registerEditorFlush(flushPendingContentSync)
 })
@@ -36,9 +43,15 @@ onBeforeUnmount(() => {
     data-testid="note-template"
     class="note-template-shell flex min-h-0 min-w-0 flex-1 flex-col"
   >
-    <NoteTitle v-if="selectedNoteTitle" :title="selectedNoteTitle" />
+    <NoteTitle
+      v-if="selectedNoteTitle"
+      :is-saving="isRenamingNoteTitle"
+      :title="selectedNoteTitle"
+      @commit="handleTitleCommit"
+    />
     <NoteEditor
       ref="noteEditor"
+      :autosave-delay="editorAutosaveDelay"
       :content="selectedNote?.content ?? ''"
       @content-change="handleContentChange"
     />

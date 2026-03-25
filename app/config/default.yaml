@@ -1,6 +1,9 @@
 applicationType: desktop
 vault: ./vault
 
+editor:
+  autosaveDelay: 2000
+
 layout:
   showInspectorPanel: true
   showSidebarPanel: true

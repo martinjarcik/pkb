@@ -128,6 +128,54 @@ describe('useNotes', () => {
     expect(selectedNoteTitle.value).toBe('second')
   })
 
+  it('renames the selected note title and retargets selection to the new id', async () => {
+    const { notes, selectedNoteId, renameSelectedNoteTitle } = useNotes()
+
+    notes.value = [createNote('nested/first.md', '# First', '2026-03-24')]
+    selectedNoteId.value = 'nested/first.md'
+    fetchMock.mockResolvedValue({
+      ...createNote('nested/Renamed title.md', '# First', '2026-03-24'),
+    })
+
+    await renameSelectedNoteTitle('Renamed title')
+
+    expect(fetchMock).toHaveBeenCalledWith('/api/notes', {
+      method: 'PATCH',
+      body: {
+        id: 'nested/first.md',
+        title: 'Renamed title',
+      },
+    })
+    expect(selectedNoteId.value).toBe('nested/Renamed title.md')
+  })
+
+  it('does not overwrite a newer selection after a title rename resolves', async () => {
+    const { notes, selectedNoteId, renameSelectedNoteTitle, selectNoteById } =
+      useNotes()
+
+    let resolveRename: ((value: Note) => void) | null = null
+
+    notes.value = [
+      createNote('first.md', '# First', '2026-03-24'),
+      createNote('second.md', '# Second', '2026-03-23'),
+    ]
+    selectedNoteId.value = 'first.md'
+    fetchMock.mockImplementation(
+      () =>
+        new Promise<Note>((resolve) => {
+          resolveRename = resolve
+        }),
+    )
+
+    const renamePromise = renameSelectedNoteTitle('Renamed')
+
+    await selectNoteById('second.md')
+    resolveRename?.(createNote('Renamed.md', '# First', '2026-03-24'))
+    await renamePromise
+
+    expect(selectedNoteId.value).toBe('second.md')
+  })
+
   it('truncates long description previews to 120 characters', () => {
     const [listItem] = createNotesListItems([
       createNote('long.md', `# Heading\n\n${'a'.repeat(121)}`, '2026-03-24'),

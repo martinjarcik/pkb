@@ -166,14 +166,25 @@
   }
 
   .note-title-shell {
+    border: 1px solid transparent;
+    border-radius: calc(var(--radius) - 4px);
     color: hsl(var(--foreground));
+    cursor: text;
     font-size: var(--app-note-title-font-size);
     font-weight: 700;
     line-height: 1.2;
     margin-inline: auto;
     max-width: var(--app-note-title-max-width);
+    outline: none;
+    overflow-wrap: break-word;
+    padding: 0.25rem 0.5rem;
     text-align: center;
     width: 100%;
+    word-break: break-word;
+  }
+
+  .note-title-shell:focus {
+    border-color: transparent;
   }
 
   .note-editor-shell {

@@ -1,5 +1,6 @@
 import { useState } from '#app'
 import { computed } from 'vue'
+import { loadConfig } from '~/config/loader'
 import { noteTitleFromId } from '~/notes/noteTitleFromId'
 import { buildSaveNoteInput } from '~/notes/saveNoteInput'
 import type { Note } from '~/notes/types'
@@ -88,11 +89,15 @@ export function createNotesListItems(notes: Note[]): NotesListItem[] {
   }))
 }
 
+const defaultEditor = loadConfig().editor
+
 export function useNotes() {
   type EditorFlush = () => Promise<void>
 
+  const editorAutosaveDelay = defaultEditor.autosaveDelay
   const notes = useState<Note[]>('notes.items', () => [])
   const isLoading = useState('notes.isLoading', () => false)
+  const isRenamingNoteTitle = useState('notes.isRenamingNoteTitle', () => false)
   const loadError = useState<string | null>('notes.loadError', () => null)
   const saveError = useState<string | null>('notes.saveError', () => null)
   const editorFlush = useState<EditorFlush | null>(
@@ -111,13 +116,23 @@ export function useNotes() {
   )
   const listItems = computed(() => createNotesListItems(notes.value))
 
+  function sortNotesByModifiedAt(nextNotes: Note[]): Note[] {
+    return nextNotes.sort(
+      (a, b) =>
+        new Date(b.modifiedAt).getTime() - new Date(a.modifiedAt).getTime(),
+    )
+  }
+
   function replaceNote(nextNote: Note): void {
-    notes.value = notes.value
-      .map((note) => (note.id === nextNote.id ? nextNote : note))
-      .sort(
-        (a, b) =>
-          new Date(b.modifiedAt).getTime() - new Date(a.modifiedAt).getTime(),
-      )
+    notes.value = sortNotesByModifiedAt(
+      notes.value.map((note) => (note.id === nextNote.id ? nextNote : note)),
+    )
+  }
+
+  function replaceRenamedNote(previousId: string, nextNote: Note): void {
+    notes.value = sortNotesByModifiedAt(
+      notes.value.map((note) => (note.id === previousId ? nextNote : note)),
+    )
   }
 
   function updateSelectedNoteContent(content: string): void {
@@ -167,6 +182,51 @@ export function useNotes() {
     }
   }
 
+  async function renameSelectedNoteTitle(title: string): Promise<Note | null> {
+    const currentNote = selectedNote.value
+    const trimmedTitle = title.trim()
+
+    if (
+      !currentNote ||
+      isRenamingNoteTitle.value ||
+      trimmedTitle.length === 0
+    ) {
+      return null
+    }
+
+    const currentId = currentNote.id
+
+    saveError.value = null
+    isRenamingNoteTitle.value = true
+
+    try {
+      await editorFlush.value?.()
+
+      const renamedNote = await globalThis.$fetch<Note>('/api/notes', {
+        method: 'PATCH',
+        body: {
+          id: currentId,
+          title: trimmedTitle,
+        },
+      })
+
+      replaceRenamedNote(currentId, renamedNote)
+
+      if (selectedNoteId.value === currentId) {
+        selectedNoteId.value = renamedNote.id
+      }
+
+      return renamedNote
+    } catch (error) {
+      saveError.value =
+        error instanceof Error ? error.message : 'Failed to rename note title'
+
+      return null
+    } finally {
+      isRenamingNoteTitle.value = false
+    }
+  }
+
   async function loadNotes(): Promise<Note[]> {
     isLoading.value = true
     loadError.value = null
@@ -191,8 +251,10 @@ export function useNotes() {
   }
 
   return {
+    editorAutosaveDelay,
     notes,
     isLoading,
+    isRenamingNoteTitle,
     loadError,
     saveError,
     selectedNoteId,
@@ -200,6 +262,7 @@ export function useNotes() {
     selectedNoteTitle,
     listItems,
     registerEditorFlush,
+    renameSelectedNoteTitle,
     saveSelectedNoteContent,
     selectNoteById,
     loadNotes,

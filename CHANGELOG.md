@@ -4,7 +4,8 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
-- Display the active note title in `NoteTemplate` above the editor surface.
+- Display the active note title in `NoteTemplate`, make it editable inline, and
+  save title changes by renaming the note filename with collision-safe suffixes.
 - Add 2-second debounced autosave for note content, including flush-on-switch
   behavior so pending edits persist before the active note changes.
 - Auto-select the first loaded note on app open, highlight it in

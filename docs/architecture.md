@@ -101,6 +101,9 @@ New contexts may be introduced when corresponding features are specified.
 - `useNotes()` owns the active note id in shared state. After a successful load,
   it selects the first loaded note by default and `NoteTemplate` passes that
   note's title into `NoteTitle` and its Content into `NoteEditor`.
+- Renaming a note title changes the note `id` by replacing its basename with the
+  edited title plus `.md`, while keeping the parent folder unchanged. On
+  collisions, storage selects a unique suffixed filename.
 
 ## UI interaction patterns
 

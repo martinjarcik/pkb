@@ -142,6 +142,49 @@ describe('filesystemStorage', () => {
     expect(notes).toHaveLength(0)
   })
 
+  it('renames a note title by changing the file basename', async () => {
+    await storage.saveNote({
+      id: 'nested/original.md',
+      properties: { title: 'Original' },
+      content: '# Body',
+    })
+
+    const renamed = await storage.renameNoteTitle({
+      id: 'nested/original.md',
+      title: 'Updated title',
+    })
+
+    const written = await readFile(
+      join(vaultPath, 'nested', 'Updated title.md'),
+      'utf-8',
+    )
+    const notes = await storage.loadNotes()
+
+    expect(renamed.id).toBe('nested/Updated title.md')
+    expect(written).toBe('---\ntitle: Original\n---\n# Body')
+    expect(notes.map((note) => note.id)).toEqual(['nested/Updated title.md'])
+  })
+
+  it('adds a numeric suffix when renaming to a colliding title', async () => {
+    await storage.saveNote({
+      id: 'notes/first.md',
+      properties: { title: 'First' },
+      content: '# First',
+    })
+    await storage.saveNote({
+      id: 'notes/second.md',
+      properties: { title: 'Second' },
+      content: '# Second',
+    })
+
+    const renamed = await storage.renameNoteTitle({
+      id: 'notes/second.md',
+      title: 'first',
+    })
+
+    expect(renamed.id).toBe('notes/first (2).md')
+  })
+
   it('returns an empty array when the vault is empty', async () => {
     const notes = await storage.loadNotes()
 

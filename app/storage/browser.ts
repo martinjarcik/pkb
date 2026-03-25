@@ -1,5 +1,6 @@
 import type { Note } from '~/notes/types'
-import type { NoteStorage, SaveNoteInput } from './types'
+import { resolveUniqueNoteId } from '~/notes/renameNoteTitle'
+import type { NoteStorage, RenameNoteTitleInput, SaveNoteInput } from './types'
 import { parseDocument, serializeDocument } from './document'
 
 const STORAGE_KEY = 'notes'
@@ -121,6 +122,32 @@ export const browserStorage: NoteStorage = {
     writeStoredNotes(notes)
 
     return composeNote(input.id, storedNote)
+  },
+
+  async renameNoteTitle(input: RenameNoteTitleInput): Promise<Note> {
+    const notes = readStoredNotes()
+    const storedNote = notes[input.id]
+
+    if (!storedNote) {
+      throw new Error(`Note not found: ${input.id}`)
+    }
+
+    const nextId = resolveUniqueNoteId(
+      input.id,
+      input.title,
+      Object.keys(notes),
+    )
+
+    if (nextId !== input.id) {
+      const { [input.id]: _removed, ...remaining } = notes
+
+      writeStoredNotes({
+        ...remaining,
+        [nextId]: storedNote,
+      })
+    }
+
+    return composeNote(nextId, storedNote)
   },
 
   async deleteNote(id: string): Promise<void> {

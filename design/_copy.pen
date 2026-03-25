@@ -8,7 +8,7 @@
       "y": 0,
       "name": "Design",
       "clip": true,
-      "width": 1671,
+      "width": 1670,
       "height": 959,
       "fill": "#FFFFFF",
       "cornerRadius": 20,
@@ -26,7 +26,7 @@
           "y": 0,
           "name": "InspectorContent",
           "clip": true,
-          "width": 249,
+          "width": 250,
           "height": "fill_container(1100)",
           "fill": {
             "type": "color",
@@ -47,7 +47,7 @@
               "id": "cLlxQ",
               "name": "InspectorNavigation",
               "width": "fill_container",
-              "height": 52,
+              "height": 50,
               "stroke": {
                 "thickness": {
                   "bottom": 1
@@ -119,14 +119,14 @@
                       "x": 0,
                       "y": 0,
                       "width": "fill_container",
-                      "height": 86.14101608889995,
+                      "height": 1707.5712234510686,
                       "descendants": {
                         "ZYZFX": {
-                          "y": 35.57050804444997
+                          "y": 846.2856117255343
                         },
                         "Rv7um": {
-                          "x": 169,
-                          "y": 35.57050804444997
+                          "x": -39,
+                          "y": 846.2856117255343
                         }
                       }
                     },
@@ -135,17 +135,17 @@
                       "type": "ref",
                       "ref": "XpvfC",
                       "x": 0,
-                      "y": 86.14101608889995,
+                      "y": 1707.5712234510686,
                       "width": "fill_container",
-                      "height": 86.14101608889995,
+                      "height": 1707.5712234510686,
                       "descendants": {
                         "ZYZFX": {
                           "content": "modifiedAt",
-                          "y": 35.57050804444997
+                          "y": 846.2856117255343
                         },
                         "Rv7um": {
-                          "x": 169,
-                          "y": 35.57050804444997
+                          "x": -39,
+                          "y": 846.2856117255343
                         }
                       }
                     },
@@ -154,18 +154,18 @@
                       "type": "ref",
                       "ref": "XpvfC",
                       "x": 0,
-                      "y": 172.2820321777999,
+                      "y": 3415.142446902137,
                       "width": "fill_container",
-                      "height": 86.14101608889997,
+                      "height": 1707.57122345107,
                       "descendants": {
                         "ZYZFX": {
                           "content": "favorite",
-                          "y": 35.57050804444999
+                          "y": 846.285611725535
                         },
                         "Rv7um": {
                           "content": "false",
-                          "x": 181,
-                          "y": 35.57050804444999
+                          "x": -27,
+                          "y": 846.285611725535
                         }
                       }
                     },
@@ -174,18 +174,18 @@
                       "type": "ref",
                       "ref": "XpvfC",
                       "x": 0,
-                      "y": 258.4230482666999,
+                      "y": 5122.713670353207,
                       "width": "fill_container",
-                      "height": 86.14101608889993,
+                      "height": 1707.571223451069,
                       "descendants": {
                         "ZYZFX": {
                           "content": "pinned",
-                          "y": 35.570508044449966
+                          "y": 846.2856117255345
                         },
                         "Rv7um": {
                           "content": "false",
-                          "x": 181,
-                          "y": 35.570508044449966
+                          "x": -27,
+                          "y": 846.2856117255345
                         }
                       }
                     },
@@ -195,7 +195,7 @@
                       "name": "InspectorPropertyItem",
                       "reusable": true,
                       "width": "fill_container",
-                      "height": 86.14101608889995,
+                      "height": 1707.5712234510686,
                       "justifyContent": "space_between",
                       "alignItems": "center",
                       "children": [
@@ -226,14 +226,14 @@
                       "id": "Xn4l2",
                       "name": "spacer",
                       "width": "fill_container",
-                      "height": 148.17071207768646
+                      "height": 2937.184347129079
                     },
                     {
                       "type": "frame",
                       "id": "KkocO",
                       "name": "addBtn",
                       "width": "fill_container",
-                      "height": 148.17071207768655,
+                      "height": 2937.1843471290813,
                       "cornerRadius": 6,
                       "stroke": {
                         "thickness": 1,
@@ -305,72 +305,91 @@
               "id": "9V5QL",
               "x": 0,
               "y": 50,
-              "name": "NoteEditor",
-              "width": 830,
-              "height": 923,
-              "fill": "#3e56de12",
+              "name": "NoteView",
+              "width": "fill_container(830)",
+              "height": "fit_content(923)",
               "stroke": {
                 "align": "inside",
-                "thickness": 1,
-                "fill": "#0000001a"
+                "thickness": {
+                  "top": 1
+                },
+                "fill": "#eeeeee"
               },
               "layout": "vertical",
-              "padding": [
-                50,
-                0,
-                0,
-                0
-              ],
               "alignItems": "center",
               "children": [
                 {
                   "type": "frame",
                   "id": "3JztA",
-                  "name": "Frame 7",
+                  "name": "NoteTemplate",
                   "clip": true,
-                  "width": 640,
-                  "height": 859,
-                  "fill": "#ffffffff",
-                  "cornerRadius": [
-                    10,
-                    10,
+                  "width": "fill_container",
+                  "height": "fill_container",
+                  "fill": "#3e56de12",
+                  "layout": "vertical",
+                  "padding": [
+                    50,
+                    100,
                     0,
-                    0
+                    100
                   ],
-                  "layout": "none",
+                  "alignItems": "center",
                   "children": [
                     {
-                      "type": "group",
-                      "id": "fBhuB",
-                      "x": 0,
-                      "y": -152,
-                      "name": "universal - text",
+                      "type": "text",
+                      "id": "kSryA",
+                      "name": "NoteTitle",
+                      "fill": "#000000",
+                      "textGrowth": "fixed-width",
+                      "width": 632,
+                      "content": "Peaky Blinders: The Immortal Man\n",
+                      "textAlign": "center",
+                      "fontFamily": "Inter",
+                      "fontSize": 23,
+                      "fontWeight": "700"
+                    },
+                    {
+                      "type": "frame",
+                      "id": "t614C",
+                      "name": "NoteEditor",
+                      "width": "fill_container",
+                      "height": 859,
+                      "fill": "#FFFFFF",
+                      "cornerRadius": [
+                        10,
+                        10,
+                        0,
+                        0
+                      ],
+                      "layout": "vertical",
+                      "padding": [
+                        50,
+                        100,
+                        0,
+                        100
+                      ],
                       "children": [
                         {
-                          "type": "text",
-                          "id": "kSryA",
-                          "x": 82,
-                          "y": 201,
-                          "fill": "#000000",
-                          "content": "Peaky Blinders: The Immortal Man",
-                          "fontFamily": "Inter",
-                          "fontSize": 23,
-                          "fontWeight": "700"
-                        },
-                        {
-                          "type": "text",
-                          "id": "WqI1b",
-                          "x": 82.50548824737325,
-                          "y": 260.0079333881895,
-                          "fill": "#000000",
-                          "textGrowth": "fixed-width-height",
-                          "width": 470,
-                          "height": 722,
-                          "content": "Anyone remember Michael Elphick’s “Private Schultz” (1981)? The nasty Nazis have counterfeited millions of Bank of England notes and plan to flood, and thereby ruin, the British economy and shrewdly shorten the war. “Beckett” (Tim Roth) is their agent and he determines to recruit “Duke” (Barry Keoghan) to help him smuggle and distribute some £70m of it. The increasingly audacious “Duke” has taken over the “Peaky Blinders” after his dad “Tommy” (Cillian Murphy) retired to a ramshackle country pile to write his memoirs, and is becoming more out of control. \n\nAnxious about his excesses, his aunt “Ada” (Sophie Rundle) decides she has to alert her brother to the dangers of his continuing absence. Moreover, she then uses her position as an MP to collect information on her nephew that should she get to the military police could see him swing. \n\nThat prospect doesn’t appeal to “Beckett” but to what lengths will he go; will Duke” actually go to get his hands on the loot and what will it take to prize “Tommy” from his self-imposed exile? Murphy himself makes it clear to us at the start that we are not to say any more to the potential television viewers, so I’d better stop there - but suffice to say this is a worthy successor to the gritty television series’ on which it is based. \n\nThat said, though, you don’t need to have seen those to pick this up. It’s a stand-alone drama that stylishly captures the poverty, violence and divided loyalties of a time where family and country were not necessarily on the same side. The more I see Keoghan act, the more limited I reckon his skills are - but here he is a perfect fit for the slightly maniacal but conflicted son of a father whom Murphy has characterised with just the right degree of menace and humanity. Roth, Ferguson and the always reliable Ned Dennehy all contribute well to a solid story that mixes the mystical Romany with the practical brutalities of modern warfare and, of course, some good old-fashioned greed. The production looks great and the whole film slides (sometimes quite muddily) along enjoyably for the best part of two hours. I even got a special bonnet at the screening, too!",
-                          "lineHeight": 1.7,
-                          "fontFamily": "Inter",
-                          "fontSize": 12,
-                          "fontWeight": "normal"
+                          "type": "group",
+                          "id": "fBhuB",
+                          "name": "Blocks",
+                          "layout": "vertical",
+                          "width": "fill_container",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "WqI1b",
+                              "fill": "#000000",
+                              "textGrowth": "fixed-width-height",
+                              "width": 430,
+                              "height": 748.4118613407231,
+                              "content": "Anyone remember Michael Elphick’s “Private Schultz” (1981)? The nasty Nazis have counterfeited millions of Bank of England notes and plan to flood, and thereby ruin, the British economy and shrewdly shorten the war. “Beckett” (Tim Roth) is their agent and he determines to recruit “Duke” (Barry Keoghan) to help him smuggle and distribute some £70m of it. The increasingly audacious “Duke” has taken over the “Peaky Blinders” after his dad “Tommy” (Cillian Murphy) retired to a ramshackle country pile to write his memoirs, and is becoming more out of control. \n\nAnxious about his excesses, his aunt “Ada” (Sophie Rundle) decides she has to alert her brother to the dangers of his continuing absence. Moreover, she then uses her position as an MP to collect information on her nephew that should she get to the military police could see him swing. \n\nThat prospect doesn’t appeal to “Beckett” but to what lengths will he go; will Duke” actually go to get his hands on the loot and what will it take to prize “Tommy” from his self-imposed exile? Murphy himself makes it clear to us at the start that we are not to say any more to the potential television viewers, so I’d better stop there - but suffice to say this is a worthy successor to the gritty television series’ on which it is based. \n\nThat said, though, you don’t need to have seen those to pick this up. It’s a stand-alone drama that stylishly captures the poverty, violence and divided loyalties of a time where family and country were not necessarily on the same side. The more I see Keoghan act, the more limited I reckon his skills are - but here he is a perfect fit for the slightly maniacal but conflicted son of a father whom Murphy has characterised with just the right degree of menace and humanity. Roth, Ferguson and the always reliable Ned Dennehy all contribute well to a solid story that mixes the mystical Romany with the practical brutalities of modern warfare and, of course, some good old-fashioned greed. The production looks great and the whole film slides (sometimes quite muddily) along enjoyably for the best part of two hours. I even got a special bonnet at the screening, too!",
+                              "lineHeight": 1.7,
+                              "fontFamily": "Inter",
+                              "fontSize": 12,
+                              "fontWeight": "normal"
+                            }
+                          ]
                         }
                       ]
                     }
@@ -391,6 +410,7 @@
                   "x": -10983.508237362,
                   "y": 0,
                   "name": "NoteTitle",
+                  "enabled": false,
                   "fill": "#000000",
                   "textGrowth": "fixed-width-height",
                   "width": 638.6370279184854,
@@ -407,93 +427,108 @@
                   "x": -10983.508237361984,
                   "y": 0,
                   "name": "NoteActions",
+                  "enabled": false,
                   "width": 638.6370279184854,
                   "height": 48.039215686274495,
                   "gap": 20,
-                  "justifyContent": "end",
-                  "alignItems": "center",
-                  "children": [
-                    {
-                      "type": "icon_font",
-                      "id": "eVAzX",
-                      "name": "pin",
-                      "width": 14.558628185001814,
-                      "height": 16,
-                      "iconFontName": "pin-off",
-                      "iconFontFamily": "lucide",
-                      "fill": "#3f57dfff"
-                    },
-                    {
-                      "type": "icon_font",
-                      "id": "i4T0g",
-                      "name": "integration",
-                      "width": 14.558628185001814,
-                      "height": 16,
-                      "iconFontName": "plug-zap",
-                      "iconFontFamily": "lucide",
-                      "fill": "#444444"
-                    },
-                    {
-                      "type": "icon_font",
-                      "id": "FjzNC",
-                      "name": "share",
-                      "width": 14.558628185001814,
-                      "height": 16,
-                      "iconFontName": "share",
-                      "iconFontFamily": "lucide",
-                      "fill": "#444444"
-                    },
-                    {
-                      "type": "icon_font",
-                      "id": "AN5zl",
-                      "name": "trash",
-                      "width": 14.558628185001814,
-                      "height": 16,
-                      "iconFontName": "trash-2",
-                      "iconFontFamily": "lucide",
-                      "fill": "#444444"
-                    },
-                    {
-                      "type": "icon_font",
-                      "id": "t5JhS",
-                      "name": "fullscreen",
-                      "width": 14.558628185001814,
-                      "height": 16,
-                      "iconFontName": "maximize-2",
-                      "iconFontFamily": "lucide",
-                      "fill": "#444444"
-                    },
-                    {
-                      "type": "icon_font",
-                      "id": "mppCI",
-                      "name": "favorite",
-                      "width": 14.558628185001814,
-                      "height": 16,
-                      "iconFontName": "star",
-                      "iconFontFamily": "lucide",
-                      "fill": "#3f57dfff"
-                    },
-                    {
-                      "type": "icon_font",
-                      "id": "F3tL1",
-                      "name": "share with user",
-                      "width": 14.558628185001814,
-                      "height": 16,
-                      "iconFontName": "user-plus",
-                      "iconFontFamily": "lucide",
-                      "fill": "#444444"
-                    },
-                    {
-                      "type": "icon_font",
-                      "id": "y4RTm",
-                      "name": "template selector",
-                      "width": 14.558628185001814,
-                      "height": 16,
-                      "iconFontName": "layout-template",
-                      "iconFontFamily": "lucide",
-                      "fill": "#444444"
-                    }
-                  ]
+                  "justifyContent": "center",
+                  "alignItems": "center"
+                },
+                {
+                  "type": "icon_font",
+                  "id": "y4RTm",
+                  "x": -10550.513838847735,
+                  "y": 16.019607843137244,
+                  "name": "template selector",
+                  "width": 14.558628185001814,
+                  "height": 16,
+                  "iconFontName": "layout-template",
+                  "iconFontFamily": "lucide",
+                  "fill": "#444444"
+                },
+                {
+                  "type": "icon_font",
+                  "id": "F3tL1",
+                  "x": -10585.072467032738,
+                  "y": 16.019607843137244,
+                  "name": "share with user",
+                  "width": 14.558628185001814,
+                  "height": 16,
+                  "iconFontName": "user-plus",
+                  "iconFontFamily": "lucide",
+                  "fill": "#444444"
+                },
+                {
+                  "type": "icon_font",
+                  "id": "mppCI",
+                  "x": -10619.63109521774,
+                  "y": 16.019607843137244,
+                  "name": "favorite",
+                  "width": 14.558628185001814,
+                  "height": 16,
+                  "iconFontName": "star",
+                  "iconFontFamily": "lucide",
+                  "fill": "#3f57dfff"
+                },
+                {
+                  "type": "icon_font",
+                  "id": "t5JhS",
+                  "x": -10654.189723402742,
+                  "y": 16.019607843137244,
+                  "name": "fullscreen",
+                  "width": 14.558628185001814,
+                  "height": 16,
+                  "iconFontName": "maximize-2",
+                  "iconFontFamily": "lucide",
+                  "fill": "#444444"
+                },
+                {
+                  "type": "icon_font",
+                  "id": "AN5zl",
+                  "x": -10688.748351587743,
+                  "y": 16.019607843137244,
+                  "name": "trash",
+                  "width": 14.558628185001814,
+                  "height": 16,
+                  "iconFontName": "trash-2",
+                  "iconFontFamily": "lucide",
+                  "fill": "#444444"
+                },
+                {
+                  "type": "icon_font",
+                  "id": "FjzNC",
+                  "x": -10723.306979772746,
+                  "y": 16.019607843137244,
+                  "name": "share",
+                  "width": 14.558628185001814,
+                  "height": 16,
+                  "iconFontName": "share",
+                  "iconFontFamily": "lucide",
+                  "fill": "#444444"
+                },
+                {
+                  "type": "icon_font",
+                  "id": "i4T0g",
+                  "x": -10757.865607957747,
+                  "y": 16.019607843137244,
+                  "name": "integration",
+                  "width": 14.558628185001814,
+                  "height": 16,
+                  "iconFontName": "plug-zap",
+                  "iconFontFamily": "lucide",
+                  "fill": "#444444"
+                },
+                {
+                  "type": "icon_font",
+                  "id": "eVAzX",
+                  "x": -10792.42423614275,
+                  "y": 16.019607843137244,
+                  "name": "pin",
+                  "width": 14.558628185001814,
+                  "height": 16,
+                  "iconFontName": "pin-off",
+                  "iconFontFamily": "lucide",
+                  "fill": "#3f57dfff"
                 }
               ]
             }
@@ -1042,7 +1077,7 @@
           "name": "SidebarPanel",
           "clip": true,
           "width": 220,
-          "height": 1090,
+          "height": 908,
           "fill": "#fafafaff",
           "stroke": {
             "align": "inside",
@@ -1521,6 +1556,7 @@
           "x": 375,
           "y": 56,
           "name": "_modal menu",
+          "enabled": false,
           "clip": true,
           "width": 200,
           "fill": "#FFFFFF",

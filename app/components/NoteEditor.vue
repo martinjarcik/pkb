@@ -19,9 +19,11 @@ type EditorjsTool = new (...args: never[]) => unknown
 
 const props = withDefaults(
   defineProps<{
+    autosaveDelay?: number
     content?: string
   }>(),
   {
+    autosaveDelay: 2000,
     content: '',
   },
 )
@@ -99,7 +101,7 @@ function scheduleContentSync(): void {
   contentSyncTimeout = setTimeout(() => {
     contentSyncTimeout = null
     void emitMarkdownContent()
-  }, 2000)
+  }, props.autosaveDelay)
 }
 
 onMounted(async () => {

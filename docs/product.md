@@ -23,13 +23,14 @@ surface.
 
 ## Configuration
 
-| Key                         | Type    | Default     | Description                                     |
-| --------------------------- | ------- | ----------- | ----------------------------------------------- |
-| `applicationType`           | string  | `"desktop"` | Application mode: `browser`, `desktop`, `cloud` |
-| `vault`                     | string  | `"./vault"` | Path to the vault directory for desktop storage |
-| `layout.showInspectorPanel` | boolean | `true`      | Show the InspectorPanel                         |
-| `layout.showSidebarPanel`   | boolean | `true`      | Show the SidebarPanel                           |
-| `layout.showNotesListPanel` | boolean | `true`      | Show the NotesListPanel                         |
+| Key                         | Type    | Default     | Description                                        |
+| --------------------------- | ------- | ----------- | -------------------------------------------------- |
+| `applicationType`           | string  | `"desktop"` | Application mode: `browser`, `desktop`, `cloud`    |
+| `vault`                     | string  | `"./vault"` | Path to the vault directory for desktop storage    |
+| `editor.autosaveDelay`      | number  | `2000`      | Milliseconds of idle time before content autosaves |
+| `layout.showInspectorPanel` | boolean | `true`      | Show the InspectorPanel                            |
+| `layout.showSidebarPanel`   | boolean | `true`      | Show the SidebarPanel                              |
+| `layout.showNotesListPanel` | boolean | `true`      | Show the NotesListPanel                            |
 
 ## Features
 
@@ -58,7 +59,11 @@ The note content area uses Editor.js as the editing surface.
 
 - The selected note title is displayed above the editor surface inside the
   template area.
+- Clicking the title lets the user edit it inline. Pressing Enter or clicking
+  outside saves the title by renaming the note filename to `<NoteTitle>.md`
+  within the same folder. If that filename already exists, the app uses a
+  unique suffixed filename.
 - Markdown remains the canonical note Content format.
 - The frontend translates between Markdown and Editor.js blocks in the browser.
-- Content autosaves after 2 seconds of editor idle time.
+- Content autosaves after `editor.autosaveDelay` milliseconds of editor idle time (default 2000 ms).
 - Switching to a different note flushes any pending autosave before selection changes.

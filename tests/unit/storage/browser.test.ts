@@ -295,4 +295,48 @@ describe('browserStorage', () => {
 
     await expect(browserStorage.loadNotes()).resolves.toEqual([])
   })
+
+  it('renames a note title by moving the stored entry to a new id', async () => {
+    vi.setSystemTime(new Date('2026-03-20T10:00:00.000Z'))
+
+    await browserStorage.saveNote({
+      id: 'notes/original.md',
+      properties: { title: 'Original' },
+      content: '# Body',
+    })
+
+    const renamed = await browserStorage.renameNoteTitle({
+      id: 'notes/original.md',
+      title: 'Updated title',
+    })
+    const stored = readStoredNotes()
+
+    expect(renamed.id).toBe('notes/Updated title.md')
+    expect(Object.keys(stored)).toEqual(['notes/Updated title.md'])
+    expect(stored['notes/Updated title.md']!.document).toBe(
+      '---\ntitle: Original\n---\n# Body',
+    )
+  })
+
+  it('adds a numeric suffix when browser rename collides', async () => {
+    vi.setSystemTime(new Date('2026-03-20T10:00:00.000Z'))
+
+    await browserStorage.saveNote({
+      id: 'notes/first.md',
+      properties: { title: 'First' },
+      content: '# First',
+    })
+    await browserStorage.saveNote({
+      id: 'notes/second.md',
+      properties: { title: 'Second' },
+      content: '# Second',
+    })
+
+    const renamed = await browserStorage.renameNoteTitle({
+      id: 'notes/second.md',
+      title: 'first',
+    })
+
+    expect(renamed.id).toBe('notes/first (2).md')
+  })
 })

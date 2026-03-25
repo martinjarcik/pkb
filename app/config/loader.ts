@@ -6,6 +6,9 @@ export type ApplicationType = 'desktop' | 'browser'
 export type AppConfig = {
   applicationType: ApplicationType
   vault: string
+  editor: {
+    autosaveDelay: number
+  }
   layout: {
     showInspectorPanel: boolean
     showSidebarPanel: boolean
@@ -32,6 +35,16 @@ function assertAppConfig(value: unknown): AppConfig {
 
   if (typeof obj.vault !== 'string' || obj.vault.length === 0) {
     throw new Error('Config vault must be a non-empty string')
+  }
+
+  if (typeof obj.editor !== 'object' || obj.editor === null) {
+    throw new Error('Config editor must be an object')
+  }
+
+  const editor = obj.editor as Record<string, unknown>
+
+  if (typeof editor.autosaveDelay !== 'number' || editor.autosaveDelay < 0) {
+    throw new Error('Config editor.autosaveDelay must be a non-negative number')
   }
 
   if (typeof obj.layout !== 'object' || obj.layout === null) {

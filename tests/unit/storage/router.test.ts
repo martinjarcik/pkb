@@ -6,6 +6,9 @@ import { getNoteStorage } from '~/storage/router'
 const baseConfig: AppConfig = {
   applicationType: 'browser',
   vault: './vault',
+  editor: {
+    autosaveDelay: 2000,
+  },
   layout: {
     showInspectorPanel: true,
     showSidebarPanel: true,
