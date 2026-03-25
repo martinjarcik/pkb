@@ -29,3 +29,7 @@ Persist note title edits by renaming the note `id` basename, keeping the current
 ## D008 — 2026-03
 
 Use `@nuxtjs/i18n` locale files for user-facing UI strings while selecting the active locale from `AppConfig`, with English as the default fallback.
+
+## D009 — 2026-03
+
+Serialize Application Properties under a top-level `app` namespace key in YAML frontmatter to visually separate them from user-defined Properties. In memory, Application Properties are flat top-level fields on the Note. The `app` name was chosen over a product-specific key (e.g. `pkb`) to survive a potential rebrand without note migration.

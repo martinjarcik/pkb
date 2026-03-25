@@ -8,15 +8,20 @@ For canonical terminology, see `docs/ubiquitous-language.md`.
 The data model is derived from the canonical storage format: one Markdown
 file per note with YAML frontmatter.
 
-A Note is an in-memory object whose user-defined Properties are top-level
-fields (values may be scalars, arrays, or nested objects). Composed of three
-parts:
+A Note is an in-memory object whose Properties and Application Properties are
+top-level fields (values may be scalars, arrays, or nested objects). Composed of
+four parts:
 
 - **System Properties** — read-only values provided by the storage adapter:
   `id` (string), `createdAt` (ISO 8601 string), `modifiedAt` (ISO 8601 string).
+  Never serialized to frontmatter.
+- **Application Properties** — application-managed per-note state (e.g.
+  `favorite`). Controlled through dedicated UI, not editable in the property
+  editor. In memory these are flat top-level Note fields. On disk they are
+  serialized under the `app` namespace key in YAML frontmatter (see D009).
 - **Properties** — user-defined data, unique per note. In memory these live as
-  top-level note fields; values may be scalars, arrays, or nested objects. In
-  storage they are serialized as YAML frontmatter.
+  top-level note fields; values may be scalars, arrays, or nested objects. On
+  disk they are serialized as top-level YAML frontmatter keys.
 - **Content** — rich text stored in the `content` field (Markdown with Liquid
   templating tags).
 
@@ -26,8 +31,8 @@ identifier.
 
 ## Current implementation
 
-- `app/notes/types.ts` — flat `Note` type (`id`, user-defined properties,
-  `content`, `createdAt`, `modifiedAt`).
+- `app/notes/types.ts` — flat `Note` type (`id`, user-defined Properties,
+  Application Properties, `content`, `createdAt`, `modifiedAt`).
 - `app/storage/types.ts` — `NoteStorage` adapter boundary with separate
   properties and content save inputs.
 - `app/storage/browser.ts` — browser localStorage adapter storing Markdown
@@ -122,7 +127,21 @@ New contexts may be introduced when corresponding features are specified.
 
 - One Markdown file per note.
 - `id` equals the note path within the Vault.
-- Markdown body stores Content. YAML frontmatter stores Properties.
+- Markdown body stores Content. YAML frontmatter stores Properties and
+  Application Properties.
+- User-defined Properties are top-level frontmatter keys. Application Properties
+  are nested under the `app` key:
+
+  ```yaml
+  ---
+  app:
+    favorite: true
+  tags: [cooking]
+  rating: 5
+  ---
+  Note content here.
+  ```
+
 - The Vault (storage root directory) is user-configurable.
 
 ## Storage (`app/storage/`)
