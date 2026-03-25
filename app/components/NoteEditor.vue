@@ -110,62 +110,65 @@ function createEditorMessages() {
     ui: {
       blockTunes: {
         toggler: {
-          'Click to tune': t('editor.uiClickToTune'),
-          'or drag to move': t('editor.uiOrDragToMove'),
+          'Click to tune': t('editor.ui.clickToTune'),
+          'or drag to move': t('editor.ui.orDragToMove'),
         },
       },
       inlineToolbar: {
         converter: {
-          'Convert to': t('editor.uiConvertTo'),
+          'Convert to': t('editor.ui.convertTo'),
         },
       },
       popover: {
-        Filter: t('editor.uiFilter'),
-        'Nothing found': t('editor.uiNothingFound'),
-        'Convert to': t('editor.uiConvertTo'),
+        Filter: t('editor.ui.filter'),
+        'Nothing found': t('editor.ui.nothingFound'),
+        'Convert to': t('editor.ui.convertTo'),
       },
       toolbar: {
         toolbox: {
-          Add: t('editor.uiAdd'),
+          Add: t('editor.ui.add'),
         },
       },
     },
     toolNames: {
-      Text: t('editor.toolText'),
-      Heading: t('editor.toolHeading'),
-      List: t('editor.toolList'),
-      Code: t('editor.toolCode'),
-      Delimiter: t('editor.toolDelimiter'),
-      'Inline Code': t('editor.toolInlineCode'),
-      InlineCode: t('editor.toolInlineCode'),
-      Table: t('editor.toolTable'),
-      'Simple Quote': t('editor.toolSimpleQuote'),
-      'Ordered List': t('editor.toolOrderedList'),
-      'Unordered List': t('editor.toolUnorderedList'),
-      Checklist: t('editor.toolChecklist'),
+      Text: t('editor.toolNames.text'),
+      Heading: t('editor.toolNames.heading'),
+      List: t('editor.toolNames.list'),
+      Code: t('editor.toolNames.code'),
+      Delimiter: t('editor.toolNames.delimiter'),
+      'Inline Code': t('editor.toolNames.inlineCode'),
+      InlineCode: t('editor.toolNames.inlineCode'),
+      Table: t('editor.toolNames.table'),
+      'Simple Quote': t('editor.toolNames.simpleQuote'),
+      'Ordered List': t('editor.toolNames.orderedList'),
+      'Unordered List': t('editor.toolNames.unorderedList'),
+      Checklist: t('editor.toolNames.checklist'),
     },
     tools: {
       header: {
-        'Heading 1': t('editor.toolHeading1'),
-        'Heading 2': t('editor.toolHeading2'),
-        'Heading 3': t('editor.toolHeading3'),
+        'Heading 1': t('editor.tools.header.heading1'),
+        'Heading 2': t('editor.tools.header.heading2'),
+        'Heading 3': t('editor.tools.header.heading3'),
       },
       list: {
-        Ordered: t('editor.toolOrderedList'),
-        Unordered: t('editor.toolUnorderedList'),
-        Checklist: t('editor.toolChecklist'),
+        Ordered: t('editor.tools.list.ordered'),
+        Unordered: t('editor.tools.list.unordered'),
+        Checklist: t('editor.tools.list.checklist'),
+      },
+      paragraph: {
+        'Enter something': t('editor.tools.paragraph.placeholder'),
       },
     },
     blockTunes: {
       delete: {
-        Delete: t('editor.uiDelete'),
-        'Click to delete': t('editor.uiClickToDelete'),
+        Delete: t('editor.blockTunes.delete'),
+        'Click to delete': t('editor.blockTunes.clickToDelete'),
       },
       moveUp: {
-        'Move up': t('editor.uiMoveUp'),
+        'Move up': t('editor.blockTunes.moveUp'),
       },
       moveDown: {
-        'Move down': t('editor.uiMoveDown'),
+        'Move down': t('editor.blockTunes.moveDown'),
       },
     },
   }
@@ -230,28 +233,28 @@ onMounted(async () => {
           toolbox: [
             {
               icon: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24" rtrvr-ls="0~hs"><path stroke="currentColor" stroke-linecap="round" stroke-width="2" d="M6 7L6 12M6 17L6 12M6 12L12 12M12 7V12M12 17L12 12"></path><path stroke="currentColor" stroke-linecap="round" stroke-width="2" d="M19 17V10.2135C19 10.1287 18.9011 10.0824 18.836 10.1367L16 12.5"></path></svg>',
-              title: t('editor.toolHeading1'),
+              title: t('editor.tools.header.heading1'),
               data: {
                 level: 1,
               },
             },
             {
               icon: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-linecap="round" stroke-width="2" d="M6 7L6 12M6 17L6 12M6 12L12 12M12 7V12M12 17L12 12"></path><path stroke="currentColor" stroke-linecap="round" stroke-width="2" d="M16 11C16 10 19 9.5 19 12C19 13.9771 16.0684 13.9997 16.0012 16.8981C15.9999 16.9533 16.0448 17 16.1 17L19.3 17"></path></svg>',
-              title: t('editor.toolHeading2'),
+              title: t('editor.tools.header.heading2'),
               data: {
                 level: 2,
               },
             },
             {
               icon: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-linecap="round" stroke-width="2" d="M6 7L6 12M6 17L6 12M6 12L12 12M12 7V12M12 17L12 12"></path><path stroke="currentColor" stroke-linecap="round" stroke-width="2" d="M16 11C16 10.5 16.8323 10 17.6 10C18.3677 10 19.5 10.311 19.5 11.5C19.5 12.5315 18.7474 12.9022 18.548 12.9823C18.5378 12.9864 18.5395 13.0047 18.5503 13.0063C18.8115 13.0456 20 13.3065 20 14.8C20 16 19.5 17 17.8 17C17.8 17 16 17 16 16.3"></path></svg>',
-              title: t('editor.toolHeading3'),
+              title: t('editor.tools.header.heading3'),
               data: {
                 level: 3,
               },
             },
           ],
           config: {
-            placeholder: t('editor.placeholderHeading'),
+            placeholder: t('editor.tools.header.placeholder'),
             levels: [1, 2, 3],
             defaultLevel: 2,
           },

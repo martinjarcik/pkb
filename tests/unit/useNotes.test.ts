@@ -9,13 +9,6 @@ const { fetchMock, stateStore } = vi.hoisted(() => ({
 
 vi.mock('#app', () => {
   return {
-    useNuxtApp() {
-      return {
-        $i18n: {
-          t: (key: string) => key,
-        },
-      }
-    },
     useState<T>(key: string, init: () => T) {
       if (!stateStore.has(key)) {
         stateStore.set(key, { value: init() })
@@ -25,6 +18,10 @@ vi.mock('#app', () => {
     },
   }
 })
+
+vi.mock('vue-i18n', () => ({
+  useI18n: () => ({ t: (key: string) => key }),
+}))
 
 function createNote(id: string, content: string, modifiedAt: string): Note {
   return {

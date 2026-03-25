@@ -17,30 +17,48 @@
     "errorLoadFallback": "Failed to load notes"
   },
   "editor": {
-    "toolHeading": "Heading",
-    "toolHeading1": "Heading 1",
-    "toolHeading2": "Heading 2",
-    "toolHeading3": "Heading 3",
-    "toolList": "List",
-    "toolCode": "Code",
-    "toolDelimiter": "Delimiter",
-    "toolInlineCode": "Inline Code",
-    "toolSimpleQuote": "Simple Quote",
-    "toolTable": "Table",
-    "toolText": "Text",
-    "toolOrderedList": "Ordered List",
-    "toolUnorderedList": "Unordered List",
-    "toolChecklist": "Checklist",
-    "placeholderHeading": "Heading",
-    "uiAdd": "Add",
-    "uiFilter": "Filter",
-    "uiNothingFound": "Nothing found",
-    "uiConvertTo": "Convert to",
-    "uiClickToTune": "Click to tune",
-    "uiOrDragToMove": "or drag to move",
-    "uiMoveUp": "Move up",
-    "uiMoveDown": "Move down",
-    "uiDelete": "Delete",
-    "uiClickToDelete": "Click to delete"
+    "ui": {
+      "add": "Add",
+      "filter": "Filter",
+      "nothingFound": "Nothing found",
+      "convertTo": "Convert to",
+      "clickToTune": "Click to tune",
+      "orDragToMove": "or drag to move"
+    },
+    "toolNames": {
+      "text": "Text",
+      "heading": "Heading",
+      "list": "List",
+      "code": "Code",
+      "delimiter": "Delimiter",
+      "inlineCode": "Inline Code",
+      "simpleQuote": "Simple Quote",
+      "table": "Table",
+      "orderedList": "Ordered List",
+      "unorderedList": "Unordered List",
+      "checklist": "Checklist"
+    },
+    "tools": {
+      "header": {
+        "heading1": "Heading 1",
+        "heading2": "Heading 2",
+        "heading3": "Heading 3",
+        "placeholder": "Heading"
+      },
+      "list": {
+        "ordered": "Ordered List",
+        "unordered": "Unordered List",
+        "checklist": "Checklist"
+      },
+      "paragraph": {
+        "placeholder": ""
+      }
+    },
+    "blockTunes": {
+      "delete": "Delete",
+      "clickToDelete": "Click to delete",
+      "moveUp": "Move up",
+      "moveDown": "Move down"
+    }
   }
 }
