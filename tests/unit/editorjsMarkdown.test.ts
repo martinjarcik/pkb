@@ -183,10 +183,44 @@ describe('editorjsMarkdown', () => {
     expect(markdown).toBe('- [ ] open\n- [x] done')
   })
 
-  it('round-trips GFM task list markdown', () => {
+  it('round-trips GFM task list markdown with blank line after', () => {
     const md = '- [ ] a\n- [x] b\n\nNext'
 
     expect(editorjsBlocksToMarkdown(markdownToEditorjsBlocks(md))).toBe(md)
+  })
+
+  it('adds a blank line after a list block when serializing', () => {
+    expect(
+      editorjsBlocksToMarkdown([
+        {
+          type: 'list',
+          data: {
+            style: 'checklist',
+            meta: {},
+            items: [{ content: 'a', meta: { checked: false }, items: [] }],
+          },
+        },
+        {
+          type: 'paragraph',
+          data: { text: 'Next' },
+        },
+      ]),
+    ).toBe('- [ ] a\n\nNext')
+  })
+
+  it('adds a blank line before a list block when serializing', () => {
+    expect(
+      editorjsBlocksToMarkdown([
+        {
+          type: 'paragraph',
+          data: { text: 'Before' },
+        },
+        {
+          type: 'list',
+          data: { items: ['one', 'two'], style: 'unordered' },
+        },
+      ]),
+    ).toBe('Before\n\n- one\n- two')
   })
 
   it('inserts empty paragraph for a blank line before and after a list', () => {
@@ -447,5 +481,48 @@ describe('editorjsMarkdown', () => {
 
   it('returns empty markdown for empty blocks', () => {
     expect(editorjsBlocksToMarkdown([])).toBe('')
+  })
+
+  it('round-trips headings interleaved with checklists (with blank lines)', () => {
+    const md =
+      '## Section A\n\n- [ ] task 1\n- [x] task 2\n\n## Section B\n\n- [ ] task 3\n- [ ] task 4\n\n## Section C\n\n- [x] task 5\n- [ ] task 6'
+
+    const blocks = markdownToEditorjsBlocks(md)
+    expect(editorjsBlocksToMarkdown(blocks)).toBe(md)
+  })
+
+  it('normalizes headings interleaved with checklists by adding blank lines', () => {
+    const input =
+      '## Section A\n- [ ] task 1\n- [x] task 2\n## Section B\n- [ ] task 3\n- [ ] task 4\n## Section C\n- [x] task 5\n- [ ] task 6'
+    const expected =
+      '## Section A\n\n- [ ] task 1\n- [x] task 2\n\n## Section B\n\n- [ ] task 3\n- [ ] task 4\n\n## Section C\n\n- [x] task 5\n- [ ] task 6'
+
+    const blocks = markdownToEditorjsBlocks(input)
+    expect(editorjsBlocksToMarkdown(blocks)).toBe(expected)
+  })
+
+  it('parses headings between checklists without blank lines', () => {
+    const md = '## Section A\n- [ ] task 1\n## Section B\n- [ ] task 2'
+
+    expect(markdownToEditorjsBlocks(md)).toEqual([
+      { type: 'header', data: { text: 'Section A', level: 2 } },
+      {
+        type: 'list',
+        data: {
+          style: 'checklist',
+          meta: {},
+          items: [{ content: 'task 1', meta: { checked: false }, items: [] }],
+        },
+      },
+      { type: 'header', data: { text: 'Section B', level: 2 } },
+      {
+        type: 'list',
+        data: {
+          style: 'checklist',
+          meta: {},
+          items: [{ content: 'task 2', meta: { checked: false }, items: [] }],
+        },
+      },
+    ])
   })
 })

@@ -202,8 +202,23 @@ function markdownNewlinesToEditorHtml(text: string): string {
   return text.replace(/\n/g, '<br>')
 }
 
-function newlinesBetweenSubstantive(blanksBefore: number): number {
+function blockRequiresBlankLineSeparator(type: string): boolean {
+  return type === 'list'
+}
+
+function newlinesBetweenSubstantive(
+  prevType: string,
+  nextType: string,
+  blanksBefore: number,
+): number {
   if (blanksBefore <= 0) {
+    if (
+      blockRequiresBlankLineSeparator(prevType) ||
+      blockRequiresBlankLineSeparator(nextType)
+    ) {
+      return 2
+    }
+
     return 1
   }
 
@@ -685,7 +700,14 @@ export function editorjsBlocksToMarkdown(blocks: EditorjsBlock[]): string {
     if (j === 0) {
       result += '\n'.repeat(blanksBefore) + md
     } else {
-      result += '\n'.repeat(newlinesBetweenSubstantive(blanksBefore)) + md
+      result +=
+        '\n'.repeat(
+          newlinesBetweenSubstantive(
+            substantive[j - 1]!.type,
+            substantive[j]!.type,
+            blanksBefore,
+          ),
+        ) + md
     }
   }
 

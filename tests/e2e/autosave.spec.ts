@@ -151,6 +151,55 @@ test('persists editor changes after 2 seconds of idle time', async ({
   }
 })
 
+test('preserves headings between checklists after save and reload', async ({
+  page,
+  request,
+}) => {
+  const originalNote = await loadFixtureNote(request)
+  const checklistMarkdown = [
+    '## Section A',
+    '- [ ] task one',
+    '- [x] task two',
+    '## Section B',
+    '- [ ] task three',
+    '- [ ] task four',
+    '## Section C',
+    '- [x] task five',
+    '- [ ] task six',
+  ].join('\n')
+
+  await request.put('/api/notes', {
+    data: {
+      id: originalNote.id,
+      content: checklistMarkdown,
+      properties: getNoteProperties(originalNote),
+    },
+  })
+
+  try {
+    await page.goto('/')
+    await openNote(page, originalNote.id)
+
+    await expect(page.locator('.ce-header')).toHaveCount(3)
+    await expect(page.locator('.cdx-list__item')).toHaveCount(6)
+
+    const firstItemContent = page.locator('.cdx-list__item-content').first()
+    await firstItemContent.click()
+    await page.keyboard.type(' edited')
+    await page.waitForTimeout(2500)
+
+    await page.reload()
+    await waitForEditorReady(page)
+
+    await expect(page.locator('.ce-header')).toHaveCount(3, { timeout: 3000 })
+    await expect(page.locator('.cdx-list__item')).toHaveCount(6, {
+      timeout: 3000,
+    })
+  } finally {
+    await restoreNote(request, originalNote)
+  }
+})
+
 test('renames the note title on Enter and blur', async ({ page, request }) => {
   const originalNote = await loadFixtureNote(request)
   const originalTitle = noteTitleFromId(originalNote.id)
