@@ -162,7 +162,7 @@ AppLayout
 │ ├── NoteControls
 │ │ ├── NoteTitle
 │ │ └── NoteActions
-│ └── NoteEditor
+│ └── NoteView
 └── InspectorPanel
 ├── InspectorNavigation
 │ └── InspectorNavigationItem
@@ -174,3 +174,5 @@ AppLayout
 │ └── PropertyValue
 ├── InspectorStatsView
 └── InspectorStyleView
+
+https://codex.so/icons-v0-2-0

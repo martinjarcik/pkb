@@ -17,6 +17,9 @@ blob-report/
 .env
 .env.*
 
+# Drafts (personal notes, not part of the repo)
+drafts/
+
 # Vault (note storage)
 vault/*
 !vault/.gitkeep

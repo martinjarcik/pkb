@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { EditorjsBlock } from '~/composables/useEditorjsMarkdown'
+import SimpleQuoteTool from '~/lib/simpleQuoteTool'
 
 type EditorjsInstance = {
   blocks: {
@@ -185,6 +186,10 @@ onMounted(async () => {
         },
         inlineCode: {
           class: InlineCode,
+        },
+        simpleQuote: {
+          class: SimpleQuoteTool,
+          inlineToolbar: true,
         },
         table: {
           class: Table,

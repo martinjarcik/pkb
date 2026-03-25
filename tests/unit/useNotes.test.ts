@@ -107,12 +107,12 @@ describe('useNotes', () => {
     expect(items.map((i) => i.id)).toEqual(['b.md', 'a.md'])
   })
 
-  it('uses the note id as the list item title', () => {
+  it('removes the markdown suffix from the list item title', () => {
     const [item] = createNotesListItems([
       createNote('my-note.md', '# Heading\n\nBody', '2026-03-24'),
     ])
 
-    expect(item?.title).toBe('my-note.md')
+    expect(item?.title).toBe('my-note')
   })
 
   it('omits markdown heading lines from the description preview', () => {
@@ -126,9 +126,40 @@ describe('useNotes', () => {
 
     expect(listItem).toEqual({
       id: 'headings.md',
-      title: 'headings.md',
+      title: 'headings',
       description: 'Body paragraph that should be shown.',
       meta: '2026-03-24',
     })
+  })
+
+  it('strips markdown formatting symbols from the description preview', () => {
+    const [listItem] = createNotesListItems([
+      createNote(
+        'formatted.md',
+        [
+          '# Heading',
+          '',
+          '- [x] **Bold** item with `code` and [link](https://example.com)',
+          '> Quoted _text_ and ~~strikethrough~~.',
+        ].join('\n'),
+        '2026-03-24',
+      ),
+    ])
+
+    expect(listItem?.description).toBe(
+      'Bold item with code and link Quoted text and strikethrough.',
+    )
+  })
+
+  it('omits markdown table separator rows from the description preview', () => {
+    const [listItem] = createNotesListItems([
+      createNote(
+        'table.md',
+        ['| Name | Value |', '| --- | --- |', '| Width | 120px |'].join('\n'),
+        '2026-03-24',
+      ),
+    ])
+
+    expect(listItem?.description).toBe('Name Value Width 120px')
   })
 })

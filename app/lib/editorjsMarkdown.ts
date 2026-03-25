@@ -6,15 +6,126 @@ export type EditorjsBlock = {
   data: Record<string, unknown>
 }
 
+type MdPoint = {
+  line: number
+  column: number
+  offset: number
+}
+
+type MdPosition = {
+  start: MdPoint
+  end: MdPoint
+}
+
 type MarkdownNode = {
   type: string
   value?: string
   depth?: number
   ordered?: boolean
+  /** GFM task list: true / false; `null` when the line is not a task item. */
+  checked?: boolean | null
   lang?: string | null
   url?: string
   align?: Array<'left' | 'center' | 'right' | null>
   children?: MarkdownNode[]
+  position?: MdPosition
+}
+
+const LIST_ITEM_LINE = /^(\s*)([*+-]|\d+\.)(\s)/
+
+function isMarkdownListItemLine(line: string): boolean {
+  return LIST_ITEM_LINE.test(line)
+}
+
+function dedentMarkdownListRun(lines: string[]): string[] {
+  const indents = lines.map((l) => {
+    const m = l.match(LIST_ITEM_LINE)
+    const ws = m?.[1]
+    return ws !== undefined ? ws.length : 0
+  })
+  const minIndent = Math.min(...indents)
+  if (minIndent === 0) {
+    return lines
+  }
+
+  return lines.map((line) =>
+    isMarkdownListItemLine(line) ? line.slice(minIndent) : line,
+  )
+}
+
+function dedentContiguousMarkdownListRuns(prose: string): string {
+  const lines = prose.split('\n')
+  const out: string[] = []
+  let i = 0
+
+  while (i < lines.length) {
+    const line = lines[i]!
+    if (!isMarkdownListItemLine(line)) {
+      out.push(line)
+      i++
+      continue
+    }
+
+    const start = i
+    i++
+    while (i < lines.length && isMarkdownListItemLine(lines[i]!)) {
+      i++
+    }
+
+    out.push(...dedentMarkdownListRun(lines.slice(start, i)))
+  }
+
+  return out.join('\n')
+}
+
+function transformProseOutsideFencedCodeBlocks(
+  markdown: string,
+  transformProse: (prose: string) => string,
+): string {
+  const lines = markdown.split('\n')
+  const segments: string[] = []
+  let proseBuf: string[] = []
+  let fenceBuf: string[] = []
+  let inFence = false
+
+  const flushProse = () => {
+    if (proseBuf.length > 0) {
+      segments.push(transformProse(proseBuf.join('\n')))
+      proseBuf = []
+    }
+  }
+
+  const flushFence = () => {
+    if (fenceBuf.length > 0) {
+      segments.push(fenceBuf.join('\n'))
+      fenceBuf = []
+    }
+  }
+
+  for (const line of lines) {
+    if (/^\s*```/.test(line)) {
+      if (!inFence) {
+        flushProse()
+        inFence = true
+        fenceBuf.push(line)
+      } else {
+        fenceBuf.push(line)
+        flushFence()
+        inFence = false
+      }
+    } else if (inFence) {
+      fenceBuf.push(line)
+    } else {
+      proseBuf.push(line)
+    }
+  }
+
+  flushProse()
+  if (fenceBuf.length > 0) {
+    segments.push(fenceBuf.join('\n'))
+  }
+
+  return segments.join('\n')
 }
 
 function parseMarkdown(markdown: string): MarkdownNode {
@@ -25,10 +136,138 @@ function isNonEmptyString(value: unknown): value is string {
   return typeof value === 'string' && value.length > 0
 }
 
+function countNewlines(text: string): number {
+  return text.match(/\n/g)?.length ?? 0
+}
+
+function blankLineMirrorsParagraphSpacing(
+  prevType: string,
+  nextType: string,
+): boolean {
+  if (prevType === 'paragraph' && nextType === 'paragraph') {
+    return true
+  }
+
+  if (prevType === 'paragraph' && nextType === 'list') {
+    return true
+  }
+
+  if (prevType === 'list' && nextType === 'paragraph') {
+    return true
+  }
+
+  return false
+}
+
+function emptyParagraphsForBlockGap(
+  prevType: string,
+  nextType: string,
+  gapNewlines: number,
+): number {
+  if (gapNewlines < 2) {
+    return 0
+  }
+
+  if (blankLineMirrorsParagraphSpacing(prevType, nextType)) {
+    return Math.max(1, gapNewlines - 2)
+  }
+
+  return Math.max(0, gapNewlines - 2)
+}
+
+function editorHtmlLineBreaksToMarkdownNewlines(text: string): string {
+  return text.replace(/<br\s*\/?>/gi, '\n')
+}
+
+function markdownNewlinesToEditorHtml(text: string): string {
+  return text.replace(/\n/g, '<br>')
+}
+
+function newlinesBetweenSubstantive(blanksBefore: number): number {
+  if (blanksBefore <= 0) {
+    return 2
+  }
+  if (blanksBefore === 1) {
+    return 2
+  }
+
+  return blanksBefore + 2
+}
+
+function emptyParagraphBlock(): EditorjsBlock {
+  return {
+    type: 'paragraph',
+    data: {
+      text: '',
+    },
+  }
+}
+
+function isEmptyParagraphBlock(block: EditorjsBlock): boolean {
+  return (
+    block.type === 'paragraph' && String(block.data.text ?? '').length === 0
+  )
+}
+
+function blocksFromRootWithBlankLines(
+  source: string,
+  root: MarkdownNode,
+): EditorjsBlock[] {
+  const children = root.children ?? []
+  const out: EditorjsBlock[] = []
+
+  for (let i = 0; i < children.length; i++) {
+    const node = children[i]!
+    const pos = node.position
+    const startOffset = pos?.start.offset
+    const endOffset = pos?.end.offset
+
+    if (startOffset !== undefined && endOffset !== undefined) {
+      if (i === 0) {
+        const leading = source.slice(0, startOffset)
+        for (let n = 0; n < countNewlines(leading); n++) {
+          out.push(emptyParagraphBlock())
+        }
+      } else {
+        const prev = children[i - 1]!
+        const prevEnd = prev.position?.end.offset
+        if (prevEnd !== undefined) {
+          const gap = source.slice(prevEnd, startOffset)
+          const extra = emptyParagraphsForBlockGap(
+            prev.type,
+            node.type,
+            countNewlines(gap),
+          )
+          for (let n = 0; n < extra; n++) {
+            out.push(emptyParagraphBlock())
+          }
+        }
+      }
+    }
+
+    const block = parseMarkdownNode(node)
+    if (block !== null) {
+      out.push(block)
+    }
+  }
+
+  const last = children[children.length - 1]
+  const lastEnd = last?.position?.end.offset
+  if (lastEnd !== undefined && children.length > 0) {
+    const trailing = source.slice(lastEnd)
+    const extraTrail = Math.max(0, countNewlines(trailing) - 1)
+    for (let n = 0; n < extraTrail; n++) {
+      out.push(emptyParagraphBlock())
+    }
+  }
+
+  return out
+}
+
 function parseInlineNodeToHtml(node: MarkdownNode): string {
   switch (node.type) {
     case 'text':
-      return node.value ?? ''
+      return markdownNewlinesToEditorHtml(node.value ?? '')
     case 'emphasis':
       return `<i>${parseInlineNodesToHtml(node.children)}</i>`
     case 'strong':
@@ -86,11 +325,34 @@ function parseListItem(node: MarkdownNode): string {
     .join(' ')
 }
 
+function listContainsTaskItems(items: MarkdownNode[]): boolean {
+  return items.some((item) => typeof item.checked === 'boolean')
+}
+
 function parseList(node: MarkdownNode): EditorjsBlock {
+  const listItems = node.children ?? []
+
+  if (listContainsTaskItems(listItems)) {
+    return {
+      type: 'list',
+      data: {
+        style: 'checklist',
+        meta: {},
+        items: listItems.map((item) => ({
+          content: parseListItem(item),
+          meta: {
+            checked: typeof item.checked === 'boolean' ? item.checked : false,
+          },
+          items: [],
+        })),
+      },
+    }
+  }
+
   return {
     type: 'list',
     data: {
-      items: (node.children ?? []).map((item) => parseListItem(item)),
+      items: listItems.map((item) => parseListItem(item)),
       style: node.ordered ? 'ordered' : 'unordered',
     },
   }
@@ -114,15 +376,24 @@ function parseCode(node: MarkdownNode): EditorjsBlock {
   }
 }
 
+function normalizeSimpleQuoteText(text: string): string {
+  return text
+    .replace(/\r\n|\r|\n/g, ' ')
+    .replace(/<br\s*\/?>/gi, ' ')
+    .trim()
+}
+
 function parseBlockquote(node: MarkdownNode): EditorjsBlock {
-  const lines = (node.children ?? [])
-    .map((child) => parseInlineNodesToHtml(child.children))
-    .filter(isNonEmptyString)
+  const firstParagraph = (node.children ?? []).find(
+    (child) => child.type === 'paragraph',
+  )
 
   return {
-    type: 'paragraph',
+    type: 'simpleQuote',
     data: {
-      text: lines.map((line) => `> ${line}`).join('\n'),
+      text: normalizeSimpleQuoteText(
+        parseInlineNodesToHtml(firstParagraph?.children),
+      ),
     },
   }
 }
@@ -188,6 +459,41 @@ function renderAlignmentCell(alignment: unknown): string {
   }
 }
 
+type NormalizedListItem = {
+  content: string
+  checked: boolean
+}
+
+function normalizeListItemRecord(item: unknown): NormalizedListItem {
+  if (typeof item === 'string') {
+    return { content: item, checked: false }
+  }
+
+  if (item === null || typeof item !== 'object') {
+    return { content: '', checked: false }
+  }
+
+  const record = item as Record<string, unknown>
+  const rawContent = record.content ?? record.text
+  const content =
+    typeof rawContent === 'string' ? rawContent : String(rawContent ?? '')
+  const meta = record.meta
+  const fromMeta =
+    meta !== null &&
+    typeof meta === 'object' &&
+    typeof (meta as { checked?: unknown }).checked === 'boolean'
+      ? (meta as { checked: boolean }).checked
+      : undefined
+  const checked =
+    typeof record.checked === 'boolean'
+      ? record.checked
+      : fromMeta !== undefined
+        ? fromMeta
+        : false
+
+  return { content, checked }
+}
+
 function renderTableMarkdown(data: Record<string, unknown>): string {
   const rawContent = Array.isArray(data.content) ? data.content : []
   const content = rawContent.filter((row): row is unknown[] =>
@@ -234,20 +540,45 @@ function renderMarkdownBlock(block: EditorjsBlock): string {
   switch (block.type) {
     case 'header': {
       const level = Math.min(Math.max(Number(block.data.level ?? 1) || 1, 1), 6)
-      return `${'#'.repeat(level)} ${String(block.data.text ?? '')}`.trimEnd()
+      const text = editorHtmlLineBreaksToMarkdownNewlines(
+        String(block.data.text ?? ''),
+      )
+      return `${'#'.repeat(level)} ${text}`.trimEnd()
     }
     case 'paragraph':
-      return String(block.data.text ?? '')
+      return editorHtmlLineBreaksToMarkdownNewlines(
+        String(block.data.text ?? ''),
+      )
+    case 'simpleQuote':
+      return `> ${normalizeSimpleQuoteText(String(block.data.text ?? ''))}`
     case 'list': {
       const items = Array.isArray(block.data.items) ? block.data.items : []
-      const style = block.data.style === 'ordered' ? 'ordered' : 'unordered'
+      const style =
+        block.data.style === 'ordered'
+          ? 'ordered'
+          : block.data.style === 'checklist'
+            ? 'checklist'
+            : 'unordered'
+
+      if (style === 'checklist') {
+        return items
+          .map((item) => {
+            const { content, checked } = normalizeListItemRecord(item)
+            const line = editorHtmlLineBreaksToMarkdownNewlines(content)
+            const mark = checked ? '[x]' : '[ ]'
+
+            return `- ${mark} ${line}`.trimEnd()
+          })
+          .join('\n')
+      }
 
       return items
-        .map((item, index) =>
-          style === 'ordered'
-            ? `${index + 1}. ${String(item)}`
-            : `- ${String(item)}`,
-        )
+        .map((item, index) => {
+          const { content } = normalizeListItemRecord(item)
+          const line = editorHtmlLineBreaksToMarkdownNewlines(content)
+
+          return style === 'ordered' ? `${index + 1}. ${line}` : `- ${line}`
+        })
         .join('\n')
     }
     case 'delimiter':
@@ -262,15 +593,29 @@ function renderMarkdownBlock(block: EditorjsBlock): string {
 }
 
 export function markdownToEditorjsBlocks(markdown: string): EditorjsBlock[] {
-  if (markdown.trim().length === 0) {
+  if (markdown.length === 0) {
     return []
   }
 
-  const parsedMarkdown = parseMarkdown(markdown)
+  const normalizedMarkdown = transformProseOutsideFencedCodeBlocks(
+    markdown,
+    dedentContiguousMarkdownListRuns,
+  )
+  const parsedMarkdown = parseMarkdown(normalizedMarkdown)
+  const children = parsedMarkdown.children ?? []
 
-  return (parsedMarkdown.children ?? [])
-    .map((child) => parseMarkdownNode(child))
-    .filter((block): block is EditorjsBlock => block !== null)
+  if (children.length === 0) {
+    if (!/\S/u.test(normalizedMarkdown)) {
+      const blankLines = countNewlines(normalizedMarkdown)
+      if (blankLines > 0) {
+        return Array.from({ length: blankLines }, emptyParagraphBlock)
+      }
+    }
+
+    return []
+  }
+
+  return blocksFromRootWithBlankLines(normalizedMarkdown, parsedMarkdown)
 }
 
 export function editorjsBlocksToMarkdown(blocks: EditorjsBlock[]): string {
@@ -278,9 +623,46 @@ export function editorjsBlocksToMarkdown(blocks: EditorjsBlock[]): string {
     return ''
   }
 
-  return blocks
-    .map((block) => renderMarkdownBlock(block))
-    .filter(isNonEmptyString)
-    .join('\n\n')
-    .trimEnd()
+  let i = 0
+  let leadingBlanks = 0
+  while (i < blocks.length && isEmptyParagraphBlock(blocks[i]!)) {
+    leadingBlanks++
+    i++
+  }
+
+  const substantive: EditorjsBlock[] = []
+  const blanksBeforeEach: number[] = []
+  let pendingBlanks = leadingBlanks
+
+  for (; i < blocks.length; i++) {
+    const block = blocks[i]!
+    if (isEmptyParagraphBlock(block)) {
+      pendingBlanks++
+    } else {
+      substantive.push(block)
+      blanksBeforeEach.push(pendingBlanks)
+      pendingBlanks = 0
+    }
+  }
+
+  const trailingBlanks = pendingBlanks
+
+  if (substantive.length === 0) {
+    return '\n'.repeat(leadingBlanks)
+  }
+
+  let result = ''
+  for (let j = 0; j < substantive.length; j++) {
+    const md = renderMarkdownBlock(substantive[j]!)
+    const blanksBefore = blanksBeforeEach[j]!
+    if (j === 0) {
+      result += '\n'.repeat(blanksBefore) + md
+    } else {
+      result += '\n'.repeat(newlinesBetweenSubstantive(blanksBefore)) + md
+    }
+  }
+
+  result += '\n'.repeat(trailingBlanks)
+
+  return result
 }

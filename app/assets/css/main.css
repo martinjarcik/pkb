@@ -232,6 +232,18 @@
     line-height: 1.7;
   }
 
+  .note-editor-surface .ce-simple-quote {
+    border-left: 2px solid black;
+    border-radius: 2px;
+    line-height: 1.7;
+    padding-left: 10px;
+  }
+
+  .note-editor-surface .ce-simple-quote:focus {
+    box-shadow: none;
+    outline: none;
+  }
+
   .note-editor-surface h1.ce-header,
   .note-editor-surface h2.ce-header,
   .note-editor-surface h3.ce-header,
