@@ -18,6 +18,8 @@ function getNoteProperties(note: Note): NoteProperties {
     content: _content,
     createdAt: _createdAt,
     modifiedAt: _modifiedAt,
+    title: _title,
+    description: _description,
     ...properties
   } = note
 

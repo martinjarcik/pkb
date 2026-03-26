@@ -63,7 +63,21 @@ export function useNotes() {
       ? selectedNoteFull.value
       : null,
   )
-  const selectedNoteTitle = computed(() => selectedNote.value?.title ?? '')
+  const selectedNoteTitle = computed(() => {
+    if (selectedNote.value) {
+      return selectedNote.value.title
+    }
+
+    if (selectedNoteId.value) {
+      const catalogRow = notes.value.find(
+        (note) => note.id === selectedNoteId.value,
+      )
+
+      return catalogRow?.title ?? ''
+    }
+
+    return ''
+  })
   const listItems = computed(() => createNotesListItems(notes.value))
 
   function sortNotesByModifiedAt(

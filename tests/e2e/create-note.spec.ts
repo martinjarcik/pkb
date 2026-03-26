@@ -1,4 +1,6 @@
 import { expect, test, type Page, type Route } from '@playwright/test'
+import { noteDescriptionFromContent } from '~/notes/noteDescriptionFromContent'
+import { noteTitleFromId } from '~/notes/noteTitleFromId'
 import type { Note } from '~/notes/types'
 
 const FIXED_TIMESTAMP = '2026-03-25T12:00:00.000Z'
@@ -9,6 +11,8 @@ function createMockNote(id: string, content: string = ''): Note {
     content,
     createdAt: FIXED_TIMESTAMP,
     modifiedAt: FIXED_TIMESTAMP,
+    title: noteTitleFromId(id),
+    description: noteDescriptionFromContent(content),
   }
 }
 

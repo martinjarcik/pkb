@@ -8,6 +8,8 @@ import {
   type Route,
 } from '@playwright/test'
 import yaml from 'yaml'
+import { noteDescriptionFromContent } from '~/notes/noteDescriptionFromContent'
+import { noteTitleFromId } from '~/notes/noteTitleFromId'
 import type { Note } from '~/notes/types'
 
 async function loadNotes(request: APIRequestContext): Promise<Note[]> {
@@ -32,6 +34,8 @@ function createMockNote(
     content,
     createdAt: modifiedAt,
     modifiedAt,
+    title: noteTitleFromId(id),
+    description: noteDescriptionFromContent(content),
   }
 }
 
