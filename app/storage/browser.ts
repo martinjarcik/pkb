@@ -1,4 +1,6 @@
 import { createNoteCatalogRow } from '~/notes/catalogRow'
+import { noteDescriptionFromContent } from '~/notes/noteDescriptionFromContent'
+import { noteTitleFromId } from '~/notes/noteTitleFromId'
 import type { Note, NoteCatalogRow } from '~/notes/types'
 import { resolveUniqueNoteId } from '~/notes/renameNoteTitle'
 import type { NoteStorage, RenameNoteTitleInput, SaveNoteInput } from './types'
@@ -78,6 +80,8 @@ function composeNote(id: string, storedNote: BrowserStoredNote): Note {
     content,
     createdAt: storedNote.createdAt,
     modifiedAt: storedNote.modifiedAt,
+    title: noteTitleFromId(id),
+    description: noteDescriptionFromContent(content),
   }
 }
 

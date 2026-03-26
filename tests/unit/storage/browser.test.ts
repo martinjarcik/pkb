@@ -56,16 +56,18 @@ describe('browserStorage', () => {
 
     const note = await browserStorage.saveNote({
       id: 'notes/welcome.md',
-      properties: { title: 'Welcome' },
+      properties: { label: 'Welcome' },
       content: '# Hello',
     })
 
     expect(note).toEqual({
       id: 'notes/welcome.md',
-      title: 'Welcome',
+      label: 'Welcome',
       content: '# Hello',
       createdAt: '2026-03-20T10:00:00.000Z',
       modifiedAt: '2026-03-20T10:00:00.000Z',
+      title: 'welcome',
+      description: '',
     })
   })
 
@@ -74,12 +76,12 @@ describe('browserStorage', () => {
 
     await browserStorage.saveNote({
       id: 'notes/welcome.md',
-      properties: { title: 'Welcome', published: true },
+      properties: { label: 'Welcome', published: true },
       content: '# Hello',
     })
 
     expect(readStoredNotes()['notes/welcome.md']!.document).toBe(
-      '---\ntitle: Welcome\npublished: true\n---\n# Hello',
+      '---\nlabel: Welcome\npublished: true\n---\n# Hello',
     )
   })
 
@@ -89,17 +91,21 @@ describe('browserStorage', () => {
     const note = await browserStorage.saveNote({
       id: 'notes/welcome.md',
       properties: {
-        title: 'Keep',
+        label: 'Keep',
         id: 'ignored',
         content: 'ignored',
         createdAt: 'ignored',
         modifiedAt: 'ignored',
+        title: 'ignored',
+        description: 'ignored',
       },
       content: '# Hello',
     })
 
     expect(note.id).toBe('notes/welcome.md')
     expect(note.content).toBe('# Hello')
+    expect(note.title).toBe('welcome')
+    expect(note.description).toBe('')
   })
 
   it('loads browser notes as flat notes with storage timestamps', async () => {
@@ -108,7 +114,7 @@ describe('browserStorage', () => {
       JSON.stringify({
         'notes/welcome.md': {
           document:
-            '---\ntitle: Welcome\npublished: true\nviews: 3\nmeta:\n  nested: true\ncreatedAt: ignored\n---\n# Hello',
+            '---\nlabel: Welcome\npublished: true\nviews: 3\nmeta:\n  nested: true\ncreatedAt: ignored\n---\n# Hello',
           createdAt: '2026-03-19T09:00:00.000Z',
           modifiedAt: '2026-03-20T11:00:00.000Z',
         },
@@ -118,13 +124,15 @@ describe('browserStorage', () => {
     await expect(browserStorage.loadNotesCatalog()).resolves.toEqual([
       {
         id: 'notes/welcome.md',
-        title: 'Welcome',
+        label: 'Welcome',
         published: true,
         views: 3,
         meta: { nested: true },
         content: '# Hello',
         createdAt: '2026-03-19T09:00:00.000Z',
         modifiedAt: '2026-03-20T11:00:00.000Z',
+        title: 'welcome',
+        description: '',
       },
     ])
   })
@@ -134,7 +142,7 @@ describe('browserStorage', () => {
 
     await browserStorage.saveNote({
       id: 'notes/welcome.md',
-      properties: { title: 'Welcome' },
+      properties: { label: 'Welcome' },
       content: '# Hello',
     })
 
@@ -142,16 +150,18 @@ describe('browserStorage', () => {
 
     const updated = await browserStorage.saveNote({
       id: 'notes/welcome.md',
-      properties: { title: 'Updated' },
+      properties: { label: 'Updated' },
       content: '# Updated',
     })
 
     expect(updated).toEqual({
       id: 'notes/welcome.md',
-      title: 'Updated',
+      label: 'Updated',
       content: '# Updated',
       createdAt: '2026-03-20T10:00:00.000Z',
       modifiedAt: '2026-03-20T12:00:00.000Z',
+      title: 'welcome',
+      description: '',
     })
   })
 
@@ -160,12 +170,12 @@ describe('browserStorage', () => {
       'notes',
       JSON.stringify({
         'notes/crlf.md': {
-          document: '---\r\ntitle: CRLF\r\n---\r\n# Hello\r\nworld',
+          document: '---\r\nlabel: CRLF\r\n---\r\n# Hello\r\nworld',
           createdAt: '2026-03-19T09:00:00.000Z',
           modifiedAt: '2026-03-20T11:00:00.000Z',
         },
         'notes/cr.md': {
-          document: '---\rtitle: CR\r---\r# Hello\rworld',
+          document: '---\rlabel: CR\r---\r# Hello\rworld',
           createdAt: '2026-03-19T09:00:00.000Z',
           modifiedAt: '2026-03-20T11:00:00.000Z',
         },
@@ -175,17 +185,21 @@ describe('browserStorage', () => {
     await expect(browserStorage.loadNotesCatalog()).resolves.toEqual([
       {
         id: 'notes/crlf.md',
-        title: 'CRLF',
+        label: 'CRLF',
         content: '# Hello\nworld',
         createdAt: '2026-03-19T09:00:00.000Z',
         modifiedAt: '2026-03-20T11:00:00.000Z',
+        title: 'crlf',
+        description: 'world',
       },
       {
         id: 'notes/cr.md',
-        title: 'CR',
+        label: 'CR',
         content: '# Hello\nworld',
         createdAt: '2026-03-19T09:00:00.000Z',
         modifiedAt: '2026-03-20T11:00:00.000Z',
+        title: 'cr',
+        description: 'world',
       },
     ])
   })
@@ -209,7 +223,7 @@ describe('browserStorage', () => {
       'notes',
       JSON.stringify({
         'notes/broken.md': {
-          document: '---\ntitle: [invalid yaml\n---\n# Still readable',
+          document: '---\nlabel: [invalid yaml\n---\n# Still readable',
           createdAt: '2026-03-19T09:00:00.000Z',
           modifiedAt: '2026-03-20T11:00:00.000Z',
         },
@@ -222,6 +236,8 @@ describe('browserStorage', () => {
         content: '# Still readable',
         createdAt: '2026-03-19T09:00:00.000Z',
         modifiedAt: '2026-03-20T11:00:00.000Z',
+        title: 'broken',
+        description: '',
       },
     ])
   })
@@ -231,7 +247,7 @@ describe('browserStorage', () => {
       'notes',
       JSON.stringify({
         'notes/ok.md': {
-          document: '---\ntitle: Fine\n---\n# Body',
+          document: '---\nlabel: Fine\n---\n# Body',
           createdAt: '2026-03-19T09:00:00.000Z',
           modifiedAt: '2026-03-20T11:00:00.000Z',
         },
@@ -247,16 +263,20 @@ describe('browserStorage', () => {
     await expect(browserStorage.loadNotesCatalog()).resolves.toEqual([
       {
         id: 'notes/ok.md',
-        title: 'Fine',
+        label: 'Fine',
         content: '# Body',
         createdAt: '2026-03-19T09:00:00.000Z',
         modifiedAt: '2026-03-20T11:00:00.000Z',
+        title: 'ok',
+        description: '',
       },
       {
         id: 'notes/bad-types.md',
         content: '42',
         createdAt: 'false',
         modifiedAt: '',
+        title: 'bad-types',
+        description: '42',
       },
     ])
   })
@@ -288,7 +308,7 @@ describe('browserStorage', () => {
 
     await browserStorage.saveNote({
       id: 'notes/welcome.md',
-      properties: { title: 'Welcome' },
+      properties: { label: 'Welcome' },
       content: '# Hello',
     })
 
@@ -302,7 +322,7 @@ describe('browserStorage', () => {
       'notes',
       JSON.stringify({
         'notes/welcome.md': {
-          document: '---\ntitle: Welcome\n---\n# Full note',
+          document: '---\nlabel: Welcome\n---\n# Full note',
           createdAt: '2026-03-19T09:00:00.000Z',
           modifiedAt: '2026-03-20T11:00:00.000Z',
         },
@@ -313,10 +333,12 @@ describe('browserStorage', () => {
       browserStorage.loadNoteById('notes/welcome.md'),
     ).resolves.toEqual({
       id: 'notes/welcome.md',
-      title: 'Welcome',
+      label: 'Welcome',
       content: '# Full note',
       createdAt: '2026-03-19T09:00:00.000Z',
       modifiedAt: '2026-03-20T11:00:00.000Z',
+      title: 'welcome',
+      description: '',
     })
   })
 
@@ -329,7 +351,7 @@ describe('browserStorage', () => {
       'notes',
       JSON.stringify({
         'notes/emoji.md': {
-          document: `---\ntitle: Emoji\n---\n${'🙂'.repeat(300)}`,
+          document: `---\nlabel: Emoji\n---\n${'🙂'.repeat(300)}`,
           createdAt: '2026-03-19T09:00:00.000Z',
           modifiedAt: '2026-03-20T11:00:00.000Z',
         },
@@ -348,7 +370,7 @@ describe('browserStorage', () => {
 
     await browserStorage.saveNote({
       id: 'notes/original.md',
-      properties: { title: 'Original' },
+      properties: { label: 'Original' },
       content: '# Body',
     })
 
@@ -361,7 +383,7 @@ describe('browserStorage', () => {
     expect(renamed.id).toBe('notes/Updated title.md')
     expect(Object.keys(stored)).toEqual(['notes/Updated title.md'])
     expect(stored['notes/Updated title.md']!.document).toBe(
-      '---\ntitle: Original\n---\n# Body',
+      '---\nlabel: Original\n---\n# Body',
     )
   })
 
@@ -370,12 +392,12 @@ describe('browserStorage', () => {
 
     await browserStorage.saveNote({
       id: 'notes/first.md',
-      properties: { title: 'First' },
+      properties: { label: 'First' },
       content: '# First',
     })
     await browserStorage.saveNote({
       id: 'notes/second.md',
-      properties: { title: 'Second' },
+      properties: { label: 'Second' },
       content: '# Second',
     })
 

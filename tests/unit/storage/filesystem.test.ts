@@ -22,13 +22,13 @@ describe('filesystemStorage', () => {
   it('saves a note as a markdown file with yaml frontmatter', async () => {
     await storage.saveNote({
       id: 'welcome.md',
-      properties: { title: 'Welcome', published: true },
+      properties: { label: 'Welcome', published: true },
       content: '# Hello',
     })
 
     const written = await readFile(join(vaultPath, 'welcome.md'), 'utf-8')
 
-    expect(written).toBe('---\ntitle: Welcome\npublished: true\n---\n# Hello')
+    expect(written).toBe('---\nlabel: Welcome\npublished: true\n---\n# Hello')
   })
 
   it('loads notes with correct properties and timestamps', async () => {
@@ -36,7 +36,7 @@ describe('filesystemStorage', () => {
 
     await writeFile(
       filePath,
-      '---\ntitle: Hello\npublished: true\n---\n# Content',
+      '---\nlabel: Hello\npublished: true\n---\n# Content',
       'utf-8',
     )
 
@@ -49,11 +49,13 @@ describe('filesystemStorage', () => {
     expect(notes).toHaveLength(1)
     expect(notes[0]).toEqual({
       id: 'hello.md',
-      title: 'Hello',
+      label: 'Hello',
       published: true,
       content: '# Content',
       createdAt: fileStats.birthtime.toISOString(),
       modifiedAt: '2026-03-20T12:00:00.000Z',
+      title: 'hello',
+      description: '',
     })
   })
 
@@ -84,7 +86,7 @@ describe('filesystemStorage', () => {
     await storage.saveNote({
       id: 'round-trip.md',
       properties: {
-        title: 'Round Trip',
+        label: 'Round Trip',
         views: 3,
         meta: { nested: true },
         tags: ['a', 'b'],
@@ -95,7 +97,8 @@ describe('filesystemStorage', () => {
     const notes = await storage.loadNotesCatalog()
 
     expect(notes).toHaveLength(1)
-    expect(notes[0]!.title).toBe('Round Trip')
+    expect(notes[0]!.title).toBe('round-trip')
+    expect(notes[0]!.label).toBe('Round Trip')
     expect(notes[0]!.views).toBe(3)
     expect(notes[0]!.meta).toEqual({ nested: true })
     expect(notes[0]!.tags).toEqual(['a', 'b'])
@@ -105,7 +108,7 @@ describe('filesystemStorage', () => {
   it('creates intermediate directories when saving a nested note', async () => {
     await storage.saveNote({
       id: 'sub/deep/note.md',
-      properties: { title: 'Deep' },
+      properties: { label: 'Deep' },
       content: '# Nested',
     })
 
@@ -114,7 +117,7 @@ describe('filesystemStorage', () => {
       'utf-8',
     )
 
-    expect(written).toBe('---\ntitle: Deep\n---\n# Nested')
+    expect(written).toBe('---\nlabel: Deep\n---\n# Nested')
   })
 
   it('stores raw content without frontmatter when properties are empty', async () => {
@@ -132,7 +135,7 @@ describe('filesystemStorage', () => {
   it('deletes a note file by id', async () => {
     await storage.saveNote({
       id: 'to-delete.md',
-      properties: { title: 'Delete Me' },
+      properties: { label: 'Delete Me' },
       content: '# Gone',
     })
 
@@ -146,7 +149,7 @@ describe('filesystemStorage', () => {
   it('renames a note title by changing the file basename', async () => {
     await storage.saveNote({
       id: 'nested/original.md',
-      properties: { title: 'Original' },
+      properties: { label: 'Original' },
       content: '# Body',
     })
 
@@ -162,19 +165,19 @@ describe('filesystemStorage', () => {
     const notes = await storage.loadNotesCatalog()
 
     expect(renamed.id).toBe('nested/Updated title.md')
-    expect(written).toBe('---\ntitle: Original\n---\n# Body')
+    expect(written).toBe('---\nlabel: Original\n---\n# Body')
     expect(notes.map((note) => note.id)).toEqual(['nested/Updated title.md'])
   })
 
   it('adds a numeric suffix when renaming to a colliding title', async () => {
     await storage.saveNote({
       id: 'notes/first.md',
-      properties: { title: 'First' },
+      properties: { label: 'First' },
       content: '# First',
     })
     await storage.saveNote({
       id: 'notes/second.md',
-      properties: { title: 'Second' },
+      properties: { label: 'Second' },
       content: '# Second',
     })
 
@@ -195,7 +198,7 @@ describe('filesystemStorage', () => {
   it('isolates content from broken frontmatter', async () => {
     await writeFile(
       join(vaultPath, 'broken.md'),
-      '---\ntitle: [invalid yaml\n---\n# Still readable',
+      '---\nlabel: [invalid yaml\n---\n# Still readable',
       'utf-8',
     )
 
@@ -203,19 +206,20 @@ describe('filesystemStorage', () => {
 
     expect(notes).toHaveLength(1)
     expect(notes[0]!.content).toBe('# Still readable')
-    expect(notes[0]!.title).toBeUndefined()
+    expect(notes[0]!.title).toBe('broken')
   })
 
   it('loads a full note by id', async () => {
     await writeFile(
       join(vaultPath, 'full.md'),
-      '---\ntitle: Full\n---\n# Full body',
+      '---\nlabel: Full\n---\n# Full body',
       'utf-8',
     )
 
     await expect(storage.loadNoteById('full.md')).resolves.toMatchObject({
       id: 'full.md',
-      title: 'Full',
+      label: 'Full',
+      title: 'full',
       content: '# Full body',
     })
   })
@@ -227,7 +231,7 @@ describe('filesystemStorage', () => {
   it('truncates catalog content to the first 1024 utf-8 bytes', async () => {
     await writeFile(
       join(vaultPath, 'emoji.md'),
-      `---\ntitle: Emoji\n---\n${'🙂'.repeat(300)}`,
+      `---\nlabel: Emoji\n---\n${'🙂'.repeat(300)}`,
       'utf-8',
     )
 

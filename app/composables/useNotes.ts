@@ -3,7 +3,7 @@ import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { loadConfig } from '~/config/loader'
 import { createNoteCatalogRow } from '~/notes/catalogRow'
-import { noteTitleFromId } from '~/notes/noteTitleFromId'
+import { noteDescriptionFromContent } from '~/notes/noteDescriptionFromContent'
 import { resolveUniqueNoteIdForParentPath } from '~/notes/renameNoteTitle'
 import { buildSaveNoteInput } from '~/notes/saveNoteInput'
 import type { Note, NoteCatalogRow } from '~/notes/types'
@@ -13,70 +13,6 @@ export type NotesListItem = {
   title: string
   description: string
   meta: string
-}
-
-function stripMarkdownSyntax(line: string): string {
-  return line
-    .replace(/^>\s?/, '')
-    .replace(/^[-*+]\s+\[(?: |x|X)\]\s+/, '')
-    .replace(/^[-*+]\s+/, '')
-    .replace(/^\d+\.\s+/, '')
-    .replace(/!\[([^\]]*)\]\([^)]+\)/g, '$1')
-    .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
-    .replace(/`([^`]+)`/g, '$1')
-    .replace(/(\*\*|__)(.*?)\1/g, '$2')
-    .replace(/(\*|_)(.*?)\1/g, '$2')
-    .replace(/~~(.*?)~~/g, '$1')
-    .replace(/<[^>]+>/g, '')
-    .replace(/\\([[\]`*_{}()#+\-.!|>])/g, '$1')
-    .replace(/\|/g, ' ')
-    .replace(/\s+/g, ' ')
-    .trim()
-}
-
-function isMarkdownTableSeparator(line: string): boolean {
-  return line.includes('|') && /^[\s|:-]+$/.test(line) && line.includes('-')
-}
-
-// Keep list presentation in this file until a second list-specific consumer appears.
-function createNotesListDescription(content: string): string {
-  const previewLines: string[] = []
-  let isInsideFencedCodeBlock = false
-
-  for (const line of content.split(/\r?\n/)) {
-    const trimmedLine = line.trim()
-
-    if (/^(```|~~~)/.test(trimmedLine)) {
-      isInsideFencedCodeBlock = !isInsideFencedCodeBlock
-      continue
-    }
-
-    if (
-      trimmedLine.length === 0 ||
-      isInsideFencedCodeBlock ||
-      /^#{1,6}\s+/.test(trimmedLine) ||
-      /^([-*_]\s*){3,}$/.test(trimmedLine) ||
-      isMarkdownTableSeparator(trimmedLine)
-    ) {
-      continue
-    }
-
-    const sanitizedLine = stripMarkdownSyntax(trimmedLine)
-
-    if (sanitizedLine.length === 0) {
-      continue
-    }
-
-    previewLines.push(sanitizedLine)
-  }
-
-  const normalizedContent = previewLines.join(' ').replace(/\s+/g, ' ').trim()
-
-  if (normalizedContent.length <= 120) {
-    return normalizedContent
-  }
-
-  return `${normalizedContent.slice(0, 117)}...`
 }
 
 function createNotesListMeta(modifiedAt: string): string {
@@ -90,8 +26,8 @@ function buildNoteContentPath(id: string): string {
 export function createNotesListItems(notes: NoteCatalogRow[]): NotesListItem[] {
   return notes.map((note) => ({
     id: note.id,
-    title: noteTitleFromId(note.id),
-    description: createNotesListDescription(note.content),
+    title: note.title,
+    description: note.description,
     meta: createNotesListMeta(note.modifiedAt),
   }))
 }
@@ -127,9 +63,7 @@ export function useNotes() {
       ? selectedNoteFull.value
       : null,
   )
-  const selectedNoteTitle = computed(() =>
-    selectedNoteId.value ? noteTitleFromId(selectedNoteId.value) : '',
-  )
+  const selectedNoteTitle = computed(() => selectedNote.value?.title ?? '')
   const listItems = computed(() => createNotesListItems(notes.value))
 
   function sortNotesByModifiedAt(
@@ -169,7 +103,11 @@ export function useNotes() {
       return
     }
 
-    const nextNote = { ...selectedNote.value, content }
+    const nextNote = {
+      ...selectedNote.value,
+      content,
+      description: noteDescriptionFromContent(content),
+    }
     selectedNoteFull.value = nextNote
     replaceNote(nextNote)
   }

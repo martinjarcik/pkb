@@ -10,6 +10,8 @@ import {
 } from 'fs/promises'
 import { dirname, relative, resolve } from 'path'
 import { createNoteCatalogRow } from '~/notes/catalogRow'
+import { noteDescriptionFromContent } from '~/notes/noteDescriptionFromContent'
+import { noteTitleFromId } from '~/notes/noteTitleFromId'
 import {
   NOTE_CATALOG_CONTENT_BYTES,
   type Note,
@@ -78,6 +80,8 @@ function composeNote(
     content,
     createdAt,
     modifiedAt,
+    title: noteTitleFromId(id),
+    description: noteDescriptionFromContent(content),
   }
 }
 

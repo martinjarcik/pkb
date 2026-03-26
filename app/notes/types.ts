@@ -3,6 +3,8 @@ export const NOTE_SYSTEM_PROPERTY_KEYS = [
   'content',
   'createdAt',
   'modifiedAt',
+  'title',
+  'description',
 ] as const
 
 export type NoteSystemPropertyKey = (typeof NOTE_SYSTEM_PROPERTY_KEYS)[number]
@@ -24,6 +26,8 @@ export type Note = NoteProperties & {
   content: string
   createdAt: string
   modifiedAt: string
+  title: string
+  description: string
 }
 
 export type NoteCatalogRow = NoteProperties & {
@@ -32,4 +36,6 @@ export type NoteCatalogRow = NoteProperties & {
   content: string
   createdAt: string
   modifiedAt: string
+  title: string
+  description: string
 }

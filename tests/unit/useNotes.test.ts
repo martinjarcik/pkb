@@ -1,4 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { noteDescriptionFromContent } from '~/notes/noteDescriptionFromContent'
+import { noteTitleFromId } from '~/notes/noteTitleFromId'
 import type { Note } from '~/notes/types'
 import { createNotesListItems, useNotes } from '~/composables/useNotes'
 
@@ -50,6 +52,8 @@ function createTestNote(
     createdAt: '2026-03-20T00:00:00.000Z',
     modifiedAt,
     ...properties,
+    title: noteTitleFromId(id),
+    description: noteDescriptionFromContent(content),
   }
 }
 
@@ -173,7 +177,8 @@ describe('useNotes', () => {
   })
 
   it('encodes nested note ids when requesting the full note', async () => {
-    const { notes, selectedNoteTitle, selectNoteById } = useNotes()
+    const { notes, selectedNote, selectedNoteTitle, selectNoteById } =
+      useNotes()
 
     notes.value = [
       createTestNote('backlog/second note.md', '# Preview', '2026-03-24'),
@@ -189,6 +194,7 @@ describe('useNotes', () => {
 
     await selectNoteById('backlog/second note.md')
 
+    expect(selectedNote.value).not.toBeNull()
     expect(selectedNoteTitle.value).toBe('second note')
     expect(fetchMock).toHaveBeenCalledWith(
       '/api/notes/backlog/second%20note.md',
@@ -368,7 +374,7 @@ describe('useNotes', () => {
 
     notes.value = [
       createTestNote('entry.md', '# Preview only', '2026-03-24', {
-        title: 'Entry',
+        rating: 5,
       }),
     ]
 
@@ -377,13 +383,13 @@ describe('useNotes', () => {
         'entry.md',
         '# Full note\n\nLonger body',
         '2026-03-24',
-        { title: 'Entry' },
+        { rating: 5 },
       ),
       'PUT /api/notes': createTestNote(
         'entry.md',
         '# Updated note',
         '2026-03-25',
-        { title: 'Entry' },
+        { rating: 5 },
       ),
     })
 
@@ -394,7 +400,7 @@ describe('useNotes', () => {
       method: 'PUT',
       body: {
         id: 'entry.md',
-        properties: { title: 'Entry' },
+        properties: { rating: 5 },
         content: '# Updated note',
       },
     })
@@ -450,12 +456,13 @@ describe('useNotes', () => {
     expect(items.map((i) => i.id)).toEqual(['b.md', 'a.md'])
   })
 
-  it('uses note id basename without .md as the list item title', () => {
+  it('reads title and description from the note object', () => {
     const [flat] = createNotesListItems([
       createTestNote('my-note.md', '# Heading\n\nBody', '2026-03-24'),
     ])
 
     expect(flat?.title).toBe('my-note')
+    expect(flat?.description).toBe('Body')
 
     const [nested] = createNotesListItems([
       createTestNote(
@@ -468,7 +475,7 @@ describe('useNotes', () => {
     expect(nested?.title).toBe('this-is-file-name')
   })
 
-  it('omits markdown heading lines from the description preview', () => {
+  it('passes through the description from the note object', () => {
     const [listItem] = createNotesListItems([
       createTestNote(
         'headings.md',
@@ -483,36 +490,5 @@ describe('useNotes', () => {
       description: 'Body paragraph that should be shown.',
       meta: '2026-03-24',
     })
-  })
-
-  it('strips markdown formatting symbols from the description preview', () => {
-    const [listItem] = createNotesListItems([
-      createTestNote(
-        'formatted.md',
-        [
-          '# Heading',
-          '',
-          '- [x] **Bold** item with `code` and [link](https://example.com)',
-          '> Quoted _text_ and ~~strikethrough~~.',
-        ].join('\n'),
-        '2026-03-24',
-      ),
-    ])
-
-    expect(listItem?.description).toBe(
-      'Bold item with code and link Quoted text and strikethrough.',
-    )
-  })
-
-  it('omits markdown table separator rows from the description preview', () => {
-    const [listItem] = createNotesListItems([
-      createTestNote(
-        'table.md',
-        ['| Name | Value |', '| --- | --- |', '| Width | 120px |'].join('\n'),
-        '2026-03-24',
-      ),
-    ])
-
-    expect(listItem?.description).toBe('Name Value Width 120px')
   })
 })
