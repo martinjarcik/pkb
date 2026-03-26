@@ -429,6 +429,19 @@ describe('editorjsMarkdown', () => {
     )
   })
 
+  it('unwraps inline hashtag spans back to plain hashtag markdown on save', () => {
+    expect(
+      editorjsBlocksToMarkdown([
+        {
+          type: 'paragraph',
+          data: {
+            text: 'Use <span class="inline-hashtag">#engineering</span> here.',
+          },
+        },
+      ]),
+    ).toBe('Use #engineering here.')
+  })
+
   it('translates inline html markup from markdown input into editor formatting', () => {
     expect(
       markdownToEditorjsBlocks(
@@ -445,6 +458,17 @@ describe('editorjsMarkdown', () => {
         type: 'paragraph',
         data: {
           text: 'Use <code class="inline-code">fixture</code> with <b>bold</b> text.',
+        },
+      },
+    ])
+  })
+
+  it('wraps plain hashtags in inline hashtag spans when loading markdown', () => {
+    expect(markdownToEditorjsBlocks('Use #engineering here.')).toEqual([
+      {
+        type: 'paragraph',
+        data: {
+          text: 'Use <span class="inline-hashtag">#engineering</span> here.',
         },
       },
     ])

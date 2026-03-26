@@ -16,7 +16,9 @@ describe('buildSaveNoteInput', () => {
     expect(buildSaveNoteInput(note, '# Updated')).toEqual({
       id: 'notes/example.md',
       content: '# Updated',
-      properties: {},
+      properties: {
+        tags: [],
+      },
     })
   })
 
@@ -38,11 +40,45 @@ describe('buildSaveNoteInput', () => {
       id: 'notes/example.md',
       content: '# Updated',
       properties: {
-        tags: ['fixture', 'autosave'],
+        tags: [],
         meta: {
           nested: true,
         },
       },
     })
+  })
+
+  it('includes extracted tags from the saved content', () => {
+    const note = {
+      id: 'notes/example.md',
+      title: 'example',
+      description: '',
+      content: '',
+      createdAt: '2026-03-25T08:00:00.000Z',
+      modifiedAt: '2026-03-25T08:00:00.000Z',
+    } satisfies Note
+
+    expect(buildSaveNoteInput(note, '#idea #engineering')).toEqual({
+      id: 'notes/example.md',
+      content: '#idea #engineering',
+      properties: {
+        tags: ['engineering', 'idea'],
+      },
+    })
+  })
+
+  it('preserves the content unchanged', () => {
+    const note = {
+      id: 'notes/example.md',
+      title: 'example',
+      description: '',
+      content: '',
+      createdAt: '2026-03-25T08:00:00.000Z',
+      modifiedAt: '2026-03-25T08:00:00.000Z',
+    } satisfies Note
+
+    const content = '#idea and #engineering'
+
+    expect(buildSaveNoteInput(note, content).content).toBe(content)
   })
 })

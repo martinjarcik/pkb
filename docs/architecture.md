@@ -26,7 +26,9 @@ five parts:
   serialized under the `app` namespace key in YAML frontmatter (see D009).
 - **Properties** — user-defined data, unique per note. In memory these live as
   top-level note fields; values may be scalars, arrays, or nested objects. On
-  disk they are serialized as top-level YAML frontmatter keys.
+  disk they are serialized as top-level YAML frontmatter keys. The `tags`
+  property is derived from inline hashtags in Content, but persisted here as a
+  top-level user Property.
 - **Content** — rich text stored in the `content` field (Markdown with Liquid
   templating tags).
 
@@ -58,7 +60,8 @@ preview slice used by the notes list, capped at 1024 UTF-8 bytes.
 - `app/composables/useLayout.ts` — layout panel visibility state initialized
   from config defaults.
 - `app/composables/useSidebarNavigation.ts` — sidebar view state initialized
-  from config defaults, including the Inbox and top-level folder note filters.
+  from config defaults, including the Inbox, top-level folder note filters, and
+  tag-based note filtering.
 - `app/layouts/default.vue` — application shell composing SidebarPanel, NotesListPanel,
   page slot, and InspectorPanel in a horizontal flexbox.
 - `app/pages/index.vue` — renders `NotePanel` and retargets selection to the
@@ -73,6 +76,13 @@ preview slice used by the notes list, capped at 1024 UTF-8 bytes.
     (`app/components/SidebarFoldersActions.vue`) — top-level Vault folder list.
     - `SidebarFolderItem`
       (`app/components/SidebarFolderItem.vue`) — individual folder view item.
+  - `SidebarTags` (`app/components/SidebarTags.vue`) — tag filter section.
+    - `SidebarTagsControls`
+      (`app/components/SidebarTagsControls.vue`) — tag section header.
+    - `SidebarTagsList`
+      (`app/components/SidebarTagsList.vue`) — available tags for filtering.
+      - `SidebarTagItem`
+        (`app/components/SidebarTagItem.vue`) — individual clickable tag chip.
 - `NotesListPanel` (`app/components/NotesListPanel.vue`) — notes list shell.
   - `NotesListControls` (`app/components/NotesListControls.vue`) — within-view
     filtering and refinement controls.
@@ -86,7 +96,8 @@ preview slice used by the notes list, capped at 1024 UTF-8 bytes.
     editing region.
     - `NoteTemplate` — template (Liquid) output wrapper.
       - `NoteEditor` — content editing surface (includes an EditorJS
-        `noteTitle` block pinned at index 0 for inline title editing).
+        `noteTitle` block pinned at index 0 for inline title editing and an
+        inline hashtag formatting tool).
 - `InspectorPanel` (`app/components/InspectorPanel.vue`) — inspector shell.
   - `InspectorNavigation` (`app/components/InspectorNavigation.vue`) — tab bar
     for inspector views.
@@ -122,6 +133,9 @@ New contexts may be introduced when corresponding features are specified.
 - `NoteEditor` uses Editor.js as the client-side editing surface.
 - Markdown remains the canonical Content format; the UI converts between
   Markdown and Editor.js blocks in the browser.
+- On save, the app extracts inline hashtags from Markdown Content and persists
+  them as the top-level `tags` Property while keeping the visible Content text
+  unchanged.
 - Templates wrap content to provide rendered page context. Liquid and layout
   code lives outside the editor. Templates are not edited inline.
 - Properties are edited separately in the InspectorPanel, not inside the editor.
@@ -133,7 +147,8 @@ New contexts may be introduced when corresponding features are specified.
 - `useSidebarNavigation()` owns the active sidebar view in shared state.
   The default `Inbox` view filters `NotesList` to notes whose `id` lives at the
   vault root, while folder views filter to notes that are direct children of a
-  selected top-level Vault folder.
+  selected top-level Vault folder. Tag views filter across the whole catalog to
+  notes whose `tags` Property contains all selected Tags.
 - Renaming a note title changes the note `id` by replacing its basename with the
   edited title plus `.md`, while keeping the parent folder unchanged. On
   collisions, storage selects a unique suffixed filename.
@@ -151,6 +166,8 @@ New contexts may be introduced when corresponding features are specified.
   Vault root.
 - Folder sidebar views narrow the broad note set to notes whose `id` has the
   shape `<topLevelFolder>/<note>.md`, excluding deeper descendants.
+- Tag sidebar views narrow the broad note set to notes whose `tags` Property
+  contains every selected Tag.
 - Property mutation is an in-memory concern. Persistence is a separate
   cross-cutting concern and should not be part of an individual feature spec
   unless the feature introduces new persistence behavior.

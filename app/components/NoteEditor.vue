@@ -11,6 +11,7 @@ import {
   extractNoteTitleText,
   renderNoteTitleBlocks,
 } from '~/lib/editorjsTitleBlock'
+import InlineHashtagTool from '~/lib/inlineHashtagTool'
 import NoteTitleTool from '~/lib/noteTitleTool'
 import SimpleQuoteTool from '~/lib/simpleQuoteTool'
 
@@ -34,6 +35,9 @@ type EditorjsConstructor = new (
 ) => EditorjsInstance
 
 type EditorjsTool = new (...args: never[]) => unknown
+
+const inlineToolbarTools = ['link', 'bold', 'italic', 'inlineCode']
+const hashtagCompletionPattern = /(^|\s)#[^\s#]+\s$/u
 
 const props = withDefaults(
   defineProps<{
@@ -82,6 +86,171 @@ function getDefaultExport(module: unknown): unknown {
   }
 
   return module
+}
+
+function caretTextOffsetWithin(container: HTMLElement): number | null {
+  const selection = window.getSelection()
+
+  if (!selection || selection.rangeCount === 0 || !selection.isCollapsed) {
+    return null
+  }
+
+  const range = selection.getRangeAt(0).cloneRange()
+
+  if (!container.contains(range.endContainer)) {
+    return null
+  }
+
+  range.setStart(container, 0)
+
+  return range.toString().length
+}
+
+function setCaretTextOffset(container: HTMLElement, offset: number): void {
+  const selection = window.getSelection()
+
+  if (!selection) {
+    return
+  }
+
+  const walker = document.createTreeWalker(container, NodeFilter.SHOW_TEXT)
+  let traversed = 0
+  let currentNode = walker.nextNode()
+
+  while (currentNode) {
+    const textNode = currentNode as Text
+    const nextTraversed = traversed + textNode.data.length
+
+    if (offset <= nextTraversed) {
+      const range = document.createRange()
+      const nodeOffset = Math.max(0, offset - traversed)
+
+      range.setStart(textNode, nodeOffset)
+      range.collapse(true)
+      selection.removeAllRanges()
+      selection.addRange(range)
+      return
+    }
+
+    traversed = nextTraversed
+    currentNode = walker.nextNode()
+  }
+
+  const range = document.createRange()
+
+  range.selectNodeContents(container)
+  range.collapse(false)
+  selection.removeAllRanges()
+  selection.addRange(range)
+}
+
+function createHashtagFragment(text: string): DocumentFragment | null {
+  const matches = [...text.matchAll(/(^|\s)(#[^\s#]+)/gu)]
+
+  if (matches.length === 0) {
+    return null
+  }
+
+  const fragment = document.createDocumentFragment()
+  let lastIndex = 0
+
+  for (const match of matches) {
+    const leading = match[1] ?? ''
+    const tag = match[2] ?? ''
+    const matchIndex = match.index ?? 0
+    const tagStart = matchIndex + leading.length
+
+    fragment.append(text.slice(lastIndex, tagStart))
+
+    const hashtag = document.createElement('span')
+
+    hashtag.className = InlineHashtagTool.CSS
+    hashtag.textContent = tag
+    fragment.append(hashtag)
+    lastIndex = tagStart + tag.length
+  }
+
+  fragment.append(text.slice(lastIndex))
+
+  return fragment
+}
+
+function highlightHashtagsInEditable(editable: HTMLElement): void {
+  const caretOffset = caretTextOffsetWithin(editable)
+  const walker = document.createTreeWalker(editable, NodeFilter.SHOW_TEXT, {
+    acceptNode(node) {
+      const parentElement = node.parentElement
+
+      if (
+        parentElement?.closest(
+          `.${InlineHashtagTool.CSS}, code, a, [data-note-title]`,
+        )
+      ) {
+        return NodeFilter.FILTER_REJECT
+      }
+
+      return NodeFilter.FILTER_ACCEPT
+    },
+  })
+  const textNodes: Text[] = []
+
+  let currentNode = walker.nextNode()
+
+  while (currentNode) {
+    textNodes.push(currentNode as Text)
+    currentNode = walker.nextNode()
+  }
+
+  let didReplace = false
+
+  for (const textNode of textNodes) {
+    const fragment = createHashtagFragment(textNode.data)
+
+    if (!fragment) {
+      continue
+    }
+
+    textNode.parentNode?.replaceChild(fragment, textNode)
+    didReplace = true
+  }
+
+  if (didReplace && caretOffset !== null) {
+    setCaretTextOffset(editable, caretOffset)
+  }
+}
+
+function resolveEditableTarget(target: EventTarget | null): HTMLElement | null {
+  if (!(target instanceof Node)) {
+    return null
+  }
+
+  const element =
+    target instanceof HTMLElement ? target : (target.parentElement ?? null)
+  const editable = element?.closest<HTMLElement>('[contenteditable="true"]')
+
+  if (
+    !editable ||
+    !holder.value?.contains(editable) ||
+    editable.matches('[data-note-title]')
+  ) {
+    return null
+  }
+
+  return editable
+}
+
+function handleHolderKeyup(event: KeyboardEvent): void {
+  if (event.key !== ' ' && event.code !== 'Space') {
+    return
+  }
+
+  const editable = resolveEditableTarget(event.target)
+
+  if (!editable || !hashtagCompletionPattern.test(editable.textContent ?? '')) {
+    return
+  }
+
+  highlightHashtagsInEditable(editable)
 }
 
 async function renderMarkdownContent(markdown: string): Promise<void> {
@@ -320,6 +489,7 @@ onMounted(async () => {
     editor = new Editorjs({
       holder: holder.value,
       autofocus: false,
+      inlineToolbar: inlineToolbarTools,
       i18n: {
         messages: editorMessages,
       },
@@ -339,13 +509,14 @@ onMounted(async () => {
           },
         },
         paragraph: {
+          inlineToolbar: inlineToolbarTools,
           config: {
             preserveBlank: true,
           },
         },
         header: {
           class: Header,
-          inlineToolbar: true,
+          inlineToolbar: inlineToolbarTools,
           toolbox: [
             {
               icon: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24" rtrvr-ls="0~hs"><path stroke="currentColor" stroke-linecap="round" stroke-width="2" d="M6 7L6 12M6 17L6 12M6 12L12 12M12 7V12M12 17L12 12"></path><path stroke="currentColor" stroke-linecap="round" stroke-width="2" d="M19 17V10.2135C19 10.1287 18.9011 10.0824 18.836 10.1367L16 12.5"></path></svg>',
@@ -377,7 +548,7 @@ onMounted(async () => {
         },
         list: {
           class: List,
-          inlineToolbar: true,
+          inlineToolbar: inlineToolbarTools,
         },
         code: {
           class: Code,
@@ -388,19 +559,23 @@ onMounted(async () => {
         inlineCode: {
           class: InlineCode,
         },
+        inlineHashtag: {
+          class: InlineHashtagTool,
+        },
         simpleQuote: {
           class: SimpleQuoteTool,
-          inlineToolbar: true,
+          inlineToolbar: inlineToolbarTools,
         },
         table: {
           class: Table,
-          inlineToolbar: true,
+          inlineToolbar: inlineToolbarTools,
         },
       },
     })
 
     await editor.isReady
     holder.value?.addEventListener('focusout', handleHolderFocusout)
+    holder.value?.addEventListener('keyup', handleHolderKeyup)
 
     lastRenderedContent = props.content
     lastRenderedTitle = props.title
@@ -445,6 +620,7 @@ onBeforeUnmount(() => {
   }
 
   holder.value?.removeEventListener('focusout', handleHolderFocusout)
+  holder.value?.removeEventListener('keyup', handleHolderKeyup)
   editor?.destroy()
   editor = null
 })

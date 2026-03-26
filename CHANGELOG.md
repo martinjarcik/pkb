@@ -4,6 +4,9 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+- Extract inline hashtags into the top-level `tags` frontmatter Property on
+  save, add a `SidebarTags` section with multi-tag AND filtering, and add an
+  Editor.js inline hashtag formatting tool.
 - Add `title` and `description` as Derived Properties on the Note and
   NoteCatalogRow objects. These are computed from the note `id` and Content
   at load/save time, excluded from frontmatter serialization, and consumed

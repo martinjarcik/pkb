@@ -1,5 +1,5 @@
 <script setup lang="ts">
-const { topLevelFolders } = useSidebarNavigation()
+const { allTags, topLevelFolders } = useSidebarNavigation()
 </script>
 
 <template>
@@ -11,6 +11,11 @@ const { topLevelFolders } = useSidebarNavigation()
     <template v-if="topLevelFolders.length > 0">
       <div aria-hidden="true" class="h-[30px] shrink-0" />
       <SidebarFoldersActions />
+    </template>
+
+    <template v-if="allTags.length > 0">
+      <div aria-hidden="true" class="h-[30px] shrink-0" />
+      <SidebarTags />
     </template>
   </aside>
 </template>

@@ -75,6 +75,7 @@ test('filters the notes list to vault root notes by default', async ({
 
   await page.goto('/')
   await waitForNotesList(page)
+  await expect(page.locator('[data-note-id="root-note.md"]')).toBeVisible()
 
   const noteIds = await page
     .getByTestId('notes-list-item')

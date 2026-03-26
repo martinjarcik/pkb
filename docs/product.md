@@ -7,6 +7,8 @@
   highlights the selected item with `theme.accentColor`.
 - **SidebarFoldersActions** (inside SidebarPanel, below SidebarNavigation) —
   lists top-level Vault folders as selectable rows below a 30 px spacer.
+- **SidebarTags** (inside SidebarPanel, below SidebarFoldersActions) — lists all
+  available tags as clickable chips below a 30 px spacer.
 - **NotesListPanel** (left panel) — lists all notes, allows selecting one.
 - **NotePanel** (center) — hosts the main note area and fills the remaining
   space.
@@ -99,6 +101,19 @@ Top-level Vault folders appear below `Inbox` in `SidebarPanel`.
 - When a folder is selected, the first visible note in that folder becomes the
   active note automatically.
 
+### Tag Views
+
+The sidebar tag section lists all unique `tags` values found in the loaded note
+catalog.
+
+- Tags are displayed with the `#` prefix in the sidebar, for example
+  `#engineering`.
+- Clicking a tag switches the notes list into a tag filter view.
+- Multiple selected tags use AND logic: a note must contain every selected tag
+  to remain visible.
+- Selected tags use the accent color on the tag text.
+- Clicking `Inbox` or a folder row clears the active tag selection.
+
 ### Browser Storage
 
 When `applicationType` is `browser`, notes are stored in the browser's
@@ -118,8 +133,13 @@ The note content area uses Editor.js as the editing surface.
   unique suffixed filename.
 - Markdown remains the canonical note Content format.
 - The frontend translates between Markdown and Editor.js blocks in the browser.
-- Content autosaves after `editor.autosaveDelay` milliseconds of editor idle time (default 2000 ms).
+- Content autosaves after `editor.autosaveDelay` milliseconds of editor idle
+  time (default 2000 ms).
 - Switching to a different note flushes any pending autosave before selection changes.
+- On save, inline hashtags such as `#engineering` are extracted into the
+  top-level `tags` frontmatter property and remain visible in the note content.
+- The inline toolbar includes an `Inline Hashtag` tool for visually highlighting
+  selected hashtag text inside the editor.
 
 ### Internationalization
 

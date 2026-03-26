@@ -162,8 +162,14 @@ function editorHtmlLineBreaksToMarkdownNewlines(text: string): string {
 
 function inlineHtmlToMarkdown(text: string): string {
   let normalized = editorHtmlLineBreaksToMarkdownNewlines(text)
+    .replace(/&nbsp;/gi, ' ')
+    .replace(/\u00a0/g, ' ')
 
   const replacements: Array<[RegExp, (...args: string[]) => string]> = [
+    [
+      /<span\b[^>]*class=(["'])[^"']*\binline-hashtag\b[^"']*\1[^>]*>([\s\S]*?)<\/span>/gi,
+      (_match, _quote, content) => content,
+    ],
     [
       /<code\b[^>]*>([\s\S]*?)<\/code>/gi,
       (_match, content) => `\`${content}\``,
@@ -200,6 +206,14 @@ function inlineHtmlToMarkdown(text: string): string {
 
 function markdownNewlinesToEditorHtml(text: string): string {
   return text.replace(/\n/g, '<br>')
+}
+
+function wrapHashtagsForEditorHtml(text: string): string {
+  return text.replace(
+    /(^|\s)(#[^\s#]+)/gu,
+    (_match, leadingWhitespace, hashtag) =>
+      `${leadingWhitespace}<span class="inline-hashtag">${hashtag}</span>`,
+  )
 }
 
 function blockRequiresBlankLineSeparator(type: string): boolean {
@@ -305,7 +319,9 @@ function blocksFromRootWithBlankLines(
 function parseInlineNodeToHtml(node: MarkdownNode): string {
   switch (node.type) {
     case 'text':
-      return markdownNewlinesToEditorHtml(node.value ?? '')
+      return markdownNewlinesToEditorHtml(
+        wrapHashtagsForEditorHtml(node.value ?? ''),
+      )
     case 'emphasis':
       return `<i>${parseInlineNodesToHtml(node.children)}</i>`
     case 'strong':

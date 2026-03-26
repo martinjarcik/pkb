@@ -1,7 +1,7 @@
 import { expect, type Page, type Route } from '@playwright/test'
 import { noteDescriptionFromContent } from '../../app/notes/noteDescriptionFromContent'
 import { noteTitleFromId } from '../../app/notes/noteTitleFromId'
-import type { Note } from '../../app/notes/types'
+import type { Note, NoteProperties } from '../../app/notes/types'
 
 const FIXED_TIMESTAMP = '2026-03-26T12:00:00.000Z'
 
@@ -9,12 +9,14 @@ export function createMockNote(
   id: string,
   content: string = '',
   modifiedAt: string = FIXED_TIMESTAMP,
+  properties: NoteProperties = {},
 ): Note {
   return {
     id,
     content,
     createdAt: modifiedAt,
     modifiedAt,
+    ...properties,
     title: noteTitleFromId(id),
     description: noteDescriptionFromContent(content),
   }
@@ -84,13 +86,20 @@ export async function mockNotesApi(
       const body = route.request().postDataJSON() as {
         id: string
         content: string
+        properties?: NoteProperties
       }
       const existingIndex = notes.findIndex((note) => note.id === body.id)
 
       if (existingIndex >= 0) {
         notes = notes.map((note, index) =>
           index === existingIndex
-            ? { ...note, content: body.content, modifiedAt: FIXED_TIMESTAMP }
+            ? {
+                ...note,
+                ...body.properties,
+                content: body.content,
+                modifiedAt: FIXED_TIMESTAMP,
+                description: noteDescriptionFromContent(body.content),
+              }
             : note,
         )
         await route.fulfill({
@@ -99,7 +108,12 @@ export async function mockNotesApi(
           body: JSON.stringify(notes[existingIndex]),
         })
       } else {
-        const createdNote = createMockNote(body.id, body.content)
+        const createdNote = createMockNote(
+          body.id,
+          body.content,
+          FIXED_TIMESTAMP,
+          body.properties,
+        )
         notes = [createdNote, ...notes]
         await route.fulfill({
           status: 200,

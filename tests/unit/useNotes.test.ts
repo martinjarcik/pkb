@@ -392,11 +392,11 @@ describe('useNotes', () => {
     await selectNoteById('entry.md')
     await saveSelectedNoteContent('# Updated note')
 
-    expect(fetchMock).toHaveBeenCalledWith('/api/notes', {
+    expect(fetchMock).toHaveBeenNthCalledWith(2, '/api/notes', {
       method: 'PUT',
       body: {
         id: 'entry.md',
-        properties: { rating: 5 },
+        properties: { rating: 5, tags: [] },
         content: '# Updated note',
       },
     })
