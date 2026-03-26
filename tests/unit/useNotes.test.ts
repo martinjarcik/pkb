@@ -253,6 +253,25 @@ describe('useNotes', () => {
     })
   })
 
+  it('creates a new note inside the provided parent folder', async () => {
+    const { createNote: createNewNote } = useNotes()
+
+    fetchMock.mockResolvedValue(
+      createTestNote('Work/New Note.md', '', '2026-03-25'),
+    )
+
+    await createNewNote('Work')
+
+    expect(fetchMock).toHaveBeenCalledWith('/api/notes', {
+      method: 'PUT',
+      body: {
+        id: 'Work/New Note.md',
+        properties: {},
+        content: '',
+      },
+    })
+  })
+
   it('sets the save error when note creation fails', async () => {
     const { createNote: createNewNote, saveError } = useNotes()
 

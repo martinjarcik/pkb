@@ -1,21 +1,17 @@
 <script setup lang="ts">
-const { accentColor, selectedId } = useSidebarNavigation()
-
-function selectInbox(): void {
-  selectedId.value = 'inbox'
-}
+const { accentColor, selectedView, selectInbox } = useSidebarNavigation()
 </script>
 
 <template>
   <nav
     data-testid="sidebar-navigation"
-    class="sidebar-navigation-shell flex h-full flex-col"
+    class="sidebar-navigation-shell flex flex-col"
   >
     <SidebarNavigationItem
       navigation-id="inbox"
       icon="inbox"
       :label="$t('sidebarNavigation.inbox')"
-      :selected="selectedId === 'inbox'"
+      :selected="selectedView.kind === 'inbox'"
       :accent-color="accentColor"
       @click="selectInbox"
     />

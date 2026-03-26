@@ -5,6 +5,7 @@ import {
   test,
   type APIRequestContext,
   type Page,
+  type Route,
 } from '@playwright/test'
 import yaml from 'yaml'
 import type { Note } from '~/notes/types'
@@ -19,6 +20,34 @@ async function loadNotes(request: APIRequestContext): Promise<Note[]> {
 
 function isVaultRootNote(note: Note): boolean {
   return !note.id.includes('/')
+}
+
+function createMockNote(
+  id: string,
+  modifiedAt: string,
+  content: string = '# Mock note',
+): Note {
+  return {
+    id,
+    content,
+    createdAt: modifiedAt,
+    modifiedAt,
+  }
+}
+
+async function mockNotesApi(page: Page, notes: Note[]): Promise<void> {
+  await page.route('**/api/notes', async (route: Route) => {
+    if (route.request().method() !== 'GET') {
+      await route.fallback()
+      return
+    }
+
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify(notes),
+    })
+  })
 }
 
 async function waitForNotesList(page: Page): Promise<void> {
@@ -128,4 +157,57 @@ test('uses theme accentColor for the selected notes list item border', async ({
   await expect(selectedNote).toBeVisible()
   await expect(selectedNote).toHaveAttribute('data-selected', 'true')
   await expect(selectedNote).toHaveCSS('border-left-color', accentColor)
+})
+
+test('selects a top-level folder and shows only its direct child notes', async ({
+  page,
+}) => {
+  await mockNotesApi(page, [
+    createMockNote('root-note.md', '2026-03-25T12:00:00.000Z'),
+    createMockNote('Work/latest.md', '2026-03-24T12:00:00.000Z'),
+    createMockNote('Work/archive/older.md', '2026-03-23T12:00:00.000Z'),
+    createMockNote('Work/earlier.md', '2026-03-22T12:00:00.000Z'),
+    createMockNote('Travel/checklist.md', '2026-03-21T12:00:00.000Z'),
+  ])
+
+  const accentColor = hexToCssColor(await loadAccentColor())
+
+  await page.goto('/')
+  await waitForNotesList(page)
+
+  await expect(page.getByTestId('sidebar-folders-actions')).toBeVisible()
+  await expect(
+    page.locator('[data-navigation-id="folder:Travel"]'),
+  ).toBeVisible()
+  await expect(page.locator('[data-navigation-id="folder:Work"]')).toBeVisible()
+
+  const inboxItem = page.locator('[data-navigation-id="inbox"]').first()
+  const workFolderItem = page
+    .locator('[data-navigation-id="folder:Work"]')
+    .first()
+  const travelFolderItem = page
+    .locator('[data-navigation-id="folder:Travel"]')
+    .first()
+
+  await workFolderItem.click()
+
+  await expect(workFolderItem).toHaveAttribute('data-selected', 'true')
+  await expect(workFolderItem).toHaveCSS('background-color', accentColor)
+  await expect(workFolderItem).toHaveCSS('color', 'rgb(255, 255, 255)')
+  await expect(inboxItem).toHaveAttribute('data-selected', 'false')
+  await expect(travelFolderItem).toHaveAttribute('data-selected', 'false')
+
+  const noteIds = await page
+    .getByTestId('notes-list-item')
+    .evaluateAll((elements) =>
+      elements.map((element) => element.getAttribute('data-note-id') ?? ''),
+    )
+
+  expect(noteIds).toEqual(['Work/latest.md', 'Work/earlier.md'])
+
+  await expect(page.getByTestId('notes-list-item').first()).toHaveAttribute(
+    'data-selected',
+    'true',
+  )
+  await expect(page.getByTestId('note-title')).toHaveText('latest')
 })

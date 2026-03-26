@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import {
   createNoteIdFromTitle,
   resolveUniqueNoteId,
+  resolveUniqueNoteIdForParentPath,
   sanitizeNoteTitleForFilename,
 } from '~/notes/renameNoteTitle'
 
@@ -41,5 +42,20 @@ describe('renameNoteTitle', () => {
         'folder/old.md',
       ]),
     ).toBe('folder/Fresh Title (3).md')
+  })
+
+  it('creates a unique id directly in the provided parent path', () => {
+    expect(
+      resolveUniqueNoteIdForParentPath('folder', 'Fresh Title', [
+        'folder/Fresh Title.md',
+        'other/Fresh Title.md',
+      ]),
+    ).toBe('folder/Fresh Title (2).md')
+  })
+
+  it('creates a root id when the parent path is empty', () => {
+    expect(
+      resolveUniqueNoteIdForParentPath('', 'Fresh Title', ['Fresh Title.md']),
+    ).toBe('Fresh Title (2).md')
   })
 })

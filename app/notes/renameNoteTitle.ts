@@ -32,6 +32,38 @@ function buildNoteId(parentPath: string, filename: string): string {
   return parentPath ? `${parentPath}/${filename}` : filename
 }
 
+export function resolveUniqueNoteIdForParentPath(
+  parentPath: string,
+  title: string,
+  existingIds: Iterable<string>,
+): string {
+  const sanitizedTitle = sanitizeNoteTitleForFilename(title)
+
+  if (sanitizedTitle.length === 0) {
+    throw new Error(
+      'Note title must contain at least one valid filename character',
+    )
+  }
+
+  const ids = new Set(existingIds)
+  const nextId = buildNoteId(parentPath, `${sanitizedTitle}.md`)
+
+  if (!ids.has(nextId)) {
+    return nextId
+  }
+
+  for (let duplicateIndex = 2; ; duplicateIndex += 1) {
+    const candidateId = buildNoteId(
+      parentPath,
+      `${sanitizedTitle} (${duplicateIndex}).md`,
+    )
+
+    if (!ids.has(candidateId)) {
+      return candidateId
+    }
+  }
+}
+
 export function createNoteIdFromTitle(
   currentId: string,
   title: string,
@@ -54,25 +86,10 @@ export function resolveUniqueNoteId(
   title: string,
   existingIds: Iterable<string>,
 ): string {
-  const nextId = createNoteIdFromTitle(currentId, title)
   const { parentPath } = splitNoteId(currentId)
-  const sanitizedTitle = sanitizeNoteTitleForFilename(title)
   const ids = new Set(existingIds)
 
   ids.delete(currentId)
 
-  if (!ids.has(nextId)) {
-    return nextId
-  }
-
-  for (let duplicateIndex = 2; ; duplicateIndex += 1) {
-    const candidateId = buildNoteId(
-      parentPath,
-      `${sanitizedTitle} (${duplicateIndex}).md`,
-    )
-
-    if (!ids.has(candidateId)) {
-      return candidateId
-    }
-  }
+  return resolveUniqueNoteIdForParentPath(parentPath, title, ids)
 }

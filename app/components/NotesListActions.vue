@@ -1,5 +1,12 @@
 <script setup lang="ts">
 const { createNote } = useNotes()
+const { selectedView } = useSidebarNavigation()
+
+async function handleCreateNote(): Promise<void> {
+  await createNote(
+    selectedView.value.kind === 'folder' ? selectedView.value.folderName : '',
+  )
+}
 </script>
 
 <template>
@@ -13,7 +20,7 @@ const { createNote } = useNotes()
       class="inline-flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
       data-testid="notes-list-create-note"
       type="button"
-      @click="createNote"
+      @click="handleCreateNote"
     >
       <svg
         aria-hidden="true"

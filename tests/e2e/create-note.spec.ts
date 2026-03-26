@@ -153,6 +153,30 @@ test('creates and loads the first note when the list is empty', async ({
   await expect(noteTitle).toHaveText('New Note')
 })
 
+test('creates a new note inside the selected folder view', async ({ page }) => {
+  await mockNotesApi(page, [
+    createMockNote('Work/existing.md', '# Existing\n\nExisting content'),
+    createMockNote('Personal/note.md', '# Personal'),
+    createMockNote('root.md', '# Root'),
+  ])
+
+  await page.goto('/')
+  await waitForEditorReady(page)
+
+  await page.locator('[data-navigation-id="folder:Work"]').click()
+  await page.getByTestId('notes-list-create-note').click()
+
+  const firstNote = page.getByTestId('notes-list-item').first()
+  const noteTitle = page.getByTestId('note-title')
+
+  await expect(firstNote).toHaveAttribute('data-note-id', 'Work/New Note.md')
+  await expect(firstNote).toHaveAttribute('data-selected', 'true')
+  await expect(page.getByTestId('notes-list-item-title').first()).toHaveText(
+    'New Note',
+  )
+  await expect(noteTitle).toHaveText('New Note')
+})
+
 test('renames the selected note when the title loses focus', async ({
   page,
 }) => {

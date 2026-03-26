@@ -47,7 +47,7 @@ identifier.
 - `app/composables/useLayout.ts` — layout panel visibility state initialized
   from config defaults.
 - `app/composables/useSidebarNavigation.ts` — sidebar view state initialized
-  from config defaults, including the Inbox-selected note filter.
+  from config defaults, including the Inbox and top-level folder note filters.
 - `app/layouts/default.vue` — application shell composing SidebarPanel, NotesListPanel,
   page slot, and InspectorPanel in a horizontal flexbox.
 - `app/pages/index.vue` — renders `NotePanel` and retargets selection to the
@@ -58,6 +58,10 @@ identifier.
     - `SidebarNavigationItem`
       (`app/components/SidebarNavigationItem.vue`) — individual sidebar view item
       (for example `Inbox`).
+  - `SidebarFoldersActions`
+    (`app/components/SidebarFoldersActions.vue`) — top-level Vault folder list.
+    - `SidebarFolderItem`
+      (`app/components/SidebarFolderItem.vue`) — individual folder view item.
 - `NotesListPanel` (`app/components/NotesListPanel.vue`) — notes list shell.
   - `NotesListControls` (`app/components/NotesListControls.vue`) — within-view
     filtering and refinement controls.
@@ -114,9 +118,10 @@ New contexts may be introduced when corresponding features are specified.
 - `useNotes()` owns the active note id in shared state. After a successful load,
   it selects the first loaded note by default and `NoteTemplate` passes that
   note's title and Content into `NoteEditor`.
-- `useSidebarNavigation()` owns the active sidebar view id in shared state. The
-  default `Inbox` view filters `NotesList` to notes whose `id` lives at the
-  vault root.
+- `useSidebarNavigation()` owns the active sidebar view in shared state.
+  The default `Inbox` view filters `NotesList` to notes whose `id` lives at the
+  vault root, while folder views filter to notes that are direct children of a
+  selected top-level Vault folder.
 - Renaming a note title changes the note `id` by replacing its basename with the
   edited title plus `.md`, while keeping the parent folder unchanged. On
   collisions, storage selects a unique suffixed filename.
@@ -125,12 +130,15 @@ New contexts may be introduced when corresponding features are specified.
 
 - Actions are scoped to their parent context: `NoteActions` operates on the
   active note, while `NotesListActions` operates on the list as a whole.
+  Creating a note uses the active sidebar view to choose the parent path.
 - Filtering happens in two levels: `SidebarNavigation` selects the view (the
   broad note set), then `NotesListControls` refines that view. `NotesList`
   renders the resulting set.
 - The default `Inbox` sidebar view narrows the broad note set to notes whose
   `id` contains no `/`, which corresponds to notes stored directly in the
   Vault root.
+- Folder sidebar views narrow the broad note set to notes whose `id` has the
+  shape `<topLevelFolder>/<note>.md`, excluding deeper descendants.
 - Property mutation is an in-memory concern. Persistence is a separate
   cross-cutting concern and should not be part of an individual feature spec
   unless the feature introduces new persistence behavior.

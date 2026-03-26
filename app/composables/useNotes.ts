@@ -3,7 +3,7 @@ import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { loadConfig } from '~/config/loader'
 import { noteTitleFromId } from '~/notes/noteTitleFromId'
-import { resolveUniqueNoteId } from '~/notes/renameNoteTitle'
+import { resolveUniqueNoteIdForParentPath } from '~/notes/renameNoteTitle'
 import { buildSaveNoteInput } from '~/notes/saveNoteInput'
 import type { Note } from '~/notes/types'
 
@@ -197,7 +197,7 @@ export function useNotes() {
     }
   }
 
-  async function createNote(): Promise<Note | null> {
+  async function createNote(parentPath: string = ''): Promise<Note | null> {
     const translatedDefaultTitle = t('notes.newNoteTitle').trim()
     const defaultTitle =
       translatedDefaultTitle.length === 0 ||
@@ -218,8 +218,8 @@ export function useNotes() {
       const createdNote = await globalThis.$fetch<Note>('/api/notes', {
         method: 'PUT',
         body: {
-          id: resolveUniqueNoteId(
-            '',
+          id: resolveUniqueNoteIdForParentPath(
+            parentPath,
             defaultTitle,
             notes.value.map((note) => note.id),
           ),

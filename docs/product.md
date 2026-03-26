@@ -5,6 +5,8 @@
 - **SidebarPanel** (left) — navigation and app-level actions.
 - **SidebarNavigation** (inside SidebarPanel) — starts in the `Inbox` view and
   highlights the selected item with `theme.accentColor`.
+- **SidebarFoldersActions** (inside SidebarPanel, below SidebarNavigation) —
+  lists top-level Vault folders as selectable rows below a 30 px spacer.
 - **NotesListPanel** (left panel) — lists all notes, allows selecting one.
 - **NotePanel** (center) — hosts the main note area and fills the remaining
   space.
@@ -18,15 +20,17 @@ When the application opens on the default route, the frontend loads notes from
 the vault root in `NotesListPanel`. Each row shows the note title derived from
 its `id`, along with a short content preview and modified date.
 
-After notes load, the first visible Inbox note becomes the active note
-automatically and is highlighted in `NotesListPanel`. Selecting a different row
-updates the active note shown in the `NotePanel`, including the note title
-above the Editor.js surface.
+After notes load, the first visible note in the active sidebar view becomes the
+active note automatically and is highlighted in `NotesListPanel`. Selecting a
+different row updates the active note shown in the `NotePanel`, including the
+note title above the Editor.js surface.
 
 The notes list toolbar includes a create-note action. Clicking it creates a new
 note titled `New Note` (or the next available suffixed variant such as
 `New Note (2)`), places that note at the top of `NotesListPanel`, selects it,
-and focuses the title for immediate renaming.
+and focuses the title for immediate renaming. The note is created in the
+currently selected sidebar view: `Inbox` creates it in the vault root, while a
+selected folder creates it directly in that folder.
 
 ## Configuration
 
@@ -66,6 +70,18 @@ The default sidebar view is `Inbox`.
 - Notes stored in subdirectories are excluded from the Inbox list.
 - The selected Inbox item uses `theme.accentColor` from
   `app/config/default.yaml`.
+
+### Vault Folder Views
+
+Top-level Vault folders appear below `Inbox` in `SidebarPanel`.
+
+- Each folder row is inferred from the first path segment of loaded note `id`
+  values such as `Work/note.md`.
+- Selecting a folder shows only notes stored directly in that folder.
+  Nested notes such as `Work/archive/note.md` remain excluded.
+- Folder rows use the same selected styling as `Inbox`.
+- When a folder is selected, the first visible note in that folder becomes the
+  active note automatically.
 
 ### Browser Storage
 

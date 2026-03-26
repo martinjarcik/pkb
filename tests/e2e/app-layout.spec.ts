@@ -1,10 +1,93 @@
-import {
-  expect,
-  test,
-  type APIRequestContext,
-  type Page,
-} from '@playwright/test'
+import { expect, test, type Page, type Route } from '@playwright/test'
 import type { Note } from '~/notes/types'
+
+const FIXED_TIMESTAMP = '2026-03-26T12:00:00.000Z'
+
+function createMockNote(id: string, content: string): Note {
+  return {
+    id,
+    content,
+    createdAt: FIXED_TIMESTAMP,
+    modifiedAt: FIXED_TIMESTAMP,
+  }
+}
+
+function buildAppLayoutNotes(): Note[] {
+  return [
+    createMockNote('first-note.md', 'First paragraph.\n\nSecond paragraph.'),
+    createMockNote('second-note.md', 'Second note body.'),
+    createMockNote('heading-note.md', '## Heading two\n\nBody paragraph.'),
+  ]
+}
+
+async function mockNotesApi(page: Page, initialNotes: Note[]): Promise<void> {
+  let notes = [...initialNotes]
+
+  await page.route('**/api/notes', async (route: Route) => {
+    const method = route.request().method()
+
+    if (method === 'GET') {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify(notes),
+      })
+      return
+    }
+
+    if (method === 'PUT') {
+      const body = route.request().postDataJSON() as {
+        id: string
+        content: string
+      }
+      const noteIndex = notes.findIndex((note) => note.id === body.id)
+
+      if (noteIndex >= 0) {
+        notes = notes.map((note, index) =>
+          index === noteIndex
+            ? { ...note, content: body.content, modifiedAt: FIXED_TIMESTAMP }
+            : note,
+        )
+
+        await route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify(notes[noteIndex]),
+        })
+        return
+      }
+    }
+
+    if (method === 'PATCH') {
+      const body = route.request().postDataJSON() as {
+        id: string
+        title: string
+      }
+      const noteIndex = notes.findIndex((note) => note.id === body.id)
+
+      if (noteIndex >= 0) {
+        const renamedNote = {
+          ...notes[noteIndex]!,
+          id: `${body.title}.md`,
+          modifiedAt: FIXED_TIMESTAMP,
+        }
+
+        notes = notes.map((note, index) =>
+          index === noteIndex ? renamedNote : note,
+        )
+
+        await route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify(renamedNote),
+        })
+        return
+      }
+    }
+
+    await route.fallback()
+  })
+}
 
 async function waitForEditorReady(page: Page): Promise<void> {
   await expect(page.getByTestId('note-editor-error')).toHaveCount(0, {
@@ -27,18 +110,15 @@ async function openHeadingSettings(page: Page): Promise<void> {
   await page.locator('.ce-toolbar__settings-btn').first().click()
 }
 
-async function loadNoteWithHeading(request: APIRequestContext): Promise<Note> {
-  const response = await request.get('/api/notes')
-
-  expect(response.ok()).toBeTruthy()
-
-  const notes = (await response.json()) as Note[]
-  const note = notes.find((entry) => /^#\s+/m.test(entry.content))
-
-  expect(note).toBeDefined()
-
-  return note!
+async function openHeadingNote(page: Page): Promise<void> {
+  await page.goto('/')
+  await page.locator('[data-note-id="heading-note.md"]').click()
+  await waitForEditorReady(page)
 }
+
+test.beforeEach(async ({ page }) => {
+  await mockNotesApi(page, buildAppLayoutNotes())
+})
 
 test('renders the default application layout', async ({ page }) => {
   await page.goto('/')
@@ -159,16 +239,8 @@ test('updates the active note when a different list row is clicked', async ({
   await expect(page.locator('.ce-block')).not.toHaveCount(0)
 })
 
-test('shows block conversion options for a heading block', async ({
-  page,
-  request,
-}) => {
-  const note = await loadNoteWithHeading(request)
-
-  await page.goto('/')
-  await page.locator(`[data-note-id="${note.id}"]`).click()
-
-  await waitForEditorReady(page)
+test('shows block conversion options for a heading block', async ({ page }) => {
+  await openHeadingNote(page)
 
   await openHeadingSettings(page)
 
@@ -177,14 +249,8 @@ test('shows block conversion options for a heading block', async ({
 
 test('renders heading blocks with larger typography than paragraphs', async ({
   page,
-  request,
 }) => {
-  const note = await loadNoteWithHeading(request)
-
-  await page.goto('/')
-  await page.locator(`[data-note-id="${note.id}"]`).click()
-
-  await waitForEditorReady(page)
+  await openHeadingNote(page)
 
   const heading = page.locator('.ce-header').first()
   const paragraph = page.locator('.ce-paragraph').first()
@@ -210,16 +276,8 @@ test('renders heading blocks with larger typography than paragraphs', async ({
   await expect(paragraph).toBeVisible()
 })
 
-test('allows changing a heading block between levels', async ({
-  page,
-  request,
-}) => {
-  const note = await loadNoteWithHeading(request)
-
-  await page.goto('/')
-  await page.locator(`[data-note-id="${note.id}"]`).click()
-
-  await waitForEditorReady(page)
+test('allows changing a heading block between levels', async ({ page }) => {
+  await openHeadingNote(page)
 
   await openHeadingSettings(page)
   await page
@@ -233,14 +291,8 @@ test('allows changing a heading block between levels', async ({
 
 test('shows checklist only once in the block conversion menu', async ({
   page,
-  request,
 }) => {
-  const note = await loadNoteWithHeading(request)
-
-  await page.goto('/')
-  await page.locator(`[data-note-id="${note.id}"]`).click()
-
-  await waitForEditorReady(page)
+  await openHeadingNote(page)
 
   await openHeadingSettings(page)
 

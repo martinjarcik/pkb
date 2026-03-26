@@ -325,7 +325,6 @@
                   "clip": true,
                   "width": "fill_container",
                   "height": "fill_container",
-                  "fill": "#3e56de12",
                   "layout": "vertical",
                   "padding": [
                     50,
@@ -341,9 +340,8 @@
                       "name": "NoteTitle",
                       "fill": "#000000",
                       "textGrowth": "fixed-width",
-                      "width": 632,
+                      "width": 524,
                       "content": "Peaky Blinders: The Immortal Man\n",
-                      "textAlign": "center",
                       "fontFamily": "Inter",
                       "fontSize": 23,
                       "fontWeight": "700"
@@ -363,10 +361,8 @@
                       ],
                       "layout": "vertical",
                       "padding": [
-                        50,
-                        100,
                         0,
-                        100
+                        50
                       ],
                       "children": [
                         {
@@ -381,7 +377,7 @@
                               "id": "WqI1b",
                               "fill": "#000000",
                               "textGrowth": "fixed-width-height",
-                              "width": 430,
+                              "width": "fill_container",
                               "height": 748.4118613407231,
                               "content": "Anyone remember Michael Elphick’s “Private Schultz” (1981)? The nasty Nazis have counterfeited millions of Bank of England notes and plan to flood, and thereby ruin, the British economy and shrewdly shorten the war. “Beckett” (Tim Roth) is their agent and he determines to recruit “Duke” (Barry Keoghan) to help him smuggle and distribute some £70m of it. The increasingly audacious “Duke” has taken over the “Peaky Blinders” after his dad “Tommy” (Cillian Murphy) retired to a ramshackle country pile to write his memoirs, and is becoming more out of control. \n\nAnxious about his excesses, his aunt “Ada” (Sophie Rundle) decides she has to alert her brother to the dangers of his continuing absence. Moreover, she then uses her position as an MP to collect information on her nephew that should she get to the military police could see him swing. \n\nThat prospect doesn’t appeal to “Beckett” but to what lengths will he go; will Duke” actually go to get his hands on the loot and what will it take to prize “Tommy” from his self-imposed exile? Murphy himself makes it clear to us at the start that we are not to say any more to the potential television viewers, so I’d better stop there - but suffice to say this is a worthy successor to the gritty television series’ on which it is based. \n\nThat said, though, you don’t need to have seen those to pick this up. It’s a stand-alone drama that stylishly captures the poverty, violence and divided loyalties of a time where family and country were not necessarily on the same side. The more I see Keoghan act, the more limited I reckon his skills are - but here he is a perfect fit for the slightly maniacal but conflicted son of a father whom Murphy has characterised with just the right degree of menace and humanity. Roth, Ferguson and the always reliable Ned Dennehy all contribute well to a solid story that mixes the mystical Romany with the practical brutalities of modern warfare and, of course, some good old-fashioned greed. The production looks great and the whole film slides (sometimes quite muddily) along enjoyably for the best part of two hours. I even got a special bonnet at the screening, too!",
                               "lineHeight": 1.7,
@@ -1253,7 +1249,7 @@
                       "descendants": {
                         "IxHw5": {
                           "iconFontFamily": "lucide",
-                          "iconFontName": "car",
+                          "iconFontName": "folder",
                           "fill": "#444444",
                           "x": 10,
                           "y": 9
