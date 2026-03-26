@@ -184,12 +184,13 @@ export function useNotes() {
     }
 
     saveError.value = null
+    const saveInput = buildSaveNoteInput(selectedNote.value, content)
     updateSelectedNoteContent(content)
 
     try {
       const savedNote = await globalThis.$fetch<Note>('/api/notes', {
         method: 'PUT',
-        body: buildSaveNoteInput(selectedNote.value, content),
+        body: saveInput,
       })
 
       replaceNote(savedNote)
