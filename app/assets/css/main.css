@@ -37,8 +37,8 @@
     --app-space-lg: 1rem;
     --app-space-xl: 1.25rem;
     --app-space-inspector-nav-inline: 0.875rem;
-    --app-note-surface-padding-inline: 6.25rem;
-    --app-note-surface-padding-top: 3.125rem;
+    --app-note-surface-padding-inline: 6vw;
+    --app-note-surface-padding-top: 4vh;
     --app-note-template-background: #3e56de12;
     --app-note-template-gap: 1.75rem;
     --app-note-title-max-width: 39.5rem;
@@ -199,27 +199,26 @@
   }
 
   .note-template-shell {
-    background-color: var(--app-note-template-background);
     gap: var(--app-note-template-gap);
-    padding-inline: clamp(1.5rem, 3vw, var(--app-note-surface-padding-inline));
-    padding-top: clamp(1.5rem, 4vh, var(--app-note-surface-padding-top));
+    padding-inline: clamp(
+      1.5rem,
+      var(--app-note-surface-padding-inline),
+      var(--app-note-surface-padding-inline)
+    );
+    padding-top: clamp(
+      1.5rem,
+      var(--app-note-surface-padding-top),
+      var(--app-note-surface-padding-top)
+    );
   }
 
   .note-title-shell,
   .note-editor-surface .ce-note-title {
-    border: 1px solid transparent;
-    border-radius: calc(var(--radius) - 4px);
-    color: hsl(var(--foreground));
-    cursor: text;
     font-size: var(--app-note-title-font-size);
     font-weight: 700;
-    line-height: 1.2;
-    margin-inline: auto;
-    outline: none;
-    overflow-wrap: break-word;
-    width: 100%;
-    word-break: break-word;
     padding-bottom: 1em;
+    cursor: text;
+    outline: none;
   }
 
   .note-title-shell:focus,
