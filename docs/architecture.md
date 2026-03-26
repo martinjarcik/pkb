@@ -10,11 +10,16 @@ file per note with YAML frontmatter.
 
 A Note is an in-memory object whose Properties and Application Properties are
 top-level fields (values may be scalars, arrays, or nested objects). Composed of
-four parts:
+five parts:
 
 - **System Properties** — read-only values provided by the storage adapter:
   `id` (string), `createdAt` (ISO 8601 string), `modifiedAt` (ISO 8601 string).
   Never serialized to frontmatter.
+- **Derived Properties** — application-computed per-note fields that exist only
+  in memory: `title` (string, derived from the `id` basename) and `description`
+  (string, a 120-character stripped-markdown preview derived from Content).
+  Never serialized to frontmatter. Recomputed at note load and on save/rename.
+  They shadow any user-defined Properties with the same key names (see D011).
 - **Application Properties** — application-managed per-note state (e.g.
   `favorite`). Controlled through dedicated UI, not editable in the property
   editor. In memory these are flat top-level Note fields. On disk they are
@@ -170,6 +175,12 @@ New contexts may be introduced when corresponding features are specified.
   ```
 
 - The Vault (storage root directory) is user-configurable.
+
+On desktop, the filesystem adapter reflects whatever is on disk at read and
+write time. There is no watcher, merge layer, or conflict resolution for
+edits made outside the process. Treat in-app state as authoritative during a
+session; external changes are an unsupported interaction pattern and may
+produce stale views, failed saves, or overwritten files.
 
 ## Storage (`app/storage/`)
 

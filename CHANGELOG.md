@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+- Add `title` and `description` as Derived Properties on the Note and
+  NoteCatalogRow objects. These are computed from the note `id` and Content
+  at load/save time, excluded from frontmatter serialization, and consumed
+  directly by the notes list and editor title block. The description logic
+  previously embedded in `useNotes` now lives in `app/notes/noteDescriptionFromContent.ts`.
 - Load only the first 1 KiB of note Content for the notes list catalog, then
   fetch the full note only when it becomes selected in the editor.
 - Add an Inbox item to `SidebarNavigation`, select it by default on app open,
