@@ -2,7 +2,7 @@ import { readFile } from 'node:fs/promises'
 import { resolve } from 'node:path'
 import { defineEventHandler } from 'h3'
 import yaml from 'yaml'
-import type { Note } from '~/notes/types'
+import type { NoteCatalogRow } from '~/notes/types'
 import type { StorageConfig } from '~/storage/router'
 import { getNoteStorage } from '~/storage/router'
 import type { NoteStorage } from '~/storage/types'
@@ -39,10 +39,10 @@ async function loadServerConfig(): Promise<StorageConfig> {
 
 export async function loadNotesResponse(
   storage?: NoteStorage,
-): Promise<Note[]> {
+): Promise<NoteCatalogRow[]> {
   const resolvedStorage = storage ?? getNoteStorage(await loadServerConfig())
 
-  return resolvedStorage.loadNotes()
+  return resolvedStorage.loadNotesCatalog()
 }
 
 export default defineEventHandler(async () => {

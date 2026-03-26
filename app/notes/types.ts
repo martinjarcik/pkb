@@ -17,8 +17,18 @@ export type NotePropertyValue =
 
 export type NoteProperties = Record<string, NotePropertyValue>
 
+export const NOTE_CATALOG_CONTENT_BYTES = 1024
+
 export type Note = NoteProperties & {
   id: string
+  content: string
+  createdAt: string
+  modifiedAt: string
+}
+
+export type NoteCatalogRow = NoteProperties & {
+  id: string
+  // Note catalog rows keep only the preview slice used by the notes list.
   content: string
   createdAt: string
   modifiedAt: string

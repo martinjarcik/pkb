@@ -1,5 +1,5 @@
 import { expect, test, type Page, type Route } from '@playwright/test'
-import type { Note } from '~/notes/types'
+import type { Note } from '../../app/notes/types'
 
 const FIXED_TIMESTAMP = '2026-03-26T12:00:00.000Z'
 
@@ -22,6 +22,36 @@ function buildAppLayoutNotes(): Note[] {
 
 async function mockNotesApi(page: Page, initialNotes: Note[]): Promise<void> {
   let notes = [...initialNotes]
+
+  await page.route('**/api/notes/**', async (route: Route) => {
+    if (route.request().method() !== 'GET') {
+      await route.fallback()
+      return
+    }
+
+    const pathname = new URL(route.request().url()).pathname
+    const noteId = pathname
+      .replace(/^\/api\/notes\//, '')
+      .split('/')
+      .map((segment) => decodeURIComponent(segment))
+      .join('/')
+    const note = notes.find((entry) => entry.id === noteId)
+
+    if (!note) {
+      await route.fulfill({
+        status: 404,
+        contentType: 'application/json',
+        body: JSON.stringify({ statusMessage: 'Note not found' }),
+      })
+      return
+    }
+
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify(note),
+    })
+  })
 
   await page.route('**/api/notes', async (route: Route) => {
     const method = route.request().method()

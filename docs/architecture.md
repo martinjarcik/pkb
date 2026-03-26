@@ -29,17 +29,23 @@ four parts:
 path within the Vault. On cloud (database storage) it is a database record
 identifier.
 
+A Note catalog row is the lightweight Workspace Catalog representation of a
+Note. It keeps the same top-level fields, but its `content` value is only the
+preview slice used by the notes list, capped at 1024 UTF-8 bytes.
+
 ## Current implementation
 
-- `app/notes/types.ts` — flat `Note` type (`id`, user-defined Properties,
-  Application Properties, `content`, `createdAt`, `modifiedAt`).
-- `app/storage/types.ts` — `NoteStorage` adapter boundary with separate
-  properties and content save inputs.
+- `app/notes/types.ts` — flat `Note` type plus `Note catalog row` for the
+  Workspace Catalog payload shape.
+- `app/storage/types.ts` — `NoteStorage` adapter boundary with catalog loading,
+  note-by-id loading, and separate properties/content save inputs.
 - `app/storage/browser.ts` — browser localStorage adapter storing Markdown
-  documents with YAML frontmatter plus timestamps.
+  documents with YAML frontmatter plus timestamps, then deriving catalog rows
+  from parsed notes.
 - `app/storage/filesystem.ts` — filesystem adapter storing notes as Markdown
   files with YAML frontmatter in a configurable vault directory. Timestamps
-  derived from file stats. Notes loaded in mtime-descending order.
+  derived from file stats. Catalog rows are loaded in mtime-descending order
+  without reading full note bodies.
 - `app/storage/router.ts` — active storage selection from `applicationType`.
 - `app/config/loader.ts` — typed `AppConfig` parsed from `app/config/default.yaml`,
   including the active locale and theme settings.
@@ -115,9 +121,10 @@ New contexts may be introduced when corresponding features are specified.
   code lives outside the editor. Templates are not edited inline.
 - Properties are edited separately in the InspectorPanel, not inside the editor.
 - In filesystem-backed storage, properties are serialized as YAML frontmatter.
-- `useNotes()` owns the active note id in shared state. After a successful load,
-  it selects the first loaded note by default and `NoteTemplate` passes that
-  note's title and Content into `NoteEditor`.
+- `useNotes()` owns the note catalog, the active note id, and the currently
+  loaded full note in shared state. After a successful catalog load, it selects
+  the first loaded note by default, fetches the full note, and `NoteTemplate`
+  passes that note's title and Content into `NoteEditor`.
 - `useSidebarNavigation()` owns the active sidebar view in shared state.
   The default `Inbox` view filters `NotesList` to notes whose `id` lives at the
   vault root, while folder views filter to notes that are direct children of a
@@ -166,8 +173,9 @@ New contexts may be introduced when corresponding features are specified.
 
 ## Storage (`app/storage/`)
 
-- `NoteStorage` — adapter boundary for loading and saving logical note
-  documents while hiding backend-specific serialization details.
+- `NoteStorage` — adapter boundary for loading Workspace Catalog rows, loading
+  full logical note documents by id, and saving logical note documents while
+  hiding backend-specific serialization details.
 - `app/storage/router.ts` selects the active `NoteStorage` from configuration.
 - The active storage adapter is determined by `applicationType` in
   `app/config/default.yaml`: `desktop` → filesystem adapter (default),

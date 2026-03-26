@@ -89,3 +89,26 @@ export function parseDocument(raw: string): {
     return { properties: {}, content }
   }
 }
+
+export function truncateUtf8ByteLength(text: string, maxBytes: number): string {
+  if (maxBytes <= 0 || text.length === 0) {
+    return ''
+  }
+
+  const encoder = new TextEncoder()
+  let result = ''
+  let byteLength = 0
+
+  for (const character of text) {
+    const characterByteLength = encoder.encode(character).length
+
+    if (byteLength + characterByteLength > maxBytes) {
+      break
+    }
+
+    result += character
+    byteLength += characterByteLength
+  }
+
+  return result
+}

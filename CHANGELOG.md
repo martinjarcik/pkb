@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+- Load only the first 1 KiB of note Content for the notes list catalog, then
+  fetch the full note only when it becomes selected in the editor.
 - Add an Inbox item to `SidebarNavigation`, select it by default on app open,
   and filter `NotesListPanel` to notes that live directly in the vault root.
 - Add a create-note action to `NotesListActions` that inserts a new localized

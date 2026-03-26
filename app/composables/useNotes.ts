@@ -2,10 +2,11 @@ import { useState } from '#app'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { loadConfig } from '~/config/loader'
+import { createNoteCatalogRow } from '~/notes/catalogRow'
 import { noteTitleFromId } from '~/notes/noteTitleFromId'
 import { resolveUniqueNoteIdForParentPath } from '~/notes/renameNoteTitle'
 import { buildSaveNoteInput } from '~/notes/saveNoteInput'
-import type { Note } from '~/notes/types'
+import type { Note, NoteCatalogRow } from '~/notes/types'
 
 export type NotesListItem = {
   id: string
@@ -82,7 +83,11 @@ function createNotesListMeta(modifiedAt: string): string {
   return modifiedAt.slice(0, 10)
 }
 
-export function createNotesListItems(notes: Note[]): NotesListItem[] {
+function buildNoteContentPath(id: string): string {
+  return `/api/notes/${id.split('/').map(encodeURIComponent).join('/')}`
+}
+
+export function createNotesListItems(notes: NoteCatalogRow[]): NotesListItem[] {
   return notes.map((note) => ({
     id: note.id,
     title: noteTitleFromId(note.id),
@@ -98,7 +103,7 @@ export function useNotes() {
 
   const { t } = useI18n({ useScope: 'global' })
   const editorAutosaveDelay = defaultEditor.autosaveDelay
-  const notes = useState<Note[]>('notes.items', () => [])
+  const notes = useState<NoteCatalogRow[]>('notes.items', () => [])
   const isLoading = useState('notes.isLoading', () => false)
   const isRenamingNoteTitle = useState('notes.isRenamingNoteTitle', () => false)
   const loadError = useState<string | null>('notes.loadError', () => null)
@@ -112,15 +117,24 @@ export function useNotes() {
     'notes.selectedNoteId',
     () => null,
   )
-  const selectedNote = computed(
-    () => notes.value.find((note) => note.id === selectedNoteId.value) ?? null,
+  const selectedNoteFull = useState<Note | null>(
+    'notes.selectedNoteFull',
+    () => null,
+  )
+  const selectedNoteRequestId = useState('notes.selectedNoteRequestId', () => 0)
+  const selectedNote = computed(() =>
+    selectedNoteFull.value?.id === selectedNoteId.value
+      ? selectedNoteFull.value
+      : null,
   )
   const selectedNoteTitle = computed(() =>
-    selectedNote.value ? noteTitleFromId(selectedNote.value.id) : '',
+    selectedNoteId.value ? noteTitleFromId(selectedNoteId.value) : '',
   )
   const listItems = computed(() => createNotesListItems(notes.value))
 
-  function sortNotesByModifiedAt(nextNotes: Note[]): Note[] {
+  function sortNotesByModifiedAt(
+    nextNotes: NoteCatalogRow[],
+  ): NoteCatalogRow[] {
     return nextNotes.sort(
       (a, b) =>
         new Date(b.modifiedAt).getTime() - new Date(a.modifiedAt).getTime(),
@@ -129,19 +143,23 @@ export function useNotes() {
 
   function replaceNote(nextNote: Note): void {
     notes.value = sortNotesByModifiedAt(
-      notes.value.map((note) => (note.id === nextNote.id ? nextNote : note)),
+      notes.value.map((note) =>
+        note.id === nextNote.id ? createNoteCatalogRow(nextNote) : note,
+      ),
     )
   }
 
   function replaceRenamedNote(previousId: string, nextNote: Note): void {
     notes.value = sortNotesByModifiedAt(
-      notes.value.map((note) => (note.id === previousId ? nextNote : note)),
+      notes.value.map((note) =>
+        note.id === previousId ? createNoteCatalogRow(nextNote) : note,
+      ),
     )
   }
 
   function prependNote(nextNote: Note): void {
     notes.value = [
-      nextNote,
+      createNoteCatalogRow(nextNote),
       ...notes.value.filter((note) => note.id !== nextNote.id),
     ]
   }
@@ -151,9 +169,9 @@ export function useNotes() {
       return
     }
 
-    notes.value = notes.value.map((note) =>
-      note.id === selectedNote.value?.id ? { ...note, content } : note,
-    )
+    const nextNote = { ...selectedNote.value, content }
+    selectedNoteFull.value = nextNote
+    replaceNote(nextNote)
   }
 
   function registerEditorFlush(flush: EditorFlush | null): void {
@@ -168,12 +186,44 @@ export function useNotes() {
     const nextSelectedNoteId =
       id !== null && notes.value.some((note) => note.id === id) ? id : null
 
-    if (nextSelectedNoteId === selectedNoteId.value) {
+    if (
+      nextSelectedNoteId === selectedNoteId.value &&
+      (nextSelectedNoteId === null ||
+        selectedNote.value?.id === nextSelectedNoteId)
+    ) {
       return
     }
 
     await editorFlush.value?.()
     selectedNoteId.value = nextSelectedNoteId
+
+    if (nextSelectedNoteId === null) {
+      selectedNoteRequestId.value += 1
+      selectedNoteFull.value = null
+      return
+    }
+
+    selectedNoteFull.value = null
+
+    const requestId = selectedNoteRequestId.value + 1
+    selectedNoteRequestId.value = requestId
+
+    try {
+      const loadedNote = await globalThis.$fetch<Note>(
+        buildNoteContentPath(nextSelectedNoteId),
+      )
+
+      if (selectedNoteRequestId.value !== requestId) {
+        return
+      }
+
+      selectedNoteFull.value = loadedNote
+      replaceNote(loadedNote)
+    } catch {
+      if (selectedNoteRequestId.value === requestId) {
+        selectedNoteFull.value = null
+      }
+    }
   }
 
   async function saveSelectedNoteContent(content: string): Promise<void> {
@@ -191,6 +241,7 @@ export function useNotes() {
       })
 
       replaceNote(savedNote)
+      selectedNoteFull.value = savedNote
     } catch (error) {
       saveError.value =
         error instanceof Error ? error.message : t('notes.errorSaveFallback')
@@ -230,6 +281,7 @@ export function useNotes() {
 
       prependNote(createdNote)
       selectedNoteId.value = createdNote.id
+      selectedNoteFull.value = createdNote
       shouldFocusTitle.value = true
 
       return createdNote
@@ -273,6 +325,7 @@ export function useNotes() {
 
       if (selectedNoteId.value === currentId) {
         selectedNoteId.value = renamedNote.id
+        selectedNoteFull.value = renamedNote
       }
 
       return renamedNote
@@ -286,12 +339,13 @@ export function useNotes() {
     }
   }
 
-  async function loadNotes(): Promise<Note[]> {
+  async function loadNotes(): Promise<NoteCatalogRow[]> {
     isLoading.value = true
     loadError.value = null
 
     try {
-      const loadedNotes = await globalThis.$fetch<Note[]>('/api/notes')
+      const loadedNotes =
+        await globalThis.$fetch<NoteCatalogRow[]>('/api/notes')
 
       notes.value = loadedNotes
       await selectNoteById(loadedNotes[0]?.id ?? null)
@@ -299,6 +353,7 @@ export function useNotes() {
       return loadedNotes
     } catch (error) {
       notes.value = []
+      selectedNoteFull.value = null
       await selectNoteById(null)
       loadError.value =
         error instanceof Error ? error.message : t('notes.errorLoadFallback')

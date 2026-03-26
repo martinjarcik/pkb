@@ -1,4 +1,4 @@
-import type { Note, NoteProperties } from '~/notes/types'
+import type { Note, NoteCatalogRow, NoteProperties } from '~/notes/types'
 
 export type SaveNoteInput = {
   id: string
@@ -12,7 +12,8 @@ export type RenameNoteTitleInput = {
 }
 
 export type NoteStorage = {
-  loadNotes(): Promise<Note[]>
+  loadNotesCatalog(): Promise<NoteCatalogRow[]>
+  loadNoteById(id: string): Promise<Note | null>
   saveNote(input: SaveNoteInput): Promise<Note>
   renameNoteTitle(input: RenameNoteTitleInput): Promise<Note>
   deleteNote(id: string): Promise<void>

@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { NOTE_CATALOG_CONTENT_BYTES } from '~/notes/types'
 import { browserStorage } from '~/storage/browser'
 
 type StoredNote = {
@@ -114,7 +115,7 @@ describe('browserStorage', () => {
       }),
     )
 
-    await expect(browserStorage.loadNotes()).resolves.toEqual([
+    await expect(browserStorage.loadNotesCatalog()).resolves.toEqual([
       {
         id: 'notes/welcome.md',
         title: 'Welcome',
@@ -171,7 +172,7 @@ describe('browserStorage', () => {
       }),
     )
 
-    await expect(browserStorage.loadNotes()).resolves.toEqual([
+    await expect(browserStorage.loadNotesCatalog()).resolves.toEqual([
       {
         id: 'notes/crlf.md',
         title: 'CRLF',
@@ -215,7 +216,7 @@ describe('browserStorage', () => {
       }),
     )
 
-    await expect(browserStorage.loadNotes()).resolves.toEqual([
+    await expect(browserStorage.loadNotesCatalog()).resolves.toEqual([
       {
         id: 'notes/broken.md',
         content: '# Still readable',
@@ -243,7 +244,7 @@ describe('browserStorage', () => {
       }),
     )
 
-    await expect(browserStorage.loadNotes()).resolves.toEqual([
+    await expect(browserStorage.loadNotesCatalog()).resolves.toEqual([
       {
         id: 'notes/ok.md',
         title: 'Fine',
@@ -277,7 +278,7 @@ describe('browserStorage', () => {
       }),
     )
 
-    const notes = await browserStorage.loadNotes()
+    const notes = await browserStorage.loadNotesCatalog()
 
     expect(notes.map((n) => n.id)).toEqual(['notes/newer.md', 'notes/older.md'])
   })
@@ -293,7 +294,53 @@ describe('browserStorage', () => {
 
     await browserStorage.deleteNote('notes/welcome.md')
 
-    await expect(browserStorage.loadNotes()).resolves.toEqual([])
+    await expect(browserStorage.loadNotesCatalog()).resolves.toEqual([])
+  })
+
+  it('loads a full note by id', async () => {
+    localStorage.setItem(
+      'notes',
+      JSON.stringify({
+        'notes/welcome.md': {
+          document: '---\ntitle: Welcome\n---\n# Full note',
+          createdAt: '2026-03-19T09:00:00.000Z',
+          modifiedAt: '2026-03-20T11:00:00.000Z',
+        },
+      }),
+    )
+
+    await expect(
+      browserStorage.loadNoteById('notes/welcome.md'),
+    ).resolves.toEqual({
+      id: 'notes/welcome.md',
+      title: 'Welcome',
+      content: '# Full note',
+      createdAt: '2026-03-19T09:00:00.000Z',
+      modifiedAt: '2026-03-20T11:00:00.000Z',
+    })
+  })
+
+  it('returns null when a browser note is missing', async () => {
+    await expect(browserStorage.loadNoteById('missing.md')).resolves.toBeNull()
+  })
+
+  it('truncates catalog content to the first 1024 utf-8 bytes', async () => {
+    localStorage.setItem(
+      'notes',
+      JSON.stringify({
+        'notes/emoji.md': {
+          document: `---\ntitle: Emoji\n---\n${'🙂'.repeat(300)}`,
+          createdAt: '2026-03-19T09:00:00.000Z',
+          modifiedAt: '2026-03-20T11:00:00.000Z',
+        },
+      }),
+    )
+
+    const [note] = await browserStorage.loadNotesCatalog()
+
+    expect(new TextEncoder().encode(note?.content ?? '').length).toBe(
+      NOTE_CATALOG_CONTENT_BYTES,
+    )
   })
 
   it('renames a note title by moving the stored entry to a new id', async () => {

@@ -15,15 +15,17 @@
 Default visibility of the sidebar, note list, and inspector is set in
 `app/config/default.yaml`. The UI can override these values at runtime.
 
-When the application opens on the default route, the frontend loads notes from
-`GET /api/notes`, selects the `Inbox` sidebar item, and renders only notes from
-the vault root in `NotesListPanel`. Each row shows the note title derived from
-its `id`, along with a short content preview and modified date.
+When the application opens on the default route, the frontend loads the note
+catalog from `GET /api/notes`, selects the `Inbox` sidebar item, and renders
+only notes from the vault root in `NotesListPanel`. Each catalog row includes
+the note title derived from its `id`, the modified date, and only the first
+1024 UTF-8 bytes of Content for the list preview.
 
 After notes load, the first visible note in the active sidebar view becomes the
-active note automatically and is highlighted in `NotesListPanel`. Selecting a
-different row updates the active note shown in the `NotePanel`, including the
-note title above the Editor.js surface.
+active note automatically and is highlighted in `NotesListPanel`. When a note
+becomes active, the frontend fetches the full note from `GET /api/notes/<id>`
+before rendering that note in the `NotePanel`, including the note title above
+the Editor.js surface.
 
 The notes list toolbar includes a create-note action. Clicking it creates a new
 note titled `New Note` (or the next available suffixed variant such as
@@ -58,8 +60,9 @@ the file path relative to the vault root.
 - `createdAt` and `modifiedAt` are derived from file system timestamps.
 - Notes are loaded in most-recently-modified-first order.
 - The vault path is set in `app/config/default.yaml` (default: `./vault`).
-- The frontend loads all notes on app open and displays them in
+- The frontend loads a lightweight note catalog on app open and displays it in
   `NotesListPanel`.
+- The full note body is fetched separately when a note is selected.
 
 ### Inbox View
 

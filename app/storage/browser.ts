@@ -1,4 +1,5 @@
-import type { Note } from '~/notes/types'
+import { createNoteCatalogRow } from '~/notes/catalogRow'
+import type { Note, NoteCatalogRow } from '~/notes/types'
 import { resolveUniqueNoteId } from '~/notes/renameNoteTitle'
 import type { NoteStorage, RenameNoteTitleInput, SaveNoteInput } from './types'
 import { parseDocument, serializeDocument } from './document'
@@ -80,6 +81,13 @@ function composeNote(id: string, storedNote: BrowserStoredNote): Note {
   }
 }
 
+function composeNoteCatalogRow(
+  id: string,
+  storedNote: BrowserStoredNote,
+): NoteCatalogRow {
+  return createNoteCatalogRow(composeNote(id, storedNote))
+}
+
 function readStoredNotes(): BrowserStoredNotes {
   return parseStoredNotes(getLocalStorage().getItem(STORAGE_KEY))
 }
@@ -96,15 +104,25 @@ function writeStoredNotes(notes: BrowserStoredNotes): void {
 }
 
 export const browserStorage: NoteStorage = {
-  async loadNotes(): Promise<Note[]> {
+  async loadNotesCatalog(): Promise<NoteCatalogRow[]> {
     const notes = Object.entries(readStoredNotes()).map(([id, storedNote]) =>
-      composeNote(id, storedNote),
+      composeNoteCatalogRow(id, storedNote),
     )
 
     return notes.sort(
       (a, b) =>
         new Date(b.modifiedAt).getTime() - new Date(a.modifiedAt).getTime(),
     )
+  },
+
+  async loadNoteById(id: string): Promise<Note | null> {
+    const storedNote = readStoredNotes()[id]
+
+    if (!storedNote) {
+      return null
+    }
+
+    return composeNote(id, storedNote)
   },
 
   async saveNote(input: SaveNoteInput): Promise<Note> {

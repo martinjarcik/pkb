@@ -2,6 +2,7 @@ import { readFile, writeFile, mkdtemp, rm, utimes, stat } from 'fs/promises'
 import { join } from 'path'
 import { tmpdir } from 'os'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
+import { NOTE_CATALOG_CONTENT_BYTES } from '~/notes/types'
 import { createFilesystemStorage } from '~/storage/filesystem'
 import type { NoteStorage } from '~/storage/types'
 
@@ -43,7 +44,7 @@ describe('filesystemStorage', () => {
     await utimes(filePath, mtime, mtime)
 
     const fileStats = await stat(filePath)
-    const notes = await storage.loadNotes()
+    const notes = await storage.loadNotesCatalog()
 
     expect(notes).toHaveLength(1)
     expect(notes[0]).toEqual({
@@ -74,7 +75,7 @@ describe('filesystemStorage', () => {
       new Date('2026-03-20T00:00:00Z'),
     )
 
-    const notes = await storage.loadNotes()
+    const notes = await storage.loadNotesCatalog()
 
     expect(notes.map((n) => n.id)).toEqual(['newer.md', 'older.md'])
   })
@@ -91,7 +92,7 @@ describe('filesystemStorage', () => {
       content: '# Body',
     })
 
-    const notes = await storage.loadNotes()
+    const notes = await storage.loadNotesCatalog()
 
     expect(notes).toHaveLength(1)
     expect(notes[0]!.title).toBe('Round Trip')
@@ -137,7 +138,7 @@ describe('filesystemStorage', () => {
 
     await storage.deleteNote('to-delete.md')
 
-    const notes = await storage.loadNotes()
+    const notes = await storage.loadNotesCatalog()
 
     expect(notes).toHaveLength(0)
   })
@@ -158,7 +159,7 @@ describe('filesystemStorage', () => {
       join(vaultPath, 'nested', 'Updated title.md'),
       'utf-8',
     )
-    const notes = await storage.loadNotes()
+    const notes = await storage.loadNotesCatalog()
 
     expect(renamed.id).toBe('nested/Updated title.md')
     expect(written).toBe('---\ntitle: Original\n---\n# Body')
@@ -186,7 +187,7 @@ describe('filesystemStorage', () => {
   })
 
   it('returns an empty array when the vault is empty', async () => {
-    const notes = await storage.loadNotes()
+    const notes = await storage.loadNotesCatalog()
 
     expect(notes).toEqual([])
   })
@@ -198,11 +199,43 @@ describe('filesystemStorage', () => {
       'utf-8',
     )
 
-    const notes = await storage.loadNotes()
+    const notes = await storage.loadNotesCatalog()
 
     expect(notes).toHaveLength(1)
     expect(notes[0]!.content).toBe('# Still readable')
     expect(notes[0]!.title).toBeUndefined()
+  })
+
+  it('loads a full note by id', async () => {
+    await writeFile(
+      join(vaultPath, 'full.md'),
+      '---\ntitle: Full\n---\n# Full body',
+      'utf-8',
+    )
+
+    await expect(storage.loadNoteById('full.md')).resolves.toMatchObject({
+      id: 'full.md',
+      title: 'Full',
+      content: '# Full body',
+    })
+  })
+
+  it('returns null when a note id is missing', async () => {
+    await expect(storage.loadNoteById('missing.md')).resolves.toBeNull()
+  })
+
+  it('truncates catalog content to the first 1024 utf-8 bytes', async () => {
+    await writeFile(
+      join(vaultPath, 'emoji.md'),
+      `---\ntitle: Emoji\n---\n${'🙂'.repeat(300)}`,
+      'utf-8',
+    )
+
+    const [note] = await storage.loadNotesCatalog()
+
+    expect(new TextEncoder().encode(note?.content ?? '').length).toBe(
+      NOTE_CATALOG_CONTENT_BYTES,
+    )
   })
 
   it('does not throw when deleting a non-existent note', async () => {

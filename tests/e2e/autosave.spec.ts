@@ -4,9 +4,13 @@ import {
   type APIRequestContext,
   type Page,
 } from '@playwright/test'
-import type { Note, NoteProperties } from '~/notes/types'
+import type { Note, NoteProperties } from '../../app/notes/types'
 
 const FIXTURE_NOTE_PROPERTY_TITLE = 'Second note (test seed)'
+
+function buildNoteContentPath(id: string): string {
+  return `/api/notes/${id.split('/').map(encodeURIComponent).join('/')}`
+}
 
 function getNoteProperties(note: Note): NoteProperties {
   const {
@@ -46,7 +50,11 @@ async function loadFixtureNote(request: APIRequestContext): Promise<Note> {
 
   expect(note).toBeDefined()
 
-  return note!
+  const noteResponse = await request.get(buildNoteContentPath(note!.id))
+
+  expect(noteResponse.ok()).toBeTruthy()
+
+  return (await noteResponse.json()) as Note
 }
 
 async function restoreNote(
@@ -129,7 +137,11 @@ test('persists editor changes after 2 seconds of idle time', async ({
     await openNote(page, originalNote.id)
     await appendMarkerToFirstParagraph(page, marker)
 
-    await page.waitForTimeout(2500)
+    await expect
+      .poll(async () => (await loadFixtureNote(request)).content, {
+        timeout: 10000,
+      })
+      .toContain(marker)
     await page.reload()
     await openNote(page, originalNote.id)
 
@@ -147,6 +159,18 @@ test('preserves headings between checklists after save and reload', async ({
   const checklistMarkdown = [
     '## Section A',
     '- [ ] task one',
+    '- [x] task two',
+    '## Section B',
+    '- [ ] task three',
+    '- [ ] task four',
+    '## Section C',
+    '- [x] task five',
+    '- [ ] task six',
+  ].join('\n')
+
+  const expectedSavedContent = [
+    '## Section A',
+    '- [ ] task one edited',
     '- [x] task two',
     '## Section B',
     '- [ ] task three',
@@ -174,7 +198,12 @@ test('preserves headings between checklists after save and reload', async ({
     const firstItemContent = page.locator('.cdx-list__item-content').first()
     await firstItemContent.click()
     await page.keyboard.type(' edited')
-    await page.waitForTimeout(2500)
+
+    await expect
+      .poll(async () => (await loadFixtureNote(request)).content, {
+        timeout: 10000,
+      })
+      .toBe(expectedSavedContent)
 
     await page.reload()
     await waitForEditorReady(page)
@@ -186,19 +215,7 @@ test('preserves headings between checklists after save and reload', async ({
 
     const savedNote = await loadFixtureNote(request)
 
-    expect(savedNote.content).toBe(
-      [
-        '## Section A',
-        '- [ ] task one edited',
-        '- [x] task two',
-        '## Section B',
-        '- [ ] task three',
-        '- [ ] task four',
-        '## Section C',
-        '- [x] task five',
-        '- [ ] task six',
-      ].join('\n'),
-    )
+    expect(savedNote.content).toBe(expectedSavedContent)
   } finally {
     await restoreNote(request, originalNote)
   }

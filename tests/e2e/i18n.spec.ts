@@ -24,6 +24,21 @@ test('renders english locale strings from config-backed i18n', async ({
 }) => {
   let releaseNotesResponse: (() => void) | null = null
 
+  await page.route('**/api/notes/**', async (route) => {
+    if (route.request().method() !== 'GET') {
+      await route.continue()
+      return
+    }
+
+    const note = createNoteResponse()[0]
+
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify(note),
+    })
+  })
+
   await page.route('**/api/notes', async (route) => {
     if (route.request().method() !== 'GET') {
       await route.continue()

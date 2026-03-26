@@ -2,6 +2,13 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { Note } from '~/notes/types'
 import { createNotesListItems, useNotes } from '~/composables/useNotes'
 
+type FetchOptions = {
+  method?: string
+  body?: unknown
+}
+
+type RouteHandler = (options?: FetchOptions) => Promise<unknown> | unknown
+
 const { fetchMock, stateStore } = vi.hoisted(() => ({
   fetchMock: vi.fn(),
   stateStore: new Map<string, { value: unknown }>(),
@@ -31,13 +38,50 @@ vi.mock('vue-i18n', () => ({
   }),
 }))
 
-function createTestNote(id: string, content: string, modifiedAt: string): Note {
+function createTestNote(
+  id: string,
+  content: string,
+  modifiedAt: string,
+  properties: Record<string, unknown> = {},
+): Note {
   return {
     id,
     content,
     createdAt: '2026-03-20T00:00:00.000Z',
     modifiedAt,
+    ...properties,
   }
+}
+
+function createDeferred<T>(): {
+  promise: Promise<T>
+  resolve: (value: T) => void
+} {
+  let resolve!: (value: T) => void
+
+  return {
+    promise: new Promise<T>((nextResolve) => {
+      resolve = nextResolve
+    }),
+    resolve,
+  }
+}
+
+function mockFetchRoutes(routes: Record<string, RouteHandler | unknown>): void {
+  fetchMock.mockImplementation((url: string, options?: FetchOptions) => {
+    const method = options?.method ?? 'GET'
+    const route = routes[`${method} ${url}`]
+
+    if (route === undefined) {
+      throw new Error(`Unhandled fetch: ${method} ${url}`)
+    }
+
+    if (typeof route === 'function') {
+      return Promise.resolve((route as RouteHandler)(options))
+    }
+
+    return Promise.resolve(route)
+  })
 }
 
 describe('useNotes', () => {
@@ -51,20 +95,37 @@ describe('useNotes', () => {
     vi.unstubAllGlobals()
   })
 
-  it('selects the first loaded note', async () => {
-    fetchMock.mockResolvedValue([
-      createTestNote('first.md', '# First', '2026-03-24'),
-      createTestNote('second.md', '# Second', '2026-03-23'),
-    ])
+  it('loads the catalog and then fetches the first selected note', async () => {
+    const firstCatalogNote = createTestNote(
+      'first.md',
+      '# Preview',
+      '2026-03-24',
+    )
 
-    const { selectedNoteId, loadNotes } = useNotes()
+    mockFetchRoutes({
+      'GET /api/notes': [
+        firstCatalogNote,
+        createTestNote('second.md', '# Second preview', '2026-03-23'),
+      ],
+      'GET /api/notes/first.md': createTestNote(
+        'first.md',
+        '# Full note\n\nMore content',
+        '2026-03-24',
+      ),
+    })
+
+    const { loadNotes, notes, selectedNote, selectedNoteId } = useNotes()
     await loadNotes()
 
+    expect(notes.value[0]?.content).toBe('# Full note\n\nMore content')
     expect(selectedNoteId.value).toBe('first.md')
+    expect(selectedNote.value?.content).toBe('# Full note\n\nMore content')
   })
 
-  it('clears the selected note for an empty payload', async () => {
-    fetchMock.mockResolvedValue([])
+  it('clears the selected note for an empty catalog payload', async () => {
+    mockFetchRoutes({
+      'GET /api/notes': [],
+    })
 
     const { selectedNoteId, loadNotes } = useNotes()
     await loadNotes()
@@ -72,7 +133,7 @@ describe('useNotes', () => {
     expect(selectedNoteId.value).toBeNull()
   })
 
-  it('exposes the error message when loading fails', async () => {
+  it('exposes the error message when catalog loading fails', async () => {
     fetchMock.mockRejectedValue(new Error('Network down'))
 
     const { loadError, loadNotes } = useNotes()
@@ -81,44 +142,71 @@ describe('useNotes', () => {
     expect(loadError.value).toBe('Network down')
   })
 
-  it('updates the selected note by id', async () => {
-    const { notes, selectedNoteId, selectNoteById } = useNotes()
+  it('loads the full note when selection changes', async () => {
+    const { notes, selectedNote, selectedNoteId, selectNoteById } = useNotes()
 
     notes.value = [
       createTestNote(
         'first.md',
-        '# First note\n\nA longer preview body for the first note.',
+        '# First preview\n\nA longer preview body for the first note.',
         '2026-03-24',
       ),
       createTestNote(
         'second.md',
-        '# Second note\n\nSome note content',
+        '# Second preview\n\nSome note content',
         '2026-03-23',
       ),
     ]
 
+    mockFetchRoutes({
+      'GET /api/notes/second.md': createTestNote(
+        'second.md',
+        '# Second full note',
+        '2026-03-23',
+      ),
+    })
+
     await selectNoteById('second.md')
 
     expect(selectedNoteId.value).toBe('second.md')
+    expect(selectedNote.value?.content).toBe('# Second full note')
   })
 
-  it('exposes the selected note title for the current selection', async () => {
+  it('encodes nested note ids when requesting the full note', async () => {
     const { notes, selectedNoteTitle, selectNoteById } = useNotes()
 
     notes.value = [
-      createTestNote('backlog/first-note.md', '# First', '2026-03-24'),
-      createTestNote('second-note.md', '# Second', '2026-03-23'),
+      createTestNote('backlog/second note.md', '# Preview', '2026-03-24'),
     ]
 
-    await selectNoteById('backlog/first-note.md')
+    mockFetchRoutes({
+      'GET /api/notes/backlog/second%20note.md': createTestNote(
+        'backlog/second note.md',
+        '# Full',
+        '2026-03-24',
+      ),
+    })
 
-    expect(selectedNoteTitle.value).toBe('first-note')
+    await selectNoteById('backlog/second note.md')
+
+    expect(selectedNoteTitle.value).toBe('second note')
+    expect(fetchMock).toHaveBeenCalledWith(
+      '/api/notes/backlog/second%20note.md',
+    )
   })
 
   it('clears the selected note title when no note is selected', async () => {
     const { notes, selectedNoteTitle, selectNoteById } = useNotes()
 
-    notes.value = [createTestNote('first.md', '# First', '2026-03-24')]
+    notes.value = [createTestNote('first.md', '# Preview', '2026-03-24')]
+
+    mockFetchRoutes({
+      'GET /api/notes/first.md': createTestNote(
+        'first.md',
+        '# Full',
+        '2026-03-24',
+      ),
+    })
 
     await selectNoteById('first.md')
     await selectNoteById(null)
@@ -126,29 +214,26 @@ describe('useNotes', () => {
     expect(selectedNoteTitle.value).toBe('')
   })
 
-  it('updates the selected note title when the selection changes', async () => {
-    const { notes, selectedNoteTitle, selectNoteById } = useNotes()
-
-    notes.value = [
-      createTestNote('first.md', '# First', '2026-03-24'),
-      createTestNote('nested/second.md', '# Second', '2026-03-23'),
-    ]
-
-    await selectNoteById('first.md')
-    await selectNoteById('nested/second.md')
-
-    expect(selectedNoteTitle.value).toBe('second')
-  })
-
   it('renames the selected note title and retargets selection to the new id', async () => {
-    const { notes, selectedNoteId, renameSelectedNoteTitle } = useNotes()
+    const { notes, selectedNoteId, renameSelectedNoteTitle, selectNoteById } =
+      useNotes()
 
-    notes.value = [createTestNote('nested/first.md', '# First', '2026-03-24')]
-    selectedNoteId.value = 'nested/first.md'
-    fetchMock.mockResolvedValue({
-      ...createTestNote('nested/Renamed title.md', '# First', '2026-03-24'),
+    notes.value = [createTestNote('nested/first.md', '# Preview', '2026-03-24')]
+
+    mockFetchRoutes({
+      'GET /api/notes/nested/first.md': createTestNote(
+        'nested/first.md',
+        '# First',
+        '2026-03-24',
+      ),
+      'PATCH /api/notes': createTestNote(
+        'nested/Renamed title.md',
+        '# First',
+        '2026-03-24',
+      ),
     })
 
+    await selectNoteById('nested/first.md')
     await renameSelectedNoteTitle('Renamed title')
 
     expect(fetchMock).toHaveBeenCalledWith('/api/notes', {
@@ -164,27 +249,34 @@ describe('useNotes', () => {
   it('does not overwrite a newer selection after a title rename resolves', async () => {
     const { notes, selectedNoteId, renameSelectedNoteTitle, selectNoteById } =
       useNotes()
-
-    let resolveRename: ((value: Note) => void) | null = null
+    const renameDeferred = createDeferred<Note>()
 
     notes.value = [
-      createTestNote('first.md', '# First', '2026-03-24'),
-      createTestNote('second.md', '# Second', '2026-03-23'),
+      createTestNote('first.md', '# First preview', '2026-03-24'),
+      createTestNote('second.md', '# Second preview', '2026-03-23'),
     ]
-    selectedNoteId.value = 'first.md'
-    fetchMock.mockImplementation(
-      () =>
-        new Promise<Note>((resolve) => {
-          resolveRename = resolve
-        }),
-    )
+
+    mockFetchRoutes({
+      'GET /api/notes/first.md': createTestNote(
+        'first.md',
+        '# First',
+        '2026-03-24',
+      ),
+      'GET /api/notes/second.md': createTestNote(
+        'second.md',
+        '# Second',
+        '2026-03-23',
+      ),
+      'PATCH /api/notes': () => renameDeferred.promise,
+    })
+
+    await selectNoteById('first.md')
 
     const renamePromise = renameSelectedNoteTitle('Renamed')
-
     await selectNoteById('second.md')
-    if (resolveRename) {
-      resolveRename(createTestNote('Renamed.md', '# First', '2026-03-24'))
-    }
+    renameDeferred.resolve(
+      createTestNote('Renamed.md', '# First', '2026-03-24'),
+    )
     await renamePromise
 
     expect(selectedNoteId.value).toBe('second.md')
@@ -194,13 +286,17 @@ describe('useNotes', () => {
     const {
       createNote: createNewNote,
       notes,
+      selectedNote,
       selectedNoteId,
       shouldFocusTitle,
       clearShouldFocusTitle,
     } = useNotes()
 
     notes.value = [createTestNote('existing.md', '# Existing', '2026-03-24')]
-    fetchMock.mockResolvedValue(createTestNote('New Note.md', '', '2026-03-25'))
+
+    mockFetchRoutes({
+      'PUT /api/notes': createTestNote('New Note.md', '', '2026-03-25'),
+    })
 
     await createNewNote()
 
@@ -209,6 +305,7 @@ describe('useNotes', () => {
       'existing.md',
     ])
     expect(selectedNoteId.value).toBe('New Note.md')
+    expect(selectedNote.value?.id).toBe('New Note.md')
     expect(shouldFocusTitle.value).toBe(true)
 
     clearShouldFocusTitle()
@@ -220,9 +317,10 @@ describe('useNotes', () => {
     const { createNote: createNewNote, notes } = useNotes()
 
     notes.value = [createTestNote('New Note.md', '# Existing', '2026-03-24')]
-    fetchMock.mockResolvedValue(
-      createTestNote('New Note (2).md', '', '2026-03-25'),
-    )
+
+    mockFetchRoutes({
+      'PUT /api/notes': createTestNote('New Note (2).md', '', '2026-03-25'),
+    })
 
     await createNewNote()
 
@@ -236,29 +334,12 @@ describe('useNotes', () => {
     })
   })
 
-  it('calls PUT /api/notes with an empty note payload', async () => {
-    const { createNote: createNewNote } = useNotes()
-
-    fetchMock.mockResolvedValue(createTestNote('New Note.md', '', '2026-03-25'))
-
-    await createNewNote()
-
-    expect(fetchMock).toHaveBeenCalledWith('/api/notes', {
-      method: 'PUT',
-      body: {
-        id: 'New Note.md',
-        properties: {},
-        content: '',
-      },
-    })
-  })
-
   it('creates a new note inside the provided parent folder', async () => {
     const { createNote: createNewNote } = useNotes()
 
-    fetchMock.mockResolvedValue(
-      createTestNote('Work/New Note.md', '', '2026-03-25'),
-    )
+    mockFetchRoutes({
+      'PUT /api/notes': createTestNote('Work/New Note.md', '', '2026-03-25'),
+    })
 
     await createNewNote('Work')
 
@@ -282,14 +363,70 @@ describe('useNotes', () => {
     expect(saveError.value).toBe('Create failed')
   })
 
-  it('creates a new note when the list is empty', async () => {
-    const { createNote: createNewNote, notes } = useNotes()
+  it('saves the full selected note instead of the catalog preview', async () => {
+    const { notes, saveSelectedNoteContent, selectNoteById } = useNotes()
 
-    fetchMock.mockResolvedValue(createTestNote('New Note.md', '', '2026-03-25'))
+    notes.value = [
+      createTestNote('entry.md', '# Preview only', '2026-03-24', {
+        title: 'Entry',
+      }),
+    ]
 
-    await createNewNote()
+    mockFetchRoutes({
+      'GET /api/notes/entry.md': createTestNote(
+        'entry.md',
+        '# Full note\n\nLonger body',
+        '2026-03-24',
+        { title: 'Entry' },
+      ),
+      'PUT /api/notes': createTestNote(
+        'entry.md',
+        '# Updated note',
+        '2026-03-25',
+        { title: 'Entry' },
+      ),
+    })
 
-    expect(notes.value[0]?.id).toBe('New Note.md')
+    await selectNoteById('entry.md')
+    await saveSelectedNoteContent('# Updated note')
+
+    expect(fetchMock).toHaveBeenCalledWith('/api/notes', {
+      method: 'PUT',
+      body: {
+        id: 'entry.md',
+        properties: { title: 'Entry' },
+        content: '# Updated note',
+      },
+    })
+  })
+
+  it('ignores stale note responses when selection changes quickly', async () => {
+    const { notes, selectedNote, selectedNoteId, selectNoteById } = useNotes()
+    const firstDeferred = createDeferred<Note>()
+    const secondDeferred = createDeferred<Note>()
+
+    notes.value = [
+      createTestNote('first.md', '# First preview', '2026-03-24'),
+      createTestNote('second.md', '# Second preview', '2026-03-23'),
+    ]
+
+    mockFetchRoutes({
+      'GET /api/notes/first.md': () => firstDeferred.promise,
+      'GET /api/notes/second.md': () => secondDeferred.promise,
+    })
+
+    const firstSelection = selectNoteById('first.md')
+    const secondSelection = selectNoteById('second.md')
+
+    secondDeferred.resolve(
+      createTestNote('second.md', '# Second', '2026-03-23'),
+    )
+    await secondSelection
+    firstDeferred.resolve(createTestNote('first.md', '# First', '2026-03-24'))
+    await firstSelection
+
+    expect(selectedNoteId.value).toBe('second.md')
+    expect(selectedNote.value?.content).toBe('# Second')
   })
 
   it('truncates long description previews to 120 characters', () => {
@@ -317,6 +454,7 @@ describe('useNotes', () => {
     const [flat] = createNotesListItems([
       createTestNote('my-note.md', '# Heading\n\nBody', '2026-03-24'),
     ])
+
     expect(flat?.title).toBe('my-note')
 
     const [nested] = createNotesListItems([
@@ -326,6 +464,7 @@ describe('useNotes', () => {
         '2026-03-24',
       ),
     ])
+
     expect(nested?.title).toBe('this-is-file-name')
   })
 

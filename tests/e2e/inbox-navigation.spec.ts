@@ -36,6 +36,36 @@ function createMockNote(
 }
 
 async function mockNotesApi(page: Page, notes: Note[]): Promise<void> {
+  await page.route('**/api/notes/**', async (route: Route) => {
+    if (route.request().method() !== 'GET') {
+      await route.fallback()
+      return
+    }
+
+    const pathname = new URL(route.request().url()).pathname
+    const noteId = pathname
+      .replace(/^\/api\/notes\//, '')
+      .split('/')
+      .map((segment) => decodeURIComponent(segment))
+      .join('/')
+    const note = notes.find((entry) => entry.id === noteId)
+
+    if (!note) {
+      await route.fulfill({
+        status: 404,
+        contentType: 'application/json',
+        body: JSON.stringify({ statusMessage: 'Note not found' }),
+      })
+      return
+    }
+
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify(note),
+    })
+  })
+
   await page.route('**/api/notes', async (route: Route) => {
     if (route.request().method() !== 'GET') {
       await route.fallback()
