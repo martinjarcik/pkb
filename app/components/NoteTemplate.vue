@@ -1,39 +1,35 @@
 <script setup lang="ts">
 type NoteEditorHandle = {
+  focusTitle(): Promise<void>
   flushContentSync(): Promise<void>
-}
-
-type NoteTitleHandle = {
-  focus(): void
 }
 
 const {
   clearShouldFocusTitle,
   editorAutosaveDelay,
-  isRenamingNoteTitle,
-  renameSelectedNoteTitle,
   registerEditorFlush,
+  renameSelectedNoteTitle,
   saveSelectedNoteContent,
   selectedNote,
   selectedNoteTitle,
   shouldFocusTitle,
 } = useNotes()
 const noteEditor = ref<NoteEditorHandle | null>(null)
-const noteTitle = ref<NoteTitleHandle | null>(null)
 
-let pendingSave = Promise.resolve()
+let pendingContentSave = Promise.resolve()
 
 function handleContentChange(content: string): void {
-  pendingSave = saveSelectedNoteContent(content)
+  pendingContentSave = saveSelectedNoteContent(content)
+}
+
+async function handleTitleChange(title: string): Promise<void> {
+  await pendingContentSave
+  await renameSelectedNoteTitle(title)
 }
 
 async function flushPendingContentSync(): Promise<void> {
   await noteEditor.value?.flushContentSync()
-  await pendingSave
-}
-
-async function handleTitleCommit(title: string): Promise<void> {
-  await renameSelectedNoteTitle(title)
+  await pendingContentSave
 }
 
 onMounted(() => {
@@ -50,7 +46,7 @@ watch(shouldFocusTitle, async (nextShouldFocusTitle) => {
   }
 
   await nextTick()
-  noteTitle.value?.focus()
+  await noteEditor.value?.focusTitle()
   clearShouldFocusTitle()
 })
 </script>
@@ -60,18 +56,13 @@ watch(shouldFocusTitle, async (nextShouldFocusTitle) => {
     data-testid="note-template"
     class="note-template-shell flex min-h-0 min-w-0 flex-1 flex-col"
   >
-    <NoteTitle
-      v-if="selectedNoteTitle"
-      ref="noteTitle"
-      :is-saving="isRenamingNoteTitle"
-      :title="selectedNoteTitle"
-      @commit="handleTitleCommit"
-    />
     <NoteEditor
       ref="noteEditor"
       :autosave-delay="editorAutosaveDelay"
       :content="selectedNote?.content ?? ''"
+      :title="selectedNoteTitle"
       @content-change="handleContentChange"
+      @title-change="handleTitleChange"
     />
   </div>
 </template>

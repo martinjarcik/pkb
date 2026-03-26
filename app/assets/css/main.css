@@ -205,7 +205,8 @@
     padding-top: clamp(1.5rem, 4vh, var(--app-note-surface-padding-top));
   }
 
-  .note-title-shell {
+  .note-title-shell,
+  .note-editor-surface .ce-note-title {
     border: 1px solid transparent;
     border-radius: calc(var(--radius) - 4px);
     color: hsl(var(--foreground));
@@ -223,8 +224,15 @@
     word-break: break-word;
   }
 
-  .note-title-shell:focus {
+  .note-title-shell:focus,
+  .note-editor-surface .ce-note-title:focus {
     border-color: transparent;
+  }
+
+  .note-editor-surface .ce-note-title:empty::before {
+    color: hsl(var(--muted-foreground));
+    content: attr(data-placeholder);
+    pointer-events: none;
   }
 
   .note-editor-shell {
@@ -277,6 +285,29 @@
 
   .note-editor-surface .ce-toolbar__settings-btn {
     margin-left: 0;
+  }
+
+  .note-editor-surface .ce-block:has([data-note-title]) {
+    pointer-events: none;
+  }
+
+  .note-editor-surface .ce-block:has([data-note-title]) .ce-note-title {
+    pointer-events: auto;
+  }
+
+  .note-editor-surface:has(.ce-block--focused [data-note-title]) .ce-toolbar,
+  .note-editor-surface:has(.ce-block--focused [data-note-title])
+    .ce-toolbar__actions,
+  .note-editor-surface:has(.ce-block--focused [data-note-title]) .ce-toolbox,
+  .note-editor-surface:has(.ce-block--focused [data-note-title]) .ce-popover,
+  .note-editor-surface:has(.ce-block--focused [data-note-title])
+    .ce-inline-toolbar,
+  .note-editor-surface:has([data-note-title]:focus) .ce-toolbar,
+  .note-editor-surface:has([data-note-title]:focus) .ce-toolbar__actions,
+  .note-editor-surface:has([data-note-title]:focus) .ce-toolbox,
+  .note-editor-surface:has([data-note-title]:focus) .ce-popover,
+  .note-editor-surface:has([data-note-title]:focus) .ce-inline-toolbar {
+    display: none;
   }
 
   .note-editor-surface .codex-editor--narrow .codex-editor__redactor {
@@ -387,10 +418,7 @@
 
   .notes-list-item-selected {
     background: hsl(var(--accent));
-    border-left-color: var(
-      --notes-list-item-selected-border-color,
-      hsl(var(--primary))
-    );
+    border-left-color: hsl(var(--primary));
   }
 
   .notes-list-item-content {

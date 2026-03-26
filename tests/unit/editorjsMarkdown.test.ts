@@ -2,18 +2,17 @@ import { describe, expect, it } from 'vitest'
 import {
   editorjsBlocksToMarkdown,
   markdownToEditorjsBlocks,
-} from '~/composables/useEditorjsMarkdown'
+} from '~/lib/editorjsMarkdown'
 
 describe('editorjsMarkdown', () => {
-  it('converts markdown headings and paragraphs to Editor.js blocks', () => {
+  it('converts the first markdown H1 into a note title block', () => {
     const blocks = markdownToEditorjsBlocks('# Title\n\nHello world')
 
     expect(blocks).toEqual([
       {
-        type: 'header',
+        type: 'noteTitle',
         data: {
           text: 'Title',
-          level: 1,
         },
       },
       {
@@ -31,13 +30,12 @@ describe('editorjsMarkdown', () => {
     ])
   })
 
-  it('converts Editor.js blocks back to markdown', () => {
+  it('excludes note title blocks from markdown output', () => {
     const markdown = editorjsBlocksToMarkdown([
       {
-        type: 'header',
+        type: 'noteTitle',
         data: {
           text: 'Title',
-          level: 1,
         },
       },
       {
@@ -48,7 +46,33 @@ describe('editorjsMarkdown', () => {
       },
     ])
 
-    expect(markdown).toBe('# Title\nHello world')
+    expect(markdown).toBe('Hello world')
+  })
+
+  it('keeps later H1 blocks as regular headings', () => {
+    const blocks = markdownToEditorjsBlocks('# Title\n\n# Section')
+
+    expect(blocks).toEqual([
+      {
+        type: 'noteTitle',
+        data: {
+          text: 'Title',
+        },
+      },
+      {
+        type: 'paragraph',
+        data: {
+          text: '',
+        },
+      },
+      {
+        type: 'header',
+        data: {
+          text: 'Section',
+          level: 1,
+        },
+      },
+    ])
   })
 
   it('converts markdown tables to Editor.js table blocks', () => {
@@ -323,8 +347,8 @@ describe('editorjsMarkdown', () => {
       { type: 'paragraph', data: { text: '' } },
       { type: 'paragraph', data: { text: '' } },
       {
-        type: 'header',
-        data: { text: 'Title', level: 1 },
+        type: 'noteTitle',
+        data: { text: 'Title' },
       },
     ])
   })

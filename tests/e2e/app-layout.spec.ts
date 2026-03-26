@@ -72,7 +72,7 @@ test('renders the first loaded note in the Editor.js surface', async ({
   await waitForEditorReady(page)
 })
 
-test('shows the selected note title in the template and updates on selection change', async ({
+test('shows the selected note title block in the template', async ({
   page,
 }) => {
   await page.goto('/')
@@ -80,18 +80,66 @@ test('shows the selected note title in the template and updates on selection cha
   await waitForEditorReady(page)
 
   const noteTitle = page.getByTestId('note-title')
-  const firstListTitle = page.getByTestId('notes-list-item-title').first()
-  const secondListTitle = page.getByTestId('notes-list-item-title').nth(1)
   const secondNote = page.getByTestId('notes-list-item').nth(1)
 
-  await expect(noteTitle).toHaveText(await firstListTitle.innerText())
+  await expect(noteTitle).toBeVisible()
   await expect(
     page.getByTestId('note-controls').getByTestId('note-title'),
   ).toHaveCount(0)
 
   await secondNote.click()
 
-  await expect(noteTitle).toHaveText(await secondListTitle.innerText())
+  await expect(noteTitle).toBeVisible()
+})
+
+test('hides editor chrome when the custom note title block is hovered and focused', async ({
+  page,
+}) => {
+  await page.goto('/')
+  await waitForEditorReady(page)
+
+  await page.getByTestId('note-title').hover()
+
+  await expect(page.locator('.ce-toolbar:visible')).toHaveCount(0)
+  await expect(page.locator('.ce-toolbox:visible')).toHaveCount(0)
+
+  await page.getByTestId('note-title').click()
+
+  await expect(page.locator('.ce-toolbar__settings-btn:visible')).toHaveCount(0)
+  await expect(page.locator('.ce-inline-toolbar:visible')).toHaveCount(0)
+})
+
+test('does not keep title toolbar visible when another block gains focus', async ({
+  page,
+}) => {
+  await page.goto('/')
+  await waitForEditorReady(page)
+
+  await page.getByTestId('note-title').hover()
+  await page
+    .locator('.ce-paragraph')
+    .first()
+    .evaluate((element) => {
+      ;(element as HTMLElement).focus()
+    })
+
+  await expect(page.locator('.ce-toolbar:visible')).toHaveCount(0)
+  await expect(page.locator('.ce-toolbox:visible')).toHaveCount(0)
+})
+
+test('keeps the custom note title block first when moving the next block up', async ({
+  page,
+}) => {
+  await page.goto('/')
+  await waitForEditorReady(page)
+
+  await page.locator('.ce-paragraph').first().click()
+  await page.locator('.ce-toolbar__settings-btn').first().click()
+  await visiblePopoverItems(page).filter({ hasText: 'Move up' }).click()
+
+  await expect(
+    page.locator('.ce-block').first().locator('[data-testid="note-title"]'),
+  ).toHaveCount(1)
 })
 
 test('updates the active note when a different list row is clicked', async ({

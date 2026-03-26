@@ -253,6 +253,9 @@ function blocksFromRootWithBlankLines(
 ): EditorjsBlock[] {
   const children = root.children ?? []
   const out: EditorjsBlock[] = []
+  const parseContext = {
+    didParseNoteTitle: false,
+  }
 
   for (let i = 0; i < children.length; i++) {
     const node = children[i]!
@@ -283,7 +286,7 @@ function blocksFromRootWithBlankLines(
       }
     }
 
-    out.push(...parseMarkdownNode(node))
+    out.push(...parseMarkdownNode(node, parseContext))
   }
 
   const last = children[children.length - 1]
@@ -326,14 +329,24 @@ function parseInlineNodesToHtml(children: MarkdownNode[] | undefined): string {
   return (children ?? []).map((child) => parseInlineNodeToHtml(child)).join('')
 }
 
-function parseHeading(node: MarkdownNode): EditorjsBlock {
+function parseHeading(node: MarkdownNode, asNoteTitle: boolean): EditorjsBlock {
   const level = Math.min(Math.max(node.depth ?? 1, 1), 6)
+  const text = parseInlineNodesToHtml(node.children)
+
+  if (asNoteTitle) {
+    return {
+      type: 'noteTitle',
+      data: {
+        text,
+      },
+    }
+  }
 
   return {
     type: 'header',
     data: {
       level,
-      text: parseInlineNodesToHtml(node.children),
+      text,
     },
   }
 }
@@ -457,10 +470,25 @@ function parseTable(node: MarkdownNode): EditorjsBlock {
   }
 }
 
-function parseMarkdownNode(node: MarkdownNode): EditorjsBlock[] {
+type ParseMarkdownContext = {
+  didParseNoteTitle: boolean
+}
+
+function parseMarkdownNode(
+  node: MarkdownNode,
+  context: ParseMarkdownContext,
+): EditorjsBlock[] {
   switch (node.type) {
-    case 'heading':
-      return [parseHeading(node)]
+    case 'heading': {
+      const shouldParseAsNoteTitle =
+        (node.depth ?? 1) === 1 && !context.didParseNoteTitle
+
+      if (shouldParseAsNoteTitle) {
+        context.didParseNoteTitle = true
+      }
+
+      return [parseHeading(node, shouldParseAsNoteTitle)]
+    }
     case 'paragraph':
       return parseParagraph(node)
     case 'list':
@@ -656,7 +684,7 @@ export function markdownToEditorjsBlocks(markdown: string): EditorjsBlock[] {
 }
 
 export function editorjsBlocksToMarkdown(blocks: EditorjsBlock[]): string {
-  const normalizedBlocks = [...blocks]
+  const normalizedBlocks = blocks.filter((block) => block.type !== 'noteTitle')
 
   while (
     normalizedBlocks.length > 0 &&

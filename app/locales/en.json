@@ -9,7 +9,8 @@
     "errorFallback": "Failed to load the editor"
   },
   "noteTitle": {
-    "ariaLabel": "Note title"
+    "ariaLabel": "Note title",
+    "placeholder": "Note title"
   },
   "notesListActions": {
     "createNote": "Create note"

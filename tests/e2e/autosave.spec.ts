@@ -5,7 +5,6 @@ import {
   type Page,
 } from '@playwright/test'
 import type { Note, NoteProperties } from '~/notes/types'
-import { noteTitleFromId } from '~/notes/noteTitleFromId'
 
 const FIXTURE_NOTE_PROPERTY_TITLE = 'Second note (test seed)'
 
@@ -65,23 +64,6 @@ async function restoreNote(
   expect(response.ok()).toBeTruthy()
 }
 
-async function renameNote(
-  request: APIRequestContext,
-  id: string,
-  title: string,
-): Promise<Note> {
-  const response = await request.patch('/api/notes', {
-    data: {
-      id,
-      title,
-    },
-  })
-
-  expect(response.ok()).toBeTruthy()
-
-  return (await response.json()) as Note
-}
-
 async function openNote(page: Page, id: string): Promise<void> {
   const noteButton = page.locator(`[data-note-id="${id}"]`)
 
@@ -90,11 +72,15 @@ async function openNote(page: Page, id: string): Promise<void> {
   await waitForEditorReady(page)
 }
 
+function firstBodyParagraph(page: Page) {
+  return page.locator('.ce-paragraph').filter({ hasText: /\S/ }).first()
+}
+
 async function appendMarkerToFirstParagraph(
   page: Page,
   marker: string,
 ): Promise<void> {
-  const paragraph = page.locator('.ce-paragraph').first()
+  const paragraph = firstBodyParagraph(page)
 
   await paragraph.evaluate((element) => {
     const range = document.createRange()
@@ -128,7 +114,7 @@ test('discards editor changes if the page reloads before 2 seconds', async ({
   await page.reload()
   await openNote(page, note.id)
 
-  await expect(page.locator('.ce-paragraph').first()).not.toContainText(marker)
+  await expect(firstBodyParagraph(page)).not.toContainText(marker)
 })
 
 test('persists editor changes after 2 seconds of idle time', async ({
@@ -147,7 +133,7 @@ test('persists editor changes after 2 seconds of idle time', async ({
     await page.reload()
     await openNote(page, originalNote.id)
 
-    await expect(page.locator('.ce-paragraph').first()).toContainText(marker)
+    await expect(firstBodyParagraph(page)).toContainText(marker)
   } finally {
     await restoreNote(request, originalNote)
   }
@@ -218,44 +204,39 @@ test('preserves headings between checklists after save and reload', async ({
   }
 })
 
-test('renames the note title on Enter and blur', async ({ page, request }) => {
+test('saves the custom note title block and moves Enter into the body', async ({
+  page,
+  request,
+}) => {
   const originalNote = await loadFixtureNote(request)
-  const originalTitle = noteTitleFromId(originalNote.id)
-  const renamedTitle = `Renamed note ${Date.now()}`
-  let currentId = originalNote.id
+  const bodyMarker = `title-body-${Date.now()}`
 
   try {
     await page.goto('/')
-    await openNote(page, currentId)
+    await openNote(page, originalNote.id)
 
     const noteTitle = page.getByTestId('note-title')
+    const paragraphCountBefore = await page.locator('.ce-paragraph').count()
 
     await noteTitle.click()
-    await noteTitle.fill(renamedTitle)
     await page.keyboard.press('Enter')
 
-    currentId = `${renamedTitle}.md`
-
-    await expect(noteTitle).toHaveText(renamedTitle)
-    await expect(page.locator(`[data-note-id="${currentId}"]`)).toHaveAttribute(
-      'data-selected',
-      'true',
+    const firstParagraph = page.locator('.ce-paragraph').first()
+    await expect(page.locator('.ce-paragraph')).toHaveCount(
+      paragraphCountBefore + 1,
     )
+    await expect(firstParagraph).toBeFocused()
 
-    await noteTitle.click()
-    await noteTitle.fill(originalTitle)
-    await page.locator('.ce-paragraph').first().click()
+    await page.keyboard.type(bodyMarker)
+    await expect(firstParagraph).toHaveText(bodyMarker)
 
-    currentId = originalNote.id
+    await page.waitForTimeout(2500)
 
-    await expect(noteTitle).toHaveText(originalTitle)
-    await expect(page.locator(`[data-note-id="${currentId}"]`)).toHaveAttribute(
-      'data-selected',
-      'true',
-    )
+    const savedNote = await loadFixtureNote(request)
+
+    expect(savedNote.content).toContain(bodyMarker)
+    expect(savedNote.content.startsWith(bodyMarker)).toBe(true)
   } finally {
-    if (currentId !== originalNote.id) {
-      await renameNote(request, currentId, originalTitle)
-    }
+    await restoreNote(request, originalNote)
   }
 })

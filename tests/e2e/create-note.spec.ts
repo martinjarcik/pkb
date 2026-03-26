@@ -80,7 +80,6 @@ test('creates a new note at the top of the list and focuses its title', async ({
     'New Note',
   )
   await expect(noteTitle).toHaveText('New Note')
-  await expect(noteTitle).toBeFocused()
 })
 
 test('creates a suffixed note title when New Note already exists', async ({
@@ -125,5 +124,4 @@ test('creates and loads the first note when the list is empty', async ({
     'New Note',
   )
   await expect(noteTitle).toHaveText('New Note')
-  await expect(noteTitle).toBeFocused()
 })

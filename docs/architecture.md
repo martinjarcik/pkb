@@ -70,8 +70,8 @@ identifier.
   - `NoteView` (`app/components/NoteView.vue`) — bounded note display and
     editing region.
     - `NoteTemplate` — template (Liquid) output wrapper.
-      - `NoteTitle` — active note title displayed above the editor surface.
-      - `NoteEditor` — content editing surface.
+      - `NoteEditor` — content editing surface (includes an EditorJS
+        `noteTitle` block pinned at index 0 for inline title editing).
 - `InspectorPanel` (`app/components/InspectorPanel.vue`) — inspector shell.
   - `InspectorNavigation` (`app/components/InspectorNavigation.vue`) — tab bar
     for inspector views.
@@ -113,7 +113,7 @@ New contexts may be introduced when corresponding features are specified.
 - In filesystem-backed storage, properties are serialized as YAML frontmatter.
 - `useNotes()` owns the active note id in shared state. After a successful load,
   it selects the first loaded note by default and `NoteTemplate` passes that
-  note's title into `NoteTitle` and its Content into `NoteEditor`.
+  note's title and Content into `NoteEditor`.
 - `useSidebarNavigation()` owns the active sidebar view id in shared state. The
   default `Inbox` view filters `NotesList` to notes whose `id` lives at the
   vault root.

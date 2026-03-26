@@ -1,10 +1,28 @@
 <script setup lang="ts">
-import type { EditorjsBlock } from '~/composables/useEditorjsMarkdown'
+import type { EditorjsBlock } from '~/lib/editorjsMarkdown'
+import {
+  editorjsBlocksToMarkdown,
+  markdownToEditorjsBlocks,
+} from '~/lib/editorjsMarkdown'
+import { editorMessages } from '~/lib/editorjsMessages'
+import {
+  blocksMatch,
+  ensureNoteTitleBlock,
+  extractNoteTitleText,
+  renderNoteTitleBlocks,
+} from '~/lib/editorjsTitleBlock'
+import NoteTitleTool from '~/lib/noteTitleTool'
 import SimpleQuoteTool from '~/lib/simpleQuoteTool'
 
 type EditorjsInstance = {
   blocks: {
+    getBlockByIndex(index: number): { name: string } | undefined
+    getBlocksCount(): number
+    move(toIndex: number, fromIndex?: number): void
     render(data: { blocks: EditorjsBlock[] }): Promise<void>
+  }
+  caret: {
+    setToBlock(index: number, position?: string, offset?: number): boolean
   }
   destroy(): void
   isReady: Promise<void>
@@ -21,19 +39,20 @@ const props = withDefaults(
   defineProps<{
     autosaveDelay?: number
     content?: string
+    title?: string
   }>(),
   {
     autosaveDelay: 2000,
     content: '',
+    title: '',
   },
 )
 
 const emit = defineEmits<{
   'content-change': [value: string]
+  'title-change': [value: string]
 }>()
 
-const { editorjsBlocksToMarkdown, markdownToEditorjsBlocks } =
-  useEditorjsMarkdown()
 const componentInstance = getCurrentInstance()
 
 function translate(key: string): string {
@@ -52,8 +71,11 @@ const isEditorLoading = ref(true)
 
 let editor: EditorjsInstance | null = null
 let isApplyingExternalContent = false
+let isRepairingTitleBlock = false
 let lastRenderedContent = ''
+let lastRenderedTitle = ''
 let contentSyncTimeout: ReturnType<typeof setTimeout> | null = null
+let titleBlurListener: (() => void) | null = null
 
 function getDefaultExport(module: unknown): unknown {
   if (typeof module === 'object' && module !== null && 'default' in module) {
@@ -72,23 +94,27 @@ async function renderMarkdownContent(markdown: string): Promise<void> {
   isApplyingExternalContent = true
 
   try {
-    const blocks = await markdownToEditorjsBlocks(markdown)
+    const blocks = renderNoteTitleBlocks(
+      markdownToEditorjsBlocks(markdown),
+      props.title,
+    )
 
     await editor.blocks.render({ blocks })
     lastRenderedContent = markdown
+    lastRenderedTitle = props.title
   } finally {
     isApplyingExternalContent = false
   }
 }
 
-async function emitMarkdownContent(): Promise<void> {
+async function emitContentChange(): Promise<void> {
   if (!editor || isApplyingExternalContent) {
     return
   }
 
   await editor.isReady
   const output = await editor.save()
-  const markdown = await editorjsBlocksToMarkdown(output.blocks)
+  const markdown = editorjsBlocksToMarkdown(output.blocks)
 
   lastRenderedContent = markdown
   emit('content-change', markdown)
@@ -101,7 +127,7 @@ async function flushContentSync(): Promise<void> {
 
   clearTimeout(contentSyncTimeout)
   contentSyncTimeout = null
-  await emitMarkdownContent()
+  await emitContentChange()
 }
 
 function scheduleContentSync(): void {
@@ -111,77 +137,153 @@ function scheduleContentSync(): void {
 
   contentSyncTimeout = setTimeout(() => {
     contentSyncTimeout = null
-    void emitMarkdownContent()
+    void emitContentChange()
   }, props.autosaveDelay)
 }
 
-function createEditorMessages() {
-  return {
-    ui: {
-      blockTunes: {
-        toggler: {
-          'Click to tune': 'Click to tune',
-          'or drag to move': 'or drag to move',
-        },
-      },
-      inlineToolbar: {
-        converter: {
-          'Convert to': 'Convert to',
-        },
-      },
-      popover: {
-        Filter: 'Filter',
-        'Nothing found': 'Nothing found',
-        'Convert to': 'Convert to',
-      },
-      toolbar: {
-        toolbox: {
-          Add: 'Add',
-        },
-      },
-    },
-    toolNames: {
-      Text: 'Text',
-      Heading: 'Heading',
-      List: 'List',
-      Code: 'Code',
-      Delimiter: 'Delimiter',
-      'Inline Code': 'Inline Code',
-      InlineCode: 'Inline Code',
-      Table: 'Table',
-      'Simple Quote': 'Simple Quote',
-      'Ordered List': 'Ordered List',
-      'Unordered List': 'Unordered List',
-      Checklist: 'Checklist',
-    },
-    tools: {
-      header: {
-        'Heading 1': 'Heading 1',
-        'Heading 2': 'Heading 2',
-        'Heading 3': 'Heading 3',
-      },
-      list: {
-        Ordered: 'Ordered List',
-        Unordered: 'Unordered List',
-        Checklist: 'Checklist',
-      },
-      paragraph: {
-        'Enter something': '',
-      },
-    },
-    blockTunes: {
-      delete: {
-        Delete: 'Delete',
-        'Click to delete': 'Click to delete',
-      },
-      moveUp: {
-        'Move up': 'Move up',
-      },
-      moveDown: {
-        'Move down': 'Move down',
-      },
-    },
+async function commitTitleChange(): Promise<void> {
+  if (!editor || isApplyingExternalContent) {
+    return
   }
+
+  await editor.isReady
+  const output = await editor.save()
+  const titleText = extractNoteTitleText(output.blocks)
+
+  if (titleText.length === 0 || titleText === props.title) {
+    return
+  }
+
+  await flushContentSync()
+  emit('title-change', titleText)
+}
+
+function findNoteTitleIndex(): number {
+  if (!editor) {
+    return -1
+  }
+
+  const blocksCount = editor.blocks.getBlocksCount()
+
+  for (let index = 0; index < blocksCount; index++) {
+    if (editor.blocks.getBlockByIndex(index)?.name === 'noteTitle') {
+      return index
+    }
+  }
+
+  return -1
+}
+
+function repairMovedNoteTitleBlock(): boolean {
+  if (!editor) {
+    return false
+  }
+
+  if (editor.blocks.getBlockByIndex(0)?.name === 'noteTitle') {
+    return false
+  }
+
+  const noteTitleIndex = findNoteTitleIndex()
+
+  if (noteTitleIndex <= 0) {
+    return false
+  }
+
+  isRepairingTitleBlock = true
+
+  try {
+    editor.blocks.move(0, noteTitleIndex)
+  } finally {
+    window.requestAnimationFrame(() => {
+      isRepairingTitleBlock = false
+    })
+  }
+
+  return true
+}
+
+async function handleEditorChange(): Promise<void> {
+  if (!editor || isApplyingExternalContent || isRepairingTitleBlock) {
+    return
+  }
+
+  await editor.isReady
+
+  if (repairMovedNoteTitleBlock()) {
+    return
+  }
+
+  const output = await editor.save()
+  const normalizedBlocks = ensureNoteTitleBlock(output.blocks, props.title)
+
+  if (!blocksMatch(output.blocks, normalizedBlocks)) {
+    isRepairingTitleBlock = true
+
+    try {
+      await editor.blocks.render({ blocks: normalizedBlocks })
+    } finally {
+      isRepairingTitleBlock = false
+    }
+
+    return
+  }
+
+  scheduleContentSync()
+}
+
+function attachTitleBlurListener(): void {
+  detachTitleBlurListener()
+
+  const titleElement =
+    holder.value?.querySelector<HTMLElement>('[data-note-title]')
+
+  if (!titleElement) {
+    return
+  }
+
+  const listener = () => {
+    void commitTitleChange()
+  }
+
+  titleElement.addEventListener('blur', listener)
+  titleBlurListener = () => titleElement.removeEventListener('blur', listener)
+}
+
+function detachTitleBlurListener(): void {
+  titleBlurListener?.()
+  titleBlurListener = null
+}
+
+async function focusTitle(): Promise<void> {
+  if (!editor) {
+    return
+  }
+
+  await nextTick()
+  await editor.isReady
+  await nextTick()
+
+  const titleElement =
+    holder.value?.querySelector<HTMLElement>('[data-note-title]')
+
+  if (!titleElement) {
+    editor.caret.setToBlock(0, 'end', 0)
+    return
+  }
+
+  await new Promise<void>((resolve) => {
+    window.requestAnimationFrame(() => {
+      const selection = window.getSelection()
+      const range = document.createRange()
+
+      titleElement.focus()
+      range.selectNodeContents(titleElement)
+      range.collapse(false)
+      selection?.removeAllRanges()
+      selection?.addRange(range)
+      resolve()
+    })
+  })
 }
 
 onMounted(async () => {
@@ -222,21 +324,32 @@ onMounted(async () => {
     const Delimiter = getDefaultExport(delimiterModule) as EditorjsTool
     const InlineCode = getDefaultExport(inlineCodeModule) as EditorjsTool
     const Table = getDefaultExport(tableModule) as EditorjsTool
-    const blocks = await markdownToEditorjsBlocks(props.content)
+    const blocks = renderNoteTitleBlocks(
+      markdownToEditorjsBlocks(props.content),
+      props.title,
+    )
 
     editor = new Editorjs({
       holder: holder.value,
       autofocus: false,
       i18n: {
-        messages: createEditorMessages(),
+        messages: editorMessages,
       },
       data: {
         blocks,
       },
       onChange: () => {
-        scheduleContentSync()
+        void handleEditorChange()
       },
       tools: {
+        noteTitle: {
+          class: NoteTitleTool,
+          inlineToolbar: false,
+          config: {
+            ariaLabel: translate('noteTitle.ariaLabel'),
+            placeholder: translate('noteTitle.placeholder'),
+          },
+        },
         paragraph: {
           config: {
             preserveBlank: true,
@@ -299,8 +412,10 @@ onMounted(async () => {
     })
 
     await editor.isReady
+    attachTitleBlurListener()
 
     lastRenderedContent = props.content
+    lastRenderedTitle = props.title
   } catch (error) {
     editorError.value =
       error instanceof Error
@@ -312,14 +427,17 @@ onMounted(async () => {
 })
 
 watch(
-  () => props.content,
-  (nextContent) => {
+  () => [props.content, props.title] as const,
+  ([nextContent, nextTitle]) => {
     if (contentSyncTimeout) {
       clearTimeout(contentSyncTimeout)
       contentSyncTimeout = null
     }
 
-    if (!editor || nextContent === lastRenderedContent) {
+    if (
+      !editor ||
+      (nextContent === lastRenderedContent && nextTitle === lastRenderedTitle)
+    ) {
       return
     }
 
@@ -328,6 +446,7 @@ watch(
 )
 
 defineExpose({
+  focusTitle,
   flushContentSync,
 })
 
@@ -337,6 +456,7 @@ onBeforeUnmount(() => {
     contentSyncTimeout = null
   }
 
+  detachTitleBlurListener()
   editor?.destroy()
   editor = null
 })
