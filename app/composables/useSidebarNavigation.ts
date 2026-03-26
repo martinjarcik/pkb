@@ -1,5 +1,6 @@
 import { computed } from 'vue'
 import { loadConfig } from '~/config/loader'
+import type { NoteCatalogRow } from '~/notes/types'
 import {
   isDirectChildOfVaultFolder,
   isVaultRootNote,
@@ -13,31 +14,33 @@ export type SidebarWorkspaceView =
 const defaultTheme = loadConfig().theme
 
 export function useSidebarNavigation() {
-  const { listItems, selectNoteById } = useNotes()
+  const { catalog, selectNoteById } = useNotes()
   const selectedView = useState<SidebarWorkspaceView>(
     'sidebarNavigation.selectedView',
     () => ({ kind: 'inbox' }),
   )
   const accentColor = computed(() => defaultTheme.accentColor)
   const topLevelFolders = computed(() =>
-    vaultTopLevelFolderNames(listItems.value.map((item) => item.id)),
+    vaultTopLevelFolderNames(catalog.value.map((row) => row.id)),
   )
 
-  function filterListItems(view: SidebarWorkspaceView) {
+  function filterCatalog(
+    view: SidebarWorkspaceView,
+  ): readonly NoteCatalogRow[] {
     if (view.kind === 'inbox') {
-      return listItems.value.filter((item) => isVaultRootNote(item.id))
+      return catalog.value.filter((row) => isVaultRootNote(row.id))
     }
 
-    return listItems.value.filter((item) =>
-      isDirectChildOfVaultFolder(item.id, view.folderName),
+    return catalog.value.filter((row) =>
+      isDirectChildOfVaultFolder(row.id, view.folderName),
     )
   }
 
-  const visibleListItems = computed(() => filterListItems(selectedView.value))
+  const visibleCatalogRows = computed(() => filterCatalog(selectedView.value))
 
   async function selectView(view: SidebarWorkspaceView): Promise<void> {
     selectedView.value = view
-    await selectNoteById(filterListItems(view)[0]?.id ?? null)
+    await selectNoteById(filterCatalog(view)[0]?.id ?? null)
   }
 
   async function selectInbox(): Promise<void> {
@@ -56,7 +59,7 @@ export function useSidebarNavigation() {
     selectedView,
     accentColor,
     topLevelFolders,
-    visibleListItems,
+    visibleCatalogRows,
     selectInbox,
     selectFolder,
   }

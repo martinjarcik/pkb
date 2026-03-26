@@ -1,11 +1,11 @@
 <script setup lang="ts">
 const { loadNotes, selectNoteById } = useNotes()
-const { visibleListItems } = useSidebarNavigation()
+const { visibleCatalogRows } = useSidebarNavigation()
 
 onMounted(() => {
   void (async () => {
     await loadNotes()
-    await selectNoteById(visibleListItems.value[0]?.id ?? null)
+    await selectNoteById(visibleCatalogRows.value[0]?.id ?? null)
   })()
 })
 </script>

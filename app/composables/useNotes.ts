@@ -8,28 +8,8 @@ import { resolveUniqueNoteIdForParentPath } from '~/notes/renameNoteTitle'
 import { buildSaveNoteInput } from '~/notes/saveNoteInput'
 import type { Note, NoteCatalogRow } from '~/notes/types'
 
-export type NotesListItem = {
-  id: string
-  title: string
-  description: string
-  meta: string
-}
-
-function createNotesListMeta(modifiedAt: string): string {
-  return modifiedAt.slice(0, 10)
-}
-
 function buildNoteContentPath(id: string): string {
   return `/api/notes/${id.split('/').map(encodeURIComponent).join('/')}`
-}
-
-export function createNotesListItems(notes: NoteCatalogRow[]): NotesListItem[] {
-  return notes.map((note) => ({
-    id: note.id,
-    title: note.title,
-    description: note.description,
-    meta: createNotesListMeta(note.modifiedAt),
-  }))
 }
 
 const defaultEditor = loadConfig().editor
@@ -78,7 +58,7 @@ export function useNotes() {
 
     return ''
   })
-  const listItems = computed(() => createNotesListItems(notes.value))
+  const catalog = computed(() => notes.value)
 
   function sortNotesByModifiedAt(
     nextNotes: NoteCatalogRow[],
@@ -328,7 +308,7 @@ export function useNotes() {
     selectedNoteId,
     selectedNote,
     selectedNoteTitle,
-    listItems,
+    catalog,
     clearShouldFocusTitle,
     createNote,
     registerEditorFlush,

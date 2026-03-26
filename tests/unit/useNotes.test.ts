@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { noteDescriptionFromContent } from '~/notes/noteDescriptionFromContent'
 import { noteTitleFromId } from '~/notes/noteTitleFromId'
 import type { Note } from '~/notes/types'
-import { createNotesListItems, useNotes } from '~/composables/useNotes'
+import { useNotes } from '~/composables/useNotes'
 
 type FetchOptions = {
   method?: string
@@ -429,63 +429,5 @@ describe('useNotes', () => {
 
     expect(selectedNoteId.value).toBe('second.md')
     expect(selectedNote.value?.content).toBe('# Second')
-  })
-
-  it('truncates long description previews to 120 characters', () => {
-    const [listItem] = createNotesListItems([
-      createTestNote(
-        'long.md',
-        `# Heading\n\n${'a'.repeat(121)}`,
-        '2026-03-24',
-      ),
-    ])
-
-    expect(listItem?.description).toBe(`${'a'.repeat(117)}...`)
-  })
-
-  it('preserves the input order of notes', () => {
-    const items = createNotesListItems([
-      createTestNote('b.md', '# B\n\nBody B', '2026-03-23'),
-      createTestNote('a.md', '# A\n\nBody A', '2026-03-20'),
-    ])
-
-    expect(items.map((i) => i.id)).toEqual(['b.md', 'a.md'])
-  })
-
-  it('reads title from a flat note id', () => {
-    const [item] = createNotesListItems([
-      createTestNote('my-note.md', '# Heading\n\nBody', '2026-03-24'),
-    ])
-
-    expect(item?.title).toBe('my-note')
-  })
-
-  it('reads title from a nested note id', () => {
-    const [item] = createNotesListItems([
-      createTestNote(
-        'backlog/this-is-file-name.md',
-        '# Heading\n\nBody',
-        '2026-03-24',
-      ),
-    ])
-
-    expect(item?.title).toBe('this-is-file-name')
-  })
-
-  it('passes through the description from the note object', () => {
-    const [listItem] = createNotesListItems([
-      createTestNote(
-        'headings.md',
-        '# Heading one\n\n## Heading two\n\nBody paragraph that should be shown.',
-        '2026-03-24',
-      ),
-    ])
-
-    expect(listItem).toEqual({
-      id: 'headings.md',
-      title: 'headings',
-      description: 'Body paragraph that should be shown.',
-      meta: '2026-03-24',
-    })
   })
 })

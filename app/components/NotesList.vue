@@ -1,6 +1,27 @@
 <script setup lang="ts">
+import { computed } from 'vue'
+import type { NoteCatalogRow } from '~/notes/types'
+
+type NotesListItem = {
+  id: string
+  title: string
+  description: string
+  meta: string
+}
+
+function toListItem(row: NoteCatalogRow): NotesListItem {
+  return {
+    id: row.id,
+    title: row.title,
+    description: row.description,
+    meta: row.modifiedAt.slice(0, 10),
+  }
+}
+
 const { isLoading, loadError, selectedNoteId, selectNoteById } = useNotes()
-const { accentColor, visibleListItems } = useSidebarNavigation()
+const { accentColor, visibleCatalogRows } = useSidebarNavigation()
+
+const listItems = computed(() => visibleCatalogRows.value.map(toListItem))
 
 async function handleSelectNote(id: string): Promise<void> {
   await selectNoteById(id)
@@ -30,7 +51,7 @@ function getItemStyle(
     </div>
 
     <div
-      v-else-if="visibleListItems.length === 0"
+      v-else-if="listItems.length === 0"
       data-testid="notes-list-empty"
       class="notes-list-state notes-list-state-muted"
     >
@@ -39,7 +60,7 @@ function getItemStyle(
 
     <div v-else class="flex flex-col">
       <button
-        v-for="item in visibleListItems"
+        v-for="item in listItems"
         :key="item.id"
         type="button"
         :data-note-id="item.id"
