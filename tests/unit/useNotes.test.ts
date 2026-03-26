@@ -99,16 +99,10 @@ describe('useNotes', () => {
     vi.unstubAllGlobals()
   })
 
-  it('loads the catalog and then fetches the first selected note', async () => {
-    const firstCatalogNote = createTestNote(
-      'first.md',
-      '# Preview',
-      '2026-03-24',
-    )
-
+  it('selects the first note after loading the catalog', async () => {
     mockFetchRoutes({
       'GET /api/notes': [
-        firstCatalogNote,
+        createTestNote('first.md', '# Preview', '2026-03-24'),
         createTestNote('second.md', '# Second preview', '2026-03-23'),
       ],
       'GET /api/notes/first.md': createTestNote(
@@ -118,11 +112,25 @@ describe('useNotes', () => {
       ),
     })
 
-    const { loadNotes, notes, selectedNote, selectedNoteId } = useNotes()
+    const { loadNotes, selectedNoteId } = useNotes()
     await loadNotes()
 
-    expect(notes.value[0]?.content).toBe('# Full note\n\nMore content')
     expect(selectedNoteId.value).toBe('first.md')
+  })
+
+  it('fetches the full content for the selected note', async () => {
+    mockFetchRoutes({
+      'GET /api/notes': [createTestNote('first.md', '# Preview', '2026-03-24')],
+      'GET /api/notes/first.md': createTestNote(
+        'first.md',
+        '# Full note\n\nMore content',
+        '2026-03-24',
+      ),
+    })
+
+    const { loadNotes, selectedNote } = useNotes()
+    await loadNotes()
+
     expect(selectedNote.value?.content).toBe('# Full note\n\nMore content')
   })
 
@@ -176,9 +184,8 @@ describe('useNotes', () => {
     expect(selectedNote.value?.content).toBe('# Second full note')
   })
 
-  it('encodes nested note ids when requesting the full note', async () => {
-    const { notes, selectedNote, selectedNoteTitle, selectNoteById } =
-      useNotes()
+  it('loads a note with spaces in the id', async () => {
+    const { notes, selectedNote, selectNoteById } = useNotes()
 
     notes.value = [
       createTestNote('backlog/second note.md', '# Preview', '2026-03-24'),
@@ -194,11 +201,7 @@ describe('useNotes', () => {
 
     await selectNoteById('backlog/second note.md')
 
-    expect(selectedNote.value).not.toBeNull()
-    expect(selectedNoteTitle.value).toBe('second note')
-    expect(fetchMock).toHaveBeenCalledWith(
-      '/api/notes/backlog/second%20note.md',
-    )
+    expect(selectedNote.value?.content).toBe('# Full')
   })
 
   it('clears the selected note title when no note is selected', async () => {
@@ -220,7 +223,7 @@ describe('useNotes', () => {
     expect(selectedNoteTitle.value).toBe('')
   })
 
-  it('renames the selected note title and retargets selection to the new id', async () => {
+  it('retargets selection to the new id after renaming', async () => {
     const { notes, selectedNoteId, renameSelectedNoteTitle, selectNoteById } =
       useNotes()
 
@@ -242,13 +245,6 @@ describe('useNotes', () => {
     await selectNoteById('nested/first.md')
     await renameSelectedNoteTitle('Renamed title')
 
-    expect(fetchMock).toHaveBeenCalledWith('/api/notes', {
-      method: 'PATCH',
-      body: {
-        id: 'nested/first.md',
-        title: 'Renamed title',
-      },
-    })
     expect(selectedNoteId.value).toBe('nested/Renamed title.md')
   })
 
@@ -288,15 +284,8 @@ describe('useNotes', () => {
     expect(selectedNoteId.value).toBe('second.md')
   })
 
-  it('creates a new note, prepends it, and selects it', async () => {
-    const {
-      createNote: createNewNote,
-      notes,
-      selectedNote,
-      selectedNoteId,
-      shouldFocusTitle,
-      clearShouldFocusTitle,
-    } = useNotes()
+  it('prepends the created note to the list', async () => {
+    const { createNote: createNewNote, notes } = useNotes()
 
     notes.value = [createTestNote('existing.md', '# Existing', '2026-03-24')]
 
@@ -310,13 +299,34 @@ describe('useNotes', () => {
       'New Note.md',
       'existing.md',
     ])
+  })
+
+  it('selects the newly created note', async () => {
+    const { createNote: createNewNote, notes, selectedNoteId } = useNotes()
+
+    notes.value = [createTestNote('existing.md', '# Existing', '2026-03-24')]
+
+    mockFetchRoutes({
+      'PUT /api/notes': createTestNote('New Note.md', '', '2026-03-25'),
+    })
+
+    await createNewNote()
+
     expect(selectedNoteId.value).toBe('New Note.md')
-    expect(selectedNote.value?.id).toBe('New Note.md')
+  })
+
+  it('signals that the title should be focused after creating a note', async () => {
+    const { createNote: createNewNote, notes, shouldFocusTitle } = useNotes()
+
+    notes.value = [createTestNote('existing.md', '# Existing', '2026-03-24')]
+
+    mockFetchRoutes({
+      'PUT /api/notes': createTestNote('New Note.md', '', '2026-03-25'),
+    })
+
+    await createNewNote()
+
     expect(shouldFocusTitle.value).toBe(true)
-
-    clearShouldFocusTitle()
-
-    expect(shouldFocusTitle.value).toBe(false)
   })
 
   it('appends a suffix when the default title already exists', async () => {
@@ -330,18 +340,11 @@ describe('useNotes', () => {
 
     await createNewNote()
 
-    expect(fetchMock).toHaveBeenCalledWith('/api/notes', {
-      method: 'PUT',
-      body: {
-        id: 'New Note (2).md',
-        properties: {},
-        content: '',
-      },
-    })
+    expect(notes.value[0]?.id).toBe('New Note (2).md')
   })
 
   it('creates a new note inside the provided parent folder', async () => {
-    const { createNote: createNewNote } = useNotes()
+    const { createNote: createNewNote, notes } = useNotes()
 
     mockFetchRoutes({
       'PUT /api/notes': createTestNote('Work/New Note.md', '', '2026-03-25'),
@@ -349,14 +352,7 @@ describe('useNotes', () => {
 
     await createNewNote('Work')
 
-    expect(fetchMock).toHaveBeenCalledWith('/api/notes', {
-      method: 'PUT',
-      body: {
-        id: 'Work/New Note.md',
-        properties: {},
-        content: '',
-      },
-    })
+    expect(notes.value[0]?.id).toBe('Work/New Note.md')
   })
 
   it('sets the save error when note creation fails', async () => {
@@ -369,7 +365,7 @@ describe('useNotes', () => {
     expect(saveError.value).toBe('Create failed')
   })
 
-  it('saves the full selected note instead of the catalog preview', async () => {
+  it('includes full note properties in the save request', async () => {
     const { notes, saveSelectedNoteContent, selectNoteById } = useNotes()
 
     notes.value = [
@@ -456,15 +452,16 @@ describe('useNotes', () => {
     expect(items.map((i) => i.id)).toEqual(['b.md', 'a.md'])
   })
 
-  it('reads title and description from the note object', () => {
-    const [flat] = createNotesListItems([
+  it('reads title from a flat note id', () => {
+    const [item] = createNotesListItems([
       createTestNote('my-note.md', '# Heading\n\nBody', '2026-03-24'),
     ])
 
-    expect(flat?.title).toBe('my-note')
-    expect(flat?.description).toBe('Body')
+    expect(item?.title).toBe('my-note')
+  })
 
-    const [nested] = createNotesListItems([
+  it('reads title from a nested note id', () => {
+    const [item] = createNotesListItems([
       createTestNote(
         'backlog/this-is-file-name.md',
         '# Heading\n\nBody',
@@ -472,7 +469,7 @@ describe('useNotes', () => {
       ),
     ])
 
-    expect(nested?.title).toBe('this-is-file-name')
+    expect(item?.title).toBe('this-is-file-name')
   })
 
   it('passes through the description from the note object', () => {

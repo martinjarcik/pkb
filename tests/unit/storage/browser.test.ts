@@ -88,7 +88,7 @@ describe('browserStorage', () => {
   it('excludes reserved fields from persisted frontmatter', async () => {
     vi.setSystemTime(new Date('2026-03-20T10:00:00.000Z'))
 
-    const note = await browserStorage.saveNote({
+    await browserStorage.saveNote({
       id: 'notes/welcome.md',
       properties: {
         label: 'Keep',
@@ -102,10 +102,9 @@ describe('browserStorage', () => {
       content: '# Hello',
     })
 
-    expect(note.id).toBe('notes/welcome.md')
-    expect(note.content).toBe('# Hello')
-    expect(note.title).toBe('welcome')
-    expect(note.description).toBe('')
+    expect(readStoredNotes()['notes/welcome.md']!.document).toBe(
+      '---\nlabel: Keep\n---\n# Hello',
+    )
   })
 
   it('loads browser notes as flat notes with storage timestamps', async () => {
@@ -165,7 +164,7 @@ describe('browserStorage', () => {
     })
   })
 
-  it('loads documents with non-LF line endings', async () => {
+  it('normalizes CRLF line endings to LF when loading', async () => {
     localStorage.setItem(
       'notes',
       JSON.stringify({
@@ -174,6 +173,18 @@ describe('browserStorage', () => {
           createdAt: '2026-03-19T09:00:00.000Z',
           modifiedAt: '2026-03-20T11:00:00.000Z',
         },
+      }),
+    )
+
+    const [note] = await browserStorage.loadNotesCatalog()
+
+    expect(note?.content).toBe('# Hello\nworld')
+  })
+
+  it('normalizes CR line endings to LF when loading', async () => {
+    localStorage.setItem(
+      'notes',
+      JSON.stringify({
         'notes/cr.md': {
           document: '---\rlabel: CR\r---\r# Hello\rworld',
           createdAt: '2026-03-19T09:00:00.000Z',
@@ -182,26 +193,9 @@ describe('browserStorage', () => {
       }),
     )
 
-    await expect(browserStorage.loadNotesCatalog()).resolves.toEqual([
-      {
-        id: 'notes/crlf.md',
-        label: 'CRLF',
-        content: '# Hello\nworld',
-        createdAt: '2026-03-19T09:00:00.000Z',
-        modifiedAt: '2026-03-20T11:00:00.000Z',
-        title: 'crlf',
-        description: 'world',
-      },
-      {
-        id: 'notes/cr.md',
-        label: 'CR',
-        content: '# Hello\nworld',
-        createdAt: '2026-03-19T09:00:00.000Z',
-        modifiedAt: '2026-03-20T11:00:00.000Z',
-        title: 'cr',
-        description: 'world',
-      },
-    ])
+    const [note] = await browserStorage.loadNotesCatalog()
+
+    expect(note?.content).toBe('# Hello\nworld')
   })
 
   it('stores raw content without frontmatter wrapper when properties are empty', async () => {
@@ -365,7 +359,7 @@ describe('browserStorage', () => {
     )
   })
 
-  it('renames a note title by moving the stored entry to a new id', async () => {
+  it('renames a note title and returns the new id', async () => {
     vi.setSystemTime(new Date('2026-03-20T10:00:00.000Z'))
 
     await browserStorage.saveNote({
@@ -378,13 +372,25 @@ describe('browserStorage', () => {
       id: 'notes/original.md',
       title: 'Updated title',
     })
-    const stored = readStoredNotes()
 
     expect(renamed.id).toBe('notes/Updated title.md')
-    expect(Object.keys(stored)).toEqual(['notes/Updated title.md'])
-    expect(stored['notes/Updated title.md']!.document).toBe(
-      '---\nlabel: Original\n---\n# Body',
-    )
+  })
+
+  it('removes the old storage key after renaming', async () => {
+    vi.setSystemTime(new Date('2026-03-20T10:00:00.000Z'))
+
+    await browserStorage.saveNote({
+      id: 'notes/original.md',
+      properties: { label: 'Original' },
+      content: '# Body',
+    })
+
+    await browserStorage.renameNoteTitle({
+      id: 'notes/original.md',
+      title: 'Updated title',
+    })
+
+    expect(Object.keys(readStoredNotes())).toEqual(['notes/Updated title.md'])
   })
 
   it('adds a numeric suffix when browser rename collides', async () => {

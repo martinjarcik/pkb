@@ -1,14 +1,8 @@
 import { expect, test, type Route } from '@playwright/test'
+import { createMockNote, mockNotesApi, waitForEditorReady } from './helpers'
 
 function createNoteResponse() {
-  return [
-    {
-      id: 'i18n-note.md',
-      content: '# Hello\n\nBody copy',
-      createdAt: '2026-03-25T00:00:00.000Z',
-      modifiedAt: '2026-03-25T00:00:00.000Z',
-    },
-  ]
+  return [createMockNote('i18n-note.md', '# Hello\n\nBody copy')]
 }
 
 async function fulfillNotesRequest(route: Route): Promise<void> {
@@ -19,7 +13,7 @@ async function fulfillNotesRequest(route: Route): Promise<void> {
   })
 }
 
-test('renders english locale strings from config-backed i18n', async ({
+test('shows the loading message while notes are being fetched', async ({
   page,
 }) => {
   let releaseNotesResponse: (() => void) | null = null
@@ -30,12 +24,10 @@ test('renders english locale strings from config-backed i18n', async ({
       return
     }
 
-    const note = createNoteResponse()[0]
-
     await route.fulfill({
       status: 200,
       contentType: 'application/json',
-      body: JSON.stringify(note),
+      body: JSON.stringify(createNoteResponse()[0]),
     })
   })
 
@@ -60,14 +52,25 @@ test('renders english locale strings from config-backed i18n', async ({
     releaseNotesResponse()
   }
   await navigation
+})
+
+test('renders the note title aria-label in english', async ({ page }) => {
+  await mockNotesApi(page, createNoteResponse())
+  await page.goto('/')
+  await waitForEditorReady(page)
 
   await expect(page.getByTestId('note-title')).toHaveAttribute(
     'aria-label',
     'Note title',
   )
-  await expect(page.getByText('Loading editor...')).toHaveCount(0, {
-    timeout: 15000,
-  })
+})
+
+test('shows translated block tool names in the slash menu', async ({
+  page,
+}) => {
+  await mockNotesApi(page, createNoteResponse())
+  await page.goto('/')
+  await waitForEditorReady(page)
 
   const paragraph = page.locator('.ce-paragraph').first()
 

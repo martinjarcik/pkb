@@ -247,9 +247,8 @@ describe('editorjsMarkdown', () => {
     ).toBe('Before\n\n- one\n- two')
   })
 
-  it('inserts empty paragraph for a blank line before and after a list', () => {
-    const before = markdownToEditorjsBlocks('Text\n\n- one\n- two')
-    expect(before).toEqual([
+  it('inserts empty paragraph for a blank line before a list', () => {
+    expect(markdownToEditorjsBlocks('Text\n\n- one\n- two')).toEqual([
       { type: 'paragraph', data: { text: 'Text' } },
       { type: 'paragraph', data: { text: '' } },
       {
@@ -257,9 +256,10 @@ describe('editorjsMarkdown', () => {
         data: { items: ['one', 'two'], style: 'unordered' },
       },
     ])
+  })
 
-    const after = markdownToEditorjsBlocks('- one\n- two\n\nMore')
-    expect(after).toEqual([
+  it('inserts empty paragraph for a blank line after a list', () => {
+    expect(markdownToEditorjsBlocks('- one\n- two\n\nMore')).toEqual([
       {
         type: 'list',
         data: { items: ['one', 'two'], style: 'unordered' },
@@ -383,15 +383,10 @@ describe('editorjsMarkdown', () => {
     )
   })
 
-  it('round-trips a normal paragraph break as an empty paragraph block', () => {
+  it('round-trips a normal paragraph break', () => {
     const md = 'a\n\nb'
-    const blocks = markdownToEditorjsBlocks(md)
-    expect(editorjsBlocksToMarkdown(blocks)).toBe(md)
-    expect(blocks).toEqual([
-      { type: 'paragraph', data: { text: 'a' } },
-      { type: 'paragraph', data: { text: '' } },
-      { type: 'paragraph', data: { text: 'b' } },
-    ])
+
+    expect(editorjsBlocksToMarkdown(markdownToEditorjsBlocks(md))).toBe(md)
   })
 
   it('converts a single newline into separate paragraph blocks', () => {
@@ -409,9 +404,8 @@ describe('editorjsMarkdown', () => {
 
   it('round-trips single-newline paragraph separation', () => {
     const md = 'Hello\nWorld'
-    const blocks = markdownToEditorjsBlocks(md)
-    expect(editorjsBlocksToMarkdown(blocks)).toBe(md)
-    expect(markdownToEditorjsBlocks(md)).toEqual(blocks)
+
+    expect(editorjsBlocksToMarkdown(markdownToEditorjsBlocks(md))).toBe(md)
   })
 
   it('translates inline html markup to markdown on save', () => {

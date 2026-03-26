@@ -64,6 +64,19 @@ the file path relative to the vault root.
   `NotesListPanel`.
 - The full note body is fetched separately when a note is selected.
 
+#### Primary editor and files on disk
+
+This application is the **primary** editor for notes: normal authoring, renaming,
+and saving happen here. Notes still live as ordinary files under the Vault so
+users can copy, back up, reorganize, or inspect them with any tool they prefer.
+
+The product does **not** aim to reconcile concurrent edits made outside the app
+while it is running. If someone changes or deletes vault files behind the
+running session, the UI may show stale content until reload, autosave may
+overwrite external changes, or errors may appear when paths no longer match the
+loaded catalog. Managing that risk is the user’s responsibility, not a feature
+of the app.
+
 ### Inbox View
 
 The default sidebar view is `Inbox`.

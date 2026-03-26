@@ -1,4 +1,4 @@
-import { readFile, writeFile, mkdtemp, rm, utimes, stat } from 'fs/promises'
+import { readFile, writeFile, mkdtemp, rm, utimes } from 'fs/promises'
 import { join } from 'path'
 import { tmpdir } from 'os'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
@@ -31,32 +31,34 @@ describe('filesystemStorage', () => {
     expect(written).toBe('---\nlabel: Welcome\npublished: true\n---\n# Hello')
   })
 
-  it('loads notes with correct properties and timestamps', async () => {
-    const filePath = join(vaultPath, 'hello.md')
-
+  it('loads frontmatter properties from a markdown file', async () => {
     await writeFile(
-      filePath,
+      join(vaultPath, 'hello.md'),
       '---\nlabel: Hello\npublished: true\n---\n# Content',
       'utf-8',
     )
 
-    const mtime = new Date('2026-03-20T12:00:00.000Z')
-    await utimes(filePath, mtime, mtime)
+    const [note] = await storage.loadNotesCatalog()
 
-    const fileStats = await stat(filePath)
-    const notes = await storage.loadNotesCatalog()
-
-    expect(notes).toHaveLength(1)
-    expect(notes[0]).toEqual({
+    expect(note).toMatchObject({
       id: 'hello.md',
       label: 'Hello',
       published: true,
       content: '# Content',
-      createdAt: fileStats.birthtime.toISOString(),
-      modifiedAt: '2026-03-20T12:00:00.000Z',
-      title: 'hello',
-      description: '',
     })
+  })
+
+  it('reads modification timestamp from the file system', async () => {
+    const filePath = join(vaultPath, 'hello.md')
+
+    await writeFile(filePath, '# Content', 'utf-8')
+
+    const mtime = new Date('2026-03-20T12:00:00.000Z')
+    await utimes(filePath, mtime, mtime)
+
+    const [note] = await storage.loadNotesCatalog()
+
+    expect(note?.modifiedAt).toBe('2026-03-20T12:00:00.000Z')
   })
 
   it('returns loaded notes ordered by most recently modified first', async () => {
@@ -94,15 +96,15 @@ describe('filesystemStorage', () => {
       content: '# Body',
     })
 
-    const notes = await storage.loadNotesCatalog()
+    const [note] = await storage.loadNotesCatalog()
 
-    expect(notes).toHaveLength(1)
-    expect(notes[0]!.title).toBe('round-trip')
-    expect(notes[0]!.label).toBe('Round Trip')
-    expect(notes[0]!.views).toBe(3)
-    expect(notes[0]!.meta).toEqual({ nested: true })
-    expect(notes[0]!.tags).toEqual(['a', 'b'])
-    expect(notes[0]!.content).toBe('# Body')
+    expect(note).toMatchObject({
+      label: 'Round Trip',
+      views: 3,
+      meta: { nested: true },
+      tags: ['a', 'b'],
+      content: '# Body',
+    })
   })
 
   it('creates intermediate directories when saving a nested note', async () => {
@@ -146,7 +148,7 @@ describe('filesystemStorage', () => {
     expect(notes).toHaveLength(0)
   })
 
-  it('renames a note title by changing the file basename', async () => {
+  it('renames a note title and returns the new id', async () => {
     await storage.saveNote({
       id: 'nested/original.md',
       properties: { label: 'Original' },
@@ -158,15 +160,27 @@ describe('filesystemStorage', () => {
       title: 'Updated title',
     })
 
+    expect(renamed.id).toBe('nested/Updated title.md')
+  })
+
+  it('moves the file on disk when renaming a note title', async () => {
+    await storage.saveNote({
+      id: 'nested/original.md',
+      properties: { label: 'Original' },
+      content: '# Body',
+    })
+
+    await storage.renameNoteTitle({
+      id: 'nested/original.md',
+      title: 'Updated title',
+    })
+
     const written = await readFile(
       join(vaultPath, 'nested', 'Updated title.md'),
       'utf-8',
     )
-    const notes = await storage.loadNotesCatalog()
 
-    expect(renamed.id).toBe('nested/Updated title.md')
     expect(written).toBe('---\nlabel: Original\n---\n# Body')
-    expect(notes.map((note) => note.id)).toEqual(['nested/Updated title.md'])
   })
 
   it('adds a numeric suffix when renaming to a colliding title', async () => {

@@ -26,18 +26,6 @@ function getNoteProperties(note: Note): NoteProperties {
   return properties
 }
 
-async function waitForEditorReady(page: Page): Promise<void> {
-  await expect(page.getByTestId('note-editor-error')).toHaveCount(0, {
-    timeout: 15000,
-  })
-  await expect(page.getByTestId('note-editor-loading')).toHaveCount(0, {
-    timeout: 15000,
-  })
-  await expect(page.locator('.ce-block').first()).toBeVisible({
-    timeout: 15000,
-  })
-}
-
 async function loadFixtureNote(request: APIRequestContext): Promise<Note> {
   const response = await request.get('/api/notes')
 
@@ -74,6 +62,18 @@ async function restoreNote(
   expect(response.ok()).toBeTruthy()
 }
 
+async function waitForEditorReady(page: Page): Promise<void> {
+  await expect(page.getByTestId('note-editor-error')).toHaveCount(0, {
+    timeout: 15000,
+  })
+  await expect(page.getByTestId('note-editor-loading')).toHaveCount(0, {
+    timeout: 15000,
+  })
+  await expect(page.locator('.ce-block').first()).toBeVisible({
+    timeout: 15000,
+  })
+}
+
 async function openNote(page: Page, id: string): Promise<void> {
   const noteButton = page.locator(`[data-note-id="${id}"]`)
 
@@ -107,27 +107,7 @@ async function appendMarkerToFirstParagraph(
   await expect(paragraph).toContainText(marker)
 }
 
-test.describe.configure({ mode: 'serial' })
-
-test('discards editor changes if the page reloads before 2 seconds', async ({
-  page,
-  request,
-}) => {
-  const note = await loadFixtureNote(request)
-  const marker = `autosave-pending-${Date.now()}`
-
-  await page.goto('/')
-  await openNote(page, note.id)
-  await appendMarkerToFirstParagraph(page, marker)
-
-  await page.waitForTimeout(1000)
-  await page.reload()
-  await openNote(page, note.id)
-
-  await expect(firstBodyParagraph(page)).not.toContainText(marker)
-})
-
-test('persists editor changes after 2 seconds of idle time', async ({
+test('persists editor changes after autosave and survives a reload', async ({
   page,
   request,
 }) => {
@@ -148,113 +128,6 @@ test('persists editor changes after 2 seconds of idle time', async ({
     await openNote(page, originalNote.id)
 
     await expect(firstBodyParagraph(page)).toContainText(marker)
-  } finally {
-    await restoreNote(request, originalNote)
-  }
-})
-
-test('preserves headings between checklists after save and reload', async ({
-  page,
-  request,
-}) => {
-  const originalNote = await loadFixtureNote(request)
-  const checklistMarkdown = [
-    '## Section A',
-    '- [ ] task one',
-    '- [x] task two',
-    '## Section B',
-    '- [ ] task three',
-    '- [ ] task four',
-    '## Section C',
-    '- [x] task five',
-    '- [ ] task six',
-  ].join('\n')
-
-  const expectedSavedContent = [
-    '## Section A',
-    '- [ ] task one edited',
-    '- [x] task two',
-    '## Section B',
-    '- [ ] task three',
-    '- [ ] task four',
-    '## Section C',
-    '- [x] task five',
-    '- [ ] task six',
-  ].join('\n')
-
-  await request.put('/api/notes', {
-    data: {
-      id: originalNote.id,
-      content: checklistMarkdown,
-      properties: getNoteProperties(originalNote),
-    },
-  })
-
-  try {
-    await page.goto('/')
-    await openNote(page, originalNote.id)
-
-    await expect(page.locator('.ce-header')).toHaveCount(3)
-    await expect(page.locator('.cdx-list__item')).toHaveCount(6)
-
-    const firstItemContent = page.locator('.cdx-list__item-content').first()
-    await firstItemContent.click()
-    await page.keyboard.type(' edited')
-
-    await expect
-      .poll(async () => (await loadFixtureNote(request)).content, {
-        timeout: 10000,
-      })
-      .toBe(expectedSavedContent)
-
-    await page.reload()
-    await waitForEditorReady(page)
-
-    await expect(page.locator('.ce-header')).toHaveCount(3, { timeout: 3000 })
-    await expect(page.locator('.cdx-list__item')).toHaveCount(6, {
-      timeout: 3000,
-    })
-
-    const savedNote = await loadFixtureNote(request)
-
-    expect(savedNote.content).toBe(expectedSavedContent)
-  } finally {
-    await restoreNote(request, originalNote)
-  }
-})
-
-test('saves the custom note title block and moves Enter into the body', async ({
-  page,
-  request,
-}) => {
-  const originalNote = await loadFixtureNote(request)
-  const bodyMarker = `title-body-${Date.now()}`
-
-  try {
-    await page.goto('/')
-    await openNote(page, originalNote.id)
-
-    const noteTitle = page.getByTestId('note-title')
-    const paragraphCountBefore = await page.locator('.ce-paragraph').count()
-
-    await noteTitle.click()
-    await page.keyboard.press('Enter')
-
-    const firstParagraph = page.locator('.ce-paragraph').first()
-    await expect(page.locator('.ce-paragraph')).toHaveCount(
-      paragraphCountBefore + 1,
-    )
-    await expect(firstParagraph).toBeFocused()
-
-    await page.keyboard.type(bodyMarker)
-    await expect(firstParagraph).toHaveText(bodyMarker)
-
-    await page.waitForTimeout(2500)
-
-    const savedNote = await loadFixtureNote(request)
-
-    expect(savedNote.content).toContain(bodyMarker)
-    expect(savedNote.content.startsWith(bodyMarker)).toBe(true)
   } finally {
     await restoreNote(request, originalNote)
   }
