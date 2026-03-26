@@ -55,6 +55,33 @@ async function mockNotesApi(page: Page, initialNotes: Note[]): Promise<void> {
       return
     }
 
+    if (method === 'PATCH') {
+      const body = route.request().postDataJSON() as {
+        id: string
+        title: string
+      }
+      const noteIndex = notes.findIndex((note) => note.id === body.id)
+
+      expect(noteIndex).toBeGreaterThanOrEqual(0)
+
+      const renamedNote = createMockNote(
+        `${body.title}.md`,
+        notes[noteIndex]!.content,
+      )
+
+      notes = notes.map((note, index) =>
+        index === noteIndex ? renamedNote : note,
+      )
+
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify(renamedNote),
+      })
+
+      return
+    }
+
     await route.fallback()
   })
 }
@@ -124,4 +151,37 @@ test('creates and loads the first note when the list is empty', async ({
     'New Note',
   )
   await expect(noteTitle).toHaveText('New Note')
+})
+
+test('renames the selected note when the title loses focus', async ({
+  page,
+}) => {
+  await mockNotesApi(page, [
+    createMockNote('existing.md', '# Existing\n\nExisting content'),
+  ])
+
+  await page.goto('/')
+  await waitForEditorReady(page)
+
+  const noteTitle = page.getByTestId('note-title')
+
+  await noteTitle.evaluate((element) => {
+    const range = document.createRange()
+    const selection = window.getSelection()
+
+    range.selectNodeContents(element)
+    selection?.removeAllRanges()
+    selection?.addRange(range)
+    ;(element as HTMLElement).focus()
+  })
+  await page.keyboard.type('Renamed Note')
+  await page.locator('.ce-paragraph').first().click()
+
+  await expect(page.getByTestId('notes-list-item').first()).toHaveAttribute(
+    'data-note-id',
+    'Renamed Note.md',
+  )
+  await expect(page.getByTestId('notes-list-item-title').first()).toHaveText(
+    'Renamed Note',
+  )
 })

@@ -75,7 +75,6 @@ let isRepairingTitleBlock = false
 let lastRenderedContent = ''
 let lastRenderedTitle = ''
 let contentSyncTimeout: ReturnType<typeof setTimeout> | null = null
-let titleBlurListener: (() => void) | null = null
 
 function getDefaultExport(module: unknown): unknown {
   if (typeof module === 'object' && module !== null && 'default' in module) {
@@ -158,6 +157,18 @@ async function commitTitleChange(): Promise<void> {
   emit('title-change', titleText)
 }
 
+function handleHolderFocusout(event: FocusEvent): void {
+  if (!(event.target instanceof HTMLElement)) {
+    return
+  }
+
+  if (!event.target.closest('[data-note-title]')) {
+    return
+  }
+
+  void commitTitleChange()
+}
+
 function findNoteTitleIndex(): number {
   if (!editor) {
     return -1
@@ -229,29 +240,6 @@ async function handleEditorChange(): Promise<void> {
   }
 
   scheduleContentSync()
-}
-
-function attachTitleBlurListener(): void {
-  detachTitleBlurListener()
-
-  const titleElement =
-    holder.value?.querySelector<HTMLElement>('[data-note-title]')
-
-  if (!titleElement) {
-    return
-  }
-
-  const listener = () => {
-    void commitTitleChange()
-  }
-
-  titleElement.addEventListener('blur', listener)
-  titleBlurListener = () => titleElement.removeEventListener('blur', listener)
-}
-
-function detachTitleBlurListener(): void {
-  titleBlurListener?.()
-  titleBlurListener = null
 }
 
 async function focusTitle(): Promise<void> {
@@ -412,7 +400,7 @@ onMounted(async () => {
     })
 
     await editor.isReady
-    attachTitleBlurListener()
+    holder.value?.addEventListener('focusout', handleHolderFocusout)
 
     lastRenderedContent = props.content
     lastRenderedTitle = props.title
@@ -456,7 +444,7 @@ onBeforeUnmount(() => {
     contentSyncTimeout = null
   }
 
-  detachTitleBlurListener()
+  holder.value?.removeEventListener('focusout', handleHolderFocusout)
   editor?.destroy()
   editor = null
 })
