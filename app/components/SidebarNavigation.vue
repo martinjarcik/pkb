@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { Inbox } from 'lucide-vue-next'
+
 const { accentColor, selectedView, selectInbox } = useSidebarNavigation()
 </script>
 
@@ -9,7 +11,7 @@ const { accentColor, selectedView, selectInbox } = useSidebarNavigation()
   >
     <SidebarNavigationItem
       navigation-id="inbox"
-      icon="inbox"
+      :icon="Inbox"
       :label="$t('sidebarNavigation.inbox')"
       :selected="selectedView.kind === 'inbox'"
       :accent-color="accentColor"

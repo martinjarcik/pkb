@@ -1,15 +1,14 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, type Component } from 'vue'
 
 const props = defineProps<{
   navigationId: string
-  icon: string
+  icon: Component
   label: string
   selected: boolean
   accentColor: string
 }>()
 
-const iconName = computed(() => `lucide:${props.icon}`)
 const selectedStyle = computed(() =>
   props.selected ? { backgroundColor: props.accentColor } : undefined,
 )
@@ -27,9 +26,9 @@ const selectedStyle = computed(() =>
     }"
     :style="selectedStyle"
   >
-    <Icon
-      :name="iconName"
-      size="12"
+    <component
+      :is="icon"
+      :size="12"
       class="sidebar-navigation-item-icon"
       aria-hidden="true"
     />

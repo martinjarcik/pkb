@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
+import { Folder } from 'lucide-vue-next'
 
 const props = defineProps<{
   folderName: string
@@ -21,7 +22,7 @@ function handleClick(): void {
 <template>
   <SidebarNavigationItem
     :navigation-id="navigationId"
-    icon="folder"
+    :icon="Folder"
     :label="folderName"
     :selected="selected"
     :accent-color="accentColor"

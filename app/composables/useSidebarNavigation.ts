@@ -65,6 +65,7 @@ export function useSidebarNavigation() {
     'sidebarNavigation.foldersExpanded',
     () => true,
   )
+  const tagsExpanded = useState('sidebarNavigation.tagsExpanded', () => true)
   const explicitFolders = useState<string[]>(
     'sidebarNavigation.explicitFolders',
     () => [],
@@ -149,6 +150,10 @@ export function useSidebarNavigation() {
     foldersExpanded.value = !foldersExpanded.value
   }
 
+  function toggleTagsExpanded(): void {
+    tagsExpanded.value = !tagsExpanded.value
+  }
+
   async function createFolder(name: string): Promise<string | null> {
     const sanitized = sanitizeNoteTitleForFilename(name)
 
@@ -179,6 +184,7 @@ export function useSidebarNavigation() {
     accentColor,
     topLevelFolders,
     foldersExpanded,
+    tagsExpanded,
     allTags,
     selectedTags,
     visibleCatalogRows,
@@ -186,6 +192,7 @@ export function useSidebarNavigation() {
     selectInbox,
     selectFolder,
     toggleFoldersExpanded,
+    toggleTagsExpanded,
     createFolder,
     toggleTag,
   }

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue'
+import { ChevronDown, Plus } from 'lucide-vue-next'
 
 const { foldersExpanded, toggleFoldersExpanded, createFolder } =
   useSidebarNavigation()
@@ -47,32 +48,31 @@ function handleInputKeydown(event: KeyboardEvent): void {
 <template>
   <div
     data-testid="sidebar-folders-controls"
-    class="sidebar-folders-controls-shell group"
+    class="sidebar-section-controls-shell group"
   >
-    <span class="sidebar-folders-title">{{ $t('sidebarFolders.title') }}</span>
+    <span class="sidebar-section-title">{{ $t('sidebarFolders.title') }}</span>
 
-    <div class="sidebar-folders-controls-actions">
+    <div class="sidebar-section-controls-actions">
       <button
         type="button"
         :aria-label="$t('sidebarFolders.createFolder')"
         :title="$t('sidebarFolders.createFolder')"
-        class="sidebar-folders-control-button"
+        class="sidebar-section-control-button"
         data-testid="sidebar-folders-create"
         @click="openCreateDialog"
       >
-        <Icon name="lucide:plus" size="14" aria-hidden="true" />
+        <Plus :size="14" aria-hidden="true" />
       </button>
       <button
         type="button"
         :aria-label="$t('sidebarFolders.toggleFolders')"
         :title="$t('sidebarFolders.toggleFolders')"
-        class="sidebar-folders-control-button"
+        class="sidebar-section-control-button"
         data-testid="sidebar-folders-toggle"
         @click="toggleFoldersExpanded"
       >
-        <Icon
-          name="lucide:chevron-down"
-          size="14"
+        <ChevronDown
+          :size="14"
           aria-hidden="true"
           class="transition-transform"
           :class="{ '-rotate-90': !foldersExpanded }"

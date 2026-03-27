@@ -37,6 +37,10 @@
     "errorDuplicate": "A folder with this name already exists",
     "errorCreateFallback": "Failed to create folder"
   },
+  "sidebarTags": {
+    "title": "Tags",
+    "toggleTags": "Toggle tags"
+  },
   "editor": {
     "ui": {
       "add": "Add",

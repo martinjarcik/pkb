@@ -1,5 +1,5 @@
 <script setup lang="ts">
-const { allTags } = useSidebarNavigation()
+const { allTags, tagsExpanded } = useSidebarNavigation()
 </script>
 
 <template>
@@ -9,6 +9,6 @@ const { allTags } = useSidebarNavigation()
     class="sidebar-tags-shell flex flex-col"
   >
     <SidebarTagsControls />
-    <SidebarTagsList />
+    <SidebarTagsList v-if="tagsExpanded" />
   </section>
 </template>

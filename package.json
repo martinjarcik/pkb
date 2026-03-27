@@ -33,7 +33,6 @@
     "@editorjs/marker": "^1.4.0",
     "@editorjs/table": "^2.4.5",
     "@nuxt/fonts": "^0.14.0",
-    "@nuxt/icon": "^2.2.1",
     "@nuxtjs/color-mode": "^4.0.0",
     "@nuxtjs/i18n": "^10.2.3",
     "@vueuse/core": "^14.2.1",

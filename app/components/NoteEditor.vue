@@ -254,7 +254,7 @@ function handleHolderKeyup(event: KeyboardEvent): void {
 }
 
 async function renderMarkdownContent(markdown: string): Promise<void> {
-  if (!editor) {
+  if (!editor || isApplyingExternalContent) {
     return
   }
 
@@ -271,6 +271,7 @@ async function renderMarkdownContent(markdown: string): Promise<void> {
     lastRenderedContent = markdown
     lastRenderedTitle = props.title
   } finally {
+    await nextTick()
     isApplyingExternalContent = false
   }
 }
@@ -382,25 +383,38 @@ function repairMovedNoteTitleBlock(): boolean {
   return true
 }
 
+function isEditorBusy(): boolean {
+  return !editor || isApplyingExternalContent || isRepairingTitleBlock
+}
+
 async function handleEditorChange(): Promise<void> {
-  if (!editor || isApplyingExternalContent || isRepairingTitleBlock) {
+  if (isEditorBusy()) {
     return
   }
 
-  await editor.isReady
+  await editor!.isReady
+
+  if (isEditorBusy()) {
+    return
+  }
 
   if (repairMovedNoteTitleBlock()) {
     return
   }
 
-  const output = await editor.save()
+  const output = await editor!.save()
+
+  if (isEditorBusy()) {
+    return
+  }
+
   const normalizedBlocks = ensureNoteTitleBlock(output.blocks, props.title)
 
   if (!blocksMatch(output.blocks, normalizedBlocks)) {
     isRepairingTitleBlock = true
 
     try {
-      await editor.blocks.render({ blocks: normalizedBlocks })
+      await editor!.blocks.render({ blocks: normalizedBlocks })
     } finally {
       isRepairingTitleBlock = false
     }
@@ -452,6 +466,8 @@ onMounted(async () => {
 
     return
   }
+
+  isApplyingExternalContent = true
 
   try {
     const [
@@ -574,6 +590,8 @@ onMounted(async () => {
     })
 
     await editor.isReady
+    await nextTick()
+    isApplyingExternalContent = false
     holder.value?.addEventListener('focusout', handleHolderFocusout)
     holder.value?.addEventListener('keyup', handleHolderKeyup)
 
@@ -585,6 +603,7 @@ onMounted(async () => {
         ? error.message
         : translate('noteEditor.errorFallback')
   } finally {
+    isApplyingExternalContent = false
     isEditorLoading.value = false
   }
 })
@@ -621,6 +640,7 @@ onBeforeUnmount(() => {
 
   holder.value?.removeEventListener('focusout', handleHolderFocusout)
   holder.value?.removeEventListener('keyup', handleHolderKeyup)
+  isApplyingExternalContent = true
   editor?.destroy()
   editor = null
 })

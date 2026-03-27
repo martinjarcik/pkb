@@ -1,6 +1,8 @@
 export default defineNuxtConfig({
   srcDir: 'app',
 
+  devtools: { enabled: false },
+
   modules: [
     '@nuxtjs/tailwindcss',
     'shadcn-nuxt',
@@ -8,7 +10,6 @@ export default defineNuxtConfig({
     '@nuxtjs/color-mode',
     'nuxt-security',
     '@nuxtjs/i18n',
-    '@nuxt/icon',
     '@nuxt/fonts',
     '@nuxt/eslint',
   ],

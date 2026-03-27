@@ -76,7 +76,7 @@ test('hides action icons by default and shows them on hover', async ({
 
   await expect(controls).toBeVisible()
 
-  const actions = controls.locator('.sidebar-folders-controls-actions')
+  const actions = controls.locator('.sidebar-section-controls-actions')
 
   await expect(actions).toHaveCSS('opacity', '0')
 

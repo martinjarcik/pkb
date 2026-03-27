@@ -4,8 +4,11 @@ const { visibleCatalogRows, loadFolders } = useSidebarNavigation()
 
 onMounted(() => {
   void (async () => {
-    await Promise.all([loadNotes(), loadFolders()])
+    const loadFoldersPromise = loadFolders()
+
+    await loadNotes()
     await selectNoteById(visibleCatalogRows.value[0]?.id ?? null)
+    await loadFoldersPromise
   })()
 })
 </script>
