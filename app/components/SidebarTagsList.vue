@@ -1,5 +1,7 @@
 <script setup lang="ts">
-const { accentColor, allTags, selectedTags, toggleTag } = useSidebarNavigation()
+import { tagFilterState } from '~/composables/useSidebarNavigation'
+
+const { accentColor, allTags, selectedView, cycleTag } = useSidebarNavigation()
 </script>
 
 <template>
@@ -8,9 +10,9 @@ const { accentColor, allTags, selectedTags, toggleTag } = useSidebarNavigation()
       v-for="tag in allTags"
       :key="tag"
       :tag="tag"
-      :selected="selectedTags.includes(tag)"
+      :state="tagFilterState(selectedView, tag)"
       :accent-color="accentColor"
-      @click="toggleTag(tag)"
+      @click="cycleTag(tag)"
     />
   </div>
 </template>

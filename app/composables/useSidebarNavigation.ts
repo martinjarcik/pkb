@@ -9,10 +9,12 @@ import {
   vaultTopLevelFolderNames,
 } from '~/notes/noteFilters'
 
+export type TagFilterState = 'idle' | 'active' | 'pinned'
+
 export type SidebarWorkspaceView =
   | { kind: 'inbox' }
   | { kind: 'folder'; folderName: string }
-  | { kind: 'tags'; selectedTags: string[] }
+  | { kind: 'tags'; activeTags: string[]; pinnedTags: string[] }
 
 const defaultTheme = loadConfig().theme
 
@@ -43,6 +45,87 @@ export function filterCatalogBySelectedTags(
 
     return selectedTags.every((tag) => tags.includes(tag))
   })
+}
+
+export function tagFilterState(
+  view: SidebarWorkspaceView,
+  tag: string,
+): TagFilterState {
+  if (view.kind !== 'tags') {
+    return 'idle'
+  }
+
+  if (view.pinnedTags.includes(tag)) {
+    return 'pinned'
+  }
+
+  if (view.activeTags.includes(tag)) {
+    return 'active'
+  }
+
+  return 'idle'
+}
+
+export function cycleTagState(state: TagFilterState): TagFilterState {
+  if (state === 'idle') {
+    return 'active'
+  }
+
+  if (state === 'active') {
+    return 'pinned'
+  }
+
+  return 'idle'
+}
+
+export function selectedTagsFromView(view: SidebarWorkspaceView): string[] {
+  if (view.kind !== 'tags') {
+    return []
+  }
+
+  return [...view.activeTags, ...view.pinnedTags].sort((left, right) =>
+    left.localeCompare(right),
+  )
+}
+
+export function applyTagCycle(
+  view: SidebarWorkspaceView,
+  tag: string,
+): SidebarWorkspaceView | null {
+  const current = tagFilterState(view, tag)
+  const next = cycleTagState(current)
+  const pinned =
+    view.kind === 'tags' ? view.pinnedTags.filter((t) => t !== tag) : []
+
+  if (next === 'active') {
+    const nextView: SidebarWorkspaceView = {
+      kind: 'tags',
+      activeTags: [tag],
+      pinnedTags: pinned,
+    }
+
+    return nextView
+  }
+
+  if (next === 'pinned') {
+    const active =
+      view.kind === 'tags' ? view.activeTags.filter((t) => t !== tag) : []
+    const nextView: SidebarWorkspaceView = {
+      kind: 'tags',
+      activeTags: active,
+      pinnedTags: [...pinned, tag].sort((left, right) =>
+        left.localeCompare(right),
+      ),
+    }
+
+    return nextView
+  }
+
+  if (pinned.length === 0) {
+    return null
+  }
+
+  return { kind: 'tags', activeTags: [], pinnedTags: pinned }
 }
 
 export function mergeTopLevelFolders(
@@ -77,9 +160,7 @@ export function useSidebarNavigation() {
     mergeTopLevelFolders(catalogDerivedFolders.value, explicitFolders.value),
   )
   const allTags = computed(() => allTagsFromCatalog(catalog.value))
-  const selectedTags = computed(() =>
-    selectedView.value.kind === 'tags' ? selectedView.value.selectedTags : [],
-  )
+  const selectedTags = computed(() => selectedTagsFromView(selectedView.value))
 
   function filterCatalog(
     view: SidebarWorkspaceView,
@@ -89,7 +170,10 @@ export function useSidebarNavigation() {
     }
 
     if (view.kind === 'tags') {
-      return filterCatalogBySelectedTags(catalog.value, view.selectedTags)
+      return filterCatalogBySelectedTags(
+        catalog.value,
+        selectedTagsFromView(view),
+      )
     }
 
     return catalog.value.filter((row) =>
@@ -116,23 +200,19 @@ export function useSidebarNavigation() {
     await selectView({ kind: 'folder', folderName })
   }
 
-  async function toggleTag(tag: string): Promise<void> {
+  async function cycleTag(tag: string): Promise<void> {
     if (!allTags.value.includes(tag)) {
       return
     }
 
-    const nextSelectedTags = selectedTags.value.includes(tag)
-      ? selectedTags.value.filter((selectedTag) => selectedTag !== tag)
-      : [...selectedTags.value, tag].sort((left, right) =>
-          left.localeCompare(right),
-        )
+    const nextView = applyTagCycle(selectedView.value, tag)
 
-    if (nextSelectedTags.length === 0) {
+    if (!nextView) {
       await selectInbox()
       return
     }
 
-    await selectView({ kind: 'tags', selectedTags: nextSelectedTags })
+    await selectView(nextView)
   }
 
   async function loadFolders(): Promise<void> {
@@ -193,6 +273,6 @@ export function useSidebarNavigation() {
     toggleFoldersExpanded,
     toggleTagsExpanded,
     createFolder,
-    toggleTag,
+    cycleTag,
   }
 }

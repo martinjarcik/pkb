@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import { computed } from 'vue'
+import type { TagFilterState } from '~/composables/useSidebarNavigation'
 
 const props = defineProps<{
   tag: string
-  selected: boolean
+  state: TagFilterState
   accentColor: string
 }>()
 
@@ -11,8 +12,10 @@ const emit = defineEmits<{
   click: []
 }>()
 
-const selectedStyle = computed(() =>
-  props.selected ? { color: props.accentColor } : undefined,
+const isHighlighted = computed(() => props.state !== 'idle')
+
+const highlightStyle = computed(() =>
+  isHighlighted.value ? { color: props.accentColor } : undefined,
 )
 
 function handleClick(): void {
@@ -24,13 +27,14 @@ function handleClick(): void {
   <button
     type="button"
     :data-tag="tag"
-    :data-selected="selected ? 'true' : 'false'"
+    :data-state="state"
     data-testid="sidebar-tag-item"
     class="sidebar-tag-item-shell"
     :class="{
-      'sidebar-tag-item-selected': selected,
+      'sidebar-tag-item-selected': isHighlighted,
+      'sidebar-tag-item-pinned': state === 'pinned',
     }"
-    :style="selectedStyle"
+    :style="highlightStyle"
     @click="handleClick"
   >
     {{ `#${tag}` }}
