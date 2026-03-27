@@ -12,8 +12,12 @@
 - **SidebarTags** (inside SidebarPanel, below SidebarFoldersActions) — lists all
   available tags as clickable chips below a 30 px spacer.
 - **NotesListPanel** (left panel) — lists all notes, allows selecting one.
+  Notes with the `pinned` Application Property sort to the top of the current
+  sidebar view and use a light accent-tinted row background when not selected.
 - **NotePanel** (center) — hosts the main note area and fills the remaining
-  space.
+  space. `NoteControls` above the editor includes a pin toggle (alongside
+  favorite when enabled and delete): it sets the note’s `pinned` Application
+  Property; the active pin state uses `theme.accentColor`.
 - **InspectorPanel** (right panel) — shows and edits the selected note's properties.
 
 Default visibility of the sidebar, note list, and inspector is set in
@@ -40,16 +44,16 @@ selected folder creates it directly in that folder.
 
 ## Configuration
 
-| Key                         | Type    | Default       | Description                                        |
-| --------------------------- | ------- | ------------- | -------------------------------------------------- |
-| `applicationType`           | string  | `"desktop"`   | Application mode: `browser`, `desktop`, `cloud`    |
-| `locale`                    | string  | `"en"`        | Active application locale                          |
-| `vault`                     | string  | `"./vault"`   | Path to the vault directory for desktop storage    |
-| `editor.autosaveDelay`      | number  | `2000`        | Milliseconds of idle time before content autosaves |
-| `layout.showInspectorPanel` | boolean | `true`        | Show the InspectorPanel                            |
-| `layout.showSidebarPanel`   | boolean | `true`        | Show the SidebarPanel                              |
-| `layout.showNotesListPanel` | boolean | `true`        | Show the NotesListPanel                            |
-| `theme.accentColor`         | string  | `"#3f57dfff"` | Accent color used for the selected Inbox item      |
+| Key                         | Type    | Default       | Description                                                    |
+| --------------------------- | ------- | ------------- | -------------------------------------------------------------- |
+| `applicationType`           | string  | `"desktop"`   | Application mode: `browser`, `desktop`, `cloud`                |
+| `locale`                    | string  | `"en"`        | Active application locale                                      |
+| `vault`                     | string  | `"./vault"`   | Path to the vault directory for desktop storage                |
+| `editor.autosaveDelay`      | number  | `2000`        | Milliseconds of idle time before content autosaves             |
+| `layout.showInspectorPanel` | boolean | `true`        | Show the InspectorPanel                                        |
+| `layout.showSidebarPanel`   | boolean | `true`        | Show the SidebarPanel                                          |
+| `layout.showNotesListPanel` | boolean | `true`        | Show the NotesListPanel                                        |
+| `theme.accentColor`         | string  | `"#3f57dfff"` | Accent color for selected nav, pinned note icon, and list tint |
 
 ## Features
 

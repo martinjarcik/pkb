@@ -1,7 +1,7 @@
 import { readFile } from 'node:fs/promises'
-import { resolve } from 'node:path'
 import yaml from 'yaml'
 import type { StorageConfig } from '~/storage/router'
+import { getDefaultConfigPath, getUserConfigPath } from './appConfigPath'
 
 export type ServerLoadedConfig = StorageConfig & {
   trashRetentionDays: number
@@ -34,11 +34,16 @@ function parseTrashRetentionDays(parsed: Record<string, unknown>): number {
   return days
 }
 
+async function readRawConfig(): Promise<string> {
+  try {
+    return await readFile(getUserConfigPath(), 'utf-8')
+  } catch {
+    return await readFile(getDefaultConfigPath(), 'utf-8')
+  }
+}
+
 export async function loadServerConfig(): Promise<ServerLoadedConfig> {
-  const rawConfig = await readFile(
-    resolve(process.cwd(), 'app/config/default.yaml'),
-    'utf-8',
-  )
+  const rawConfig = await readRawConfig()
   const parsed = yaml.parse(rawConfig) as Record<string, unknown> | null
 
   if (typeof parsed !== 'object' || parsed === null) {

@@ -13,7 +13,14 @@
     "placeholder": "Note title"
   },
   "notesListActions": {
-    "createNote": "Create note"
+    "createNote": "Create note",
+    "openLayoutMenu": "Layout options"
+  },
+  "layoutMenu": {
+    "hideSidebar": "Hide Sidebar",
+    "showSidebar": "Show Sidebar",
+    "hideInspector": "Hide Inspector",
+    "showInspector": "Show Inspector"
   },
   "notes": {
     "newNoteTitle": "New Note",

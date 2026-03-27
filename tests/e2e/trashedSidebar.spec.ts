@@ -38,22 +38,31 @@ test('dragging a trashed note to Inbox restores it to the inbox list', async ({
   page,
 }) => {
   await mockNotesApi(page, [
-    createMockNote('Trashed.md', '# T', '2026-03-26T12:00:00.000Z', {
-      hasTasks: false,
-      trashedAt: '2026-03-20T12:00:00.000Z',
-    }),
+    createMockNote(
+      'E2E-Trashed-Drag-Restore.md',
+      '# T',
+      '2026-03-26T12:00:00.000Z',
+      {
+        hasTasks: false,
+        trashedAt: '2026-03-20T12:00:00.000Z',
+      },
+    ),
   ])
 
   await page.goto('/')
   await waitForNotesList(page)
   await page.locator('[data-navigation-id="trashed"]').click()
-  await expect(page.locator('[data-note-id="Trashed.md"]')).toBeVisible()
+  await expect(
+    page.locator('[data-note-id="E2E-Trashed-Drag-Restore.md"]'),
+  ).toBeVisible()
 
-  const noteRow = page.locator('[data-note-id="Trashed.md"]')
+  const noteRow = page.locator('[data-note-id="E2E-Trashed-Drag-Restore.md"]')
   const inboxNav = page.locator('[data-navigation-id="inbox"]').first()
 
   await noteRow.dragTo(inboxNav)
 
   await page.locator('[data-navigation-id="inbox"]').click()
-  await expect(page.locator('[data-note-id="Trashed.md"]')).toBeVisible()
+  await expect(
+    page.locator('[data-note-id="E2E-Trashed-Drag-Restore.md"]'),
+  ).toBeVisible()
 })

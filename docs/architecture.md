@@ -101,7 +101,8 @@ preview slice used by the notes list, capped at 1024 UTF-8 bytes.
   - `NotesList` (`app/components/NotesList.vue`) — scrollable note list.
 - `NotePanel` (`app/components/NotePanel.vue`) — active note region.
   - `NoteControls` (`app/components/NoteControls.vue`) — note toolbar region
-    with note-scoped actions (for example favorite toggle when enabled, delete).
+    with note-scoped actions (for example favorite toggle when enabled, pin
+    toggle, delete).
   - `NoteView` (`app/components/NoteView.vue`) — bounded note display and
     editing region.
     - `NoteTemplate` — template (Liquid) output wrapper.
@@ -165,7 +166,9 @@ New contexts may be introduced when corresponding features are specified.
   filter across the whole catalog to notes whose `tags` Property contains all
   active and pinned Tags (AND logic). Each Tag has a tri-state filter cycle
   (idle -> active -> pinned -> idle): at most one Tag can be active; pinned
-  Tags survive further clicks.
+  Tags survive further clicks. For any sidebar view, the visible notes list
+  orders rows with the `pinned` Application Property `true` first, then by
+  `modifiedAt` descending among pinned and among non-pinned groups.
 - Renaming a note title changes the note `id` by replacing its basename with the
   edited title plus `.md`, while keeping the parent folder unchanged. On
   collisions, storage selects a unique suffixed filename.

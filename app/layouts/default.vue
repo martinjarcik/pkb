@@ -4,9 +4,12 @@ const { showInspectorPanel, showSidebarPanel, showNotesListPanel } = useLayout()
 
 <template>
   <div class="flex h-screen overflow-hidden text-foreground">
-    <SidebarPanel v-if="showSidebarPanel" class="app-shell-sidebar shrink-0" />
+    <SidebarPanel
+      v-show="showSidebarPanel"
+      class="app-shell-sidebar shrink-0"
+    />
     <NotesListPanel
-      v-if="showNotesListPanel"
+      v-show="showNotesListPanel"
       class="app-shell-notes-list shrink-0"
     />
 
@@ -15,7 +18,7 @@ const { showInspectorPanel, showSidebarPanel, showNotesListPanel } = useLayout()
     </div>
 
     <InspectorPanel
-      v-if="showInspectorPanel"
+      v-show="showInspectorPanel"
       class="app-shell-inspector shrink-0"
     />
   </div>

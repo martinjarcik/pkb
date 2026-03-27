@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+- Add note pinning: `pinned` Application Property under `app` frontmatter, pin
+  control in `NoteControls` (accent when pinned, `Pin` / `PinOff` icons), pinned
+  notes sorted to the top of each sidebar view’s list with a 5% accent row
+  background when not selected.
 - Add a `Tasks` sidebar view that shows notes with unfinished checklist items,
   compute `hasTasks` on save from unchecked markdown task list entries, and
   persist Application Properties under the `app` frontmatter namespace.

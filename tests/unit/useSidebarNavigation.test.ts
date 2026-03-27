@@ -8,7 +8,9 @@ import {
   filterCatalogBySelectedTags,
   filterCatalogForSidebarView,
   mergeTopLevelFolders,
+  orderedCatalogRowsForSidebarView,
   selectedTagsFromView,
+  sortCatalogRowsPinnedFirstByModifiedAt,
   type SidebarWorkspaceView,
 } from '~/composables/useSidebarNavigation'
 
@@ -269,6 +271,67 @@ describe('filterCatalogForSidebarView', () => {
     expect(
       filterCatalogForSidebarView(rows, { kind: 'favorites' }),
     ).toHaveLength(0)
+  })
+})
+
+describe('sortCatalogRowsPinnedFirstByModifiedAt', () => {
+  it('orders pinned notes before non-pinned notes', () => {
+    const rows = [
+      {
+        ...createCatalogRow('newer.md', []),
+        modifiedAt: '2026-03-26T12:00:00.000Z',
+      },
+      {
+        ...createCatalogRow('pinned-older.md', []),
+        modifiedAt: '2026-03-20T12:00:00.000Z',
+        pinned: true,
+      },
+    ]
+
+    expect(
+      sortCatalogRowsPinnedFirstByModifiedAt(rows).map((r) => r.id),
+    ).toEqual(['pinned-older.md', 'newer.md'])
+  })
+
+  it('orders multiple pinned notes by modifiedAt descending', () => {
+    const rows = [
+      {
+        ...createCatalogRow('p-old.md', []),
+        modifiedAt: '2026-03-20T12:00:00.000Z',
+        pinned: true,
+      },
+      {
+        ...createCatalogRow('p-new.md', []),
+        modifiedAt: '2026-03-26T12:00:00.000Z',
+        pinned: true,
+      },
+    ]
+
+    expect(
+      sortCatalogRowsPinnedFirstByModifiedAt(rows).map((r) => r.id),
+    ).toEqual(['p-new.md', 'p-old.md'])
+  })
+})
+
+describe('orderedCatalogRowsForSidebarView', () => {
+  it('applies inbox filter then pinned-first ordering', () => {
+    const rows = [
+      {
+        ...createCatalogRow('inbox-newer.md', []),
+        modifiedAt: '2026-03-26T12:00:00.000Z',
+      },
+      {
+        ...createCatalogRow('inbox-pinned.md', []),
+        modifiedAt: '2026-03-20T12:00:00.000Z',
+        pinned: true,
+      },
+    ]
+
+    expect(
+      orderedCatalogRowsForSidebarView(rows, { kind: 'inbox' }).map(
+        (r) => r.id,
+      ),
+    ).toEqual(['inbox-pinned.md', 'inbox-newer.md'])
   })
 })
 

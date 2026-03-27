@@ -24,5 +24,8 @@ drafts/
 vault/*
 !vault/.gitkeep
 
+# Runtime user config
+data/
+
 # Coverage
 coverage/

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { filterCatalogForSidebarView } from '~/composables/useSidebarNavigation'
+import { orderedCatalogRowsForSidebarView } from '~/composables/useSidebarNavigation'
 
 const { loadNotes, notes, selectNoteById } = useNotes()
 const { loadFolders } = useSidebarNavigation()
@@ -10,7 +10,7 @@ onMounted(() => {
 
     await loadNotes()
     await selectNoteById(
-      filterCatalogForSidebarView(notes.value, { kind: 'inbox' })[0]?.id ??
+      orderedCatalogRowsForSidebarView(notes.value, { kind: 'inbox' })[0]?.id ??
         null,
     )
     await loadFoldersPromise

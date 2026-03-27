@@ -118,4 +118,22 @@ describe('parseDocument', () => {
       content: '# Body',
     })
   })
+
+  it('round-trips pinned under app', () => {
+    const document = serializeDocument(
+      {
+        hasTasks: false,
+        pinned: true,
+      },
+      '# Body',
+    )
+
+    expect(parseDocument(document)).toEqual({
+      properties: {
+        hasTasks: false,
+        pinned: true,
+      },
+      content: '# Body',
+    })
+  })
 })

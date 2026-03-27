@@ -7,6 +7,7 @@ type NotesListItem = {
   title: string
   description: string
   meta: string
+  pinned: boolean
 }
 
 let dragPreview: HTMLElement | null = null
@@ -18,6 +19,7 @@ function toListItem(row: NoteCatalogRow): NotesListItem {
     title: row.title,
     description: row.description,
     meta: row.modifiedAt.slice(0, 10),
+    pinned: row.pinned === true,
   }
 }
 
@@ -78,16 +80,22 @@ function handleDragEnd(event: DragEvent): void {
   dragPreview = null
 }
 
-function getItemStyle(
-  isSelected: boolean,
+function getRowStyle(
+  itemId: string,
+  pinned: boolean,
 ): { [key: string]: string } | undefined {
-  if (!isSelected) {
-    return undefined
+  const isSelected = itemId === selectedNoteId.value
+  const style: { [key: string]: string } = {}
+
+  if (isSelected) {
+    style['--notes-list-item-selected-border-color'] = accentColor.value
   }
 
-  return {
-    '--notes-list-item-selected-border-color': accentColor.value,
+  if (pinned && !isSelected) {
+    style.backgroundColor = `color-mix(in srgb, ${accentColor.value} 5%, transparent)`
   }
+
+  return Object.keys(style).length > 0 ? style : undefined
 }
 </script>
 
@@ -116,13 +124,15 @@ function getItemStyle(
         type="button"
         :data-note-id="item.id"
         :data-selected="item.id === selectedNoteId ? 'true' : 'false'"
+        :data-pinned="item.pinned ? 'true' : 'false'"
         data-testid="notes-list-item"
         class="notes-list-item"
         draggable="true"
         :class="{
           'notes-list-item-selected': item.id === selectedNoteId,
+          'notes-list-item-pinned': item.pinned,
         }"
-        :style="getItemStyle(item.id === selectedNoteId)"
+        :style="getRowStyle(item.id, item.pinned)"
         @click="handleSelectNote(item.id)"
         @dragstart="handleDragStart($event, item.id)"
         @dragend="handleDragEnd"

@@ -1,15 +1,20 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { Star, Trash2 } from 'lucide-vue-next'
+import { Pin, PinOff, Star, Trash2 } from 'lucide-vue-next'
 import { loadConfig } from '~/config/loader'
 
-const { selectedNote, deleteSelectedNote, toggleFavoriteSelectedNote } =
-  useNotes()
+const {
+  selectedNote,
+  deleteSelectedNote,
+  toggleFavoriteSelectedNote,
+  togglePinnedSelectedNote,
+} = useNotes()
 const { visibleCatalogRows, accentColor } = useSidebarNavigation()
 
 const favoritesEnabled = loadConfig().features.favorites
 
 const isFavorite = computed(() => selectedNote.value?.favorite === true)
+const isPinned = computed(() => selectedNote.value?.pinned === true)
 
 function handleDelete(): void {
   deleteSelectedNote(visibleCatalogRows.value.map((row) => row.id))
@@ -17,6 +22,10 @@ function handleDelete(): void {
 
 async function handleFavoriteClick(): Promise<void> {
   await toggleFavoriteSelectedNote()
+}
+
+async function handlePinClick(): Promise<void> {
+  await togglePinnedSelectedNote()
 }
 </script>
 
@@ -35,6 +44,18 @@ async function handleFavoriteClick(): Promise<void> {
       @click="handleFavoriteClick"
     >
       <Star :size="16" fill="none" />
+    </button>
+    <button
+      v-if="selectedNote"
+      type="button"
+      data-testid="note-pin"
+      class="flex items-center justify-center hover:opacity-90"
+      :class="isPinned ? '' : 'text-muted-foreground hover:text-foreground'"
+      :style="isPinned ? { color: accentColor } : undefined"
+      @click="handlePinClick"
+    >
+      <Pin v-if="isPinned" :size="16" />
+      <PinOff v-else :size="16" />
     </button>
     <button
       v-if="selectedNote"

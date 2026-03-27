@@ -1,8 +1,73 @@
 <script setup lang="ts">
-import { selectedTagsFromView } from '~/composables/useSidebarNavigation'
+import { ref, type CSSProperties } from 'vue'
+import { useEventListener } from '@vueuse/core'
+import { MoreVertical } from 'lucide-vue-next'
 
 const { createNote } = useNotes()
 const { selectedView } = useSidebarNavigation()
+const {
+  showInspectorPanel,
+  showSidebarPanel,
+  toggleInspectorPanel,
+  toggleSidebarPanel,
+} = useLayout()
+
+const layoutMenuOpen = ref(false)
+const layoutMenuTriggerRef = ref<HTMLElement | null>(null)
+const layoutMenuPanelRef = ref<HTMLElement | null>(null)
+const layoutMenuPositionStyle = ref<CSSProperties>({})
+
+function closeLayoutMenuOnOutsidePointer(event: PointerEvent): void {
+  if (!layoutMenuOpen.value) {
+    return
+  }
+
+  const target = event.target as Node | null
+
+  if (target === null) {
+    return
+  }
+
+  if (layoutMenuTriggerRef.value?.contains(target)) {
+    return
+  }
+
+  if (layoutMenuPanelRef.value?.contains(target)) {
+    return
+  }
+
+  layoutMenuOpen.value = false
+}
+
+function closeLayoutMenuOnEscape(event: KeyboardEvent): void {
+  if (layoutMenuOpen.value && event.key === 'Escape') {
+    layoutMenuOpen.value = false
+    layoutMenuTriggerRef.value?.focus()
+  }
+}
+
+if (import.meta.client) {
+  useEventListener(document, 'pointerdown', closeLayoutMenuOnOutsidePointer, {
+    capture: true,
+  })
+  useEventListener(document, 'keydown', closeLayoutMenuOnEscape)
+}
+
+function toggleLayoutMenu(): void {
+  const next = !layoutMenuOpen.value
+
+  if (next && layoutMenuTriggerRef.value) {
+    const r = layoutMenuTriggerRef.value.getBoundingClientRect()
+    layoutMenuPositionStyle.value = {
+      position: 'fixed',
+      top: `${Math.round(r.bottom + 4)}px`,
+      right: `${Math.round(window.innerWidth - r.right)}px`,
+      zIndex: 200,
+    }
+  }
+
+  layoutMenuOpen.value = next
+}
 
 async function handleCreateNote(): Promise<void> {
   const view = selectedView.value
@@ -12,12 +77,22 @@ async function handleCreateNote(): Promise<void> {
 
   await createNote(parentPath, initialProperties)
 }
+
+function handleToggleSidebar(): void {
+  toggleSidebarPanel()
+  layoutMenuOpen.value = false
+}
+
+function handleToggleInspector(): void {
+  toggleInspectorPanel()
+  layoutMenuOpen.value = false
+}
 </script>
 
 <template>
   <div
     data-testid="notes-list-actions"
-    class="notes-list-actions-shell flex items-center"
+    class="notes-list-actions-shell flex items-center gap-1"
   >
     <button
       :aria-label="$t('notesListActions.createNote')"
@@ -40,5 +115,55 @@ async function handleCreateNote(): Promise<void> {
         />
       </svg>
     </button>
+
+    <div class="relative">
+      <button
+        ref="layoutMenuTriggerRef"
+        :aria-expanded="layoutMenuOpen"
+        :aria-label="$t('notesListActions.openLayoutMenu')"
+        :title="$t('notesListActions.openLayoutMenu')"
+        class="inline-flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        type="button"
+        @click="toggleLayoutMenu"
+      >
+        <MoreVertical class="h-4 w-4" aria-hidden="true" />
+      </button>
+      <Teleport to="body">
+        <div
+          v-if="layoutMenuOpen"
+          ref="layoutMenuPanelRef"
+          class="min-w-[12rem] rounded-md border border-border bg-popover p-1 text-popover-foreground shadow-md outline-none"
+          role="menu"
+          :style="layoutMenuPositionStyle"
+        >
+          <div class="flex flex-col gap-0.5">
+            <button
+              class="w-full rounded-sm px-2 py-1.5 text-left text-sm transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              role="menuitem"
+              type="button"
+              @click="handleToggleSidebar"
+            >
+              {{
+                showSidebarPanel
+                  ? $t('layoutMenu.hideSidebar')
+                  : $t('layoutMenu.showSidebar')
+              }}
+            </button>
+            <button
+              class="w-full rounded-sm px-2 py-1.5 text-left text-sm transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              role="menuitem"
+              type="button"
+              @click="handleToggleInspector"
+            >
+              {{
+                showInspectorPanel
+                  ? $t('layoutMenu.hideInspector')
+                  : $t('layoutMenu.showInspector')
+              }}
+            </button>
+          </div>
+        </div>
+      </Teleport>
+    </div>
   </div>
 </template>

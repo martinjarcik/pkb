@@ -194,6 +194,30 @@ export function filterCatalogForSidebarView(
   )
 }
 
+export function sortCatalogRowsPinnedFirstByModifiedAt(
+  rows: readonly NoteCatalogRow[],
+): NoteCatalogRow[] {
+  return [...rows].sort((a, b) => {
+    const pinnedA = a.pinned === true ? 1 : 0
+    const pinnedB = b.pinned === true ? 1 : 0
+
+    if (pinnedA !== pinnedB) {
+      return pinnedB - pinnedA
+    }
+
+    return new Date(b.modifiedAt).getTime() - new Date(a.modifiedAt).getTime()
+  })
+}
+
+export function orderedCatalogRowsForSidebarView(
+  rows: readonly NoteCatalogRow[],
+  view: SidebarWorkspaceView,
+): NoteCatalogRow[] {
+  return sortCatalogRowsPinnedFirstByModifiedAt(
+    filterCatalogForSidebarView(rows, view),
+  )
+}
+
 export function useSidebarNavigation() {
   const { catalog, selectNoteById } = useNotes()
   const selectedView = useState<SidebarWorkspaceView>(
@@ -220,13 +244,13 @@ export function useSidebarNavigation() {
   const selectedTags = computed(() => selectedTagsFromView(selectedView.value))
 
   const visibleCatalogRows = computed(() =>
-    filterCatalogForSidebarView(catalog.value, selectedView.value),
+    orderedCatalogRowsForSidebarView(catalog.value, selectedView.value),
   )
 
   async function selectView(view: SidebarWorkspaceView): Promise<void> {
     selectedView.value = view
     await selectNoteById(
-      filterCatalogForSidebarView(catalog.value, view)[0]?.id ?? null,
+      orderedCatalogRowsForSidebarView(catalog.value, view)[0]?.id ?? null,
     )
   }
 

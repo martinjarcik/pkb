@@ -1,21 +1,16 @@
 applicationType: desktop
 locale: en
 vault: ./vault
-
 features:
   favorites: true
   tasks: true
-
 notes:
   trashRetentionDays: 30
-
 editor:
   autosaveDelay: 2000
-
 layout:
   showInspectorPanel: true
   showSidebarPanel: true
   showNotesListPanel: true
-
 theme:
   accentColor: '#3f57dfff'

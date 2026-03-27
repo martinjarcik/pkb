@@ -13,6 +13,7 @@ export const APPLICATION_PROPERTY_KEYS = [
   'hasTasks',
   'trashedAt',
   'favorite',
+  'pinned',
 ] as const
 
 export type ApplicationPropertyKey = (typeof APPLICATION_PROPERTY_KEYS)[number]
