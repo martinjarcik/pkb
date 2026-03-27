@@ -3,6 +3,7 @@ import type { NoteCatalogRow } from '~/notes/types'
 import {
   allTagsFromCatalog,
   filterCatalogBySelectedTags,
+  mergeTopLevelFolders,
 } from '~/composables/useSidebarNavigation'
 
 function createCatalogRow(id: string, tags: unknown): NoteCatalogRow {
@@ -50,5 +51,26 @@ describe('filterCatalogBySelectedTags', () => {
         (row) => row.id,
       ),
     ).toEqual(['a.md'])
+  })
+})
+
+describe('mergeTopLevelFolders', () => {
+  it('returns sorted union of catalog-derived and explicit folders', () => {
+    expect(mergeTopLevelFolders(['Work', 'Travel'], ['Projects'])).toEqual([
+      'Projects',
+      'Travel',
+      'Work',
+    ])
+  })
+
+  it('deduplicates folders that appear in both sources', () => {
+    expect(mergeTopLevelFolders(['Work'], ['Work', 'Home'])).toEqual([
+      'Home',
+      'Work',
+    ])
+  })
+
+  it('returns empty array when both sources are empty', () => {
+    expect(mergeTopLevelFolders([], [])).toEqual([])
   })
 })

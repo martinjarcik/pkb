@@ -414,4 +414,25 @@ describe('browserStorage', () => {
 
     expect(renamed.id).toBe('notes/first (2).md')
   })
+
+  it('persists an explicit folder name in localStorage', async () => {
+    await browserStorage.createFolder('Projects')
+
+    const stored = JSON.parse(
+      localStorage.getItem('folders') ?? '[]',
+    ) as string[]
+
+    expect(stored).toEqual(['Projects'])
+  })
+
+  it('does not duplicate an already-stored folder name', async () => {
+    await browserStorage.createFolder('Projects')
+    await browserStorage.createFolder('Projects')
+
+    const stored = JSON.parse(
+      localStorage.getItem('folders') ?? '[]',
+    ) as string[]
+
+    expect(stored).toEqual(['Projects'])
+  })
 })

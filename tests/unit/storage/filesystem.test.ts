@@ -1,4 +1,4 @@
-import { readFile, writeFile, mkdtemp, rm, utimes } from 'fs/promises'
+import { readFile, writeFile, mkdtemp, rm, stat, utimes } from 'fs/promises'
 import { join } from 'path'
 import { tmpdir } from 'os'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
@@ -289,6 +289,25 @@ describe('filesystemStorage', () => {
   it('rejects deleting with an absolute-path note ID', async () => {
     await expect(storage.deleteNote('/tmp/evil.md')).rejects.toThrow(
       'Note ID resolves outside the vault: /tmp/evil.md',
+    )
+  })
+
+  it('creates a folder as a directory inside the vault', async () => {
+    await storage.createFolder('Projects')
+
+    const folderStat = await stat(join(vaultPath, 'Projects'))
+
+    expect(folderStat.isDirectory()).toBe(true)
+  })
+
+  it('does not throw when creating a folder that already exists', async () => {
+    await storage.createFolder('Existing')
+    await expect(storage.createFolder('Existing')).resolves.toBeUndefined()
+  })
+
+  it('rejects creating a folder with a path-traversal name', async () => {
+    await expect(storage.createFolder('../escape')).rejects.toThrow(
+      'Note ID resolves outside the vault: ../escape',
     )
   })
 })
