@@ -1,10 +1,10 @@
 <script setup lang="ts">
 const { loadNotes, selectNoteById } = useNotes()
-const { visibleCatalogRows } = useSidebarNavigation()
+const { visibleCatalogRows, loadFolders } = useSidebarNavigation()
 
 onMounted(() => {
   void (async () => {
-    await loadNotes()
+    await Promise.all([loadNotes(), loadFolders()])
     await selectNoteById(visibleCatalogRows.value[0]?.id ?? null)
   })()
 })

@@ -1252,7 +1252,8 @@
                           "iconFontName": "folder",
                           "fill": "#444444",
                           "x": 10,
-                          "y": 9
+                          "y": 9,
+                          "name": "folder icon"
                         },
                         "5rc5Q": {
                           "fill": "#444444",

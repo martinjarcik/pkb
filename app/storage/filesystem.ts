@@ -164,6 +164,16 @@ export function createFilesystemStorage(vaultPath: string): NoteStorage {
       )
     },
 
+    async loadFolders(): Promise<string[]> {
+      const normalizedVault = resolve(vaultPath)
+      const entries = await readdir(normalizedVault, { withFileTypes: true })
+
+      return entries
+        .filter((entry) => entry.isDirectory())
+        .map((entry) => entry.name)
+        .sort((left, right) => left.localeCompare(right))
+    },
+
     async loadNoteById(id: string): Promise<Note | null> {
       const filePath = assertSafeId(vaultPath, id)
 

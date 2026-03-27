@@ -135,6 +135,16 @@ export function useSidebarNavigation() {
     await selectView({ kind: 'tags', selectedTags: nextSelectedTags })
   }
 
+  async function loadFolders(): Promise<void> {
+    try {
+      const folders = await globalThis.$fetch<string[]>('/api/folders')
+
+      explicitFolders.value = folders
+    } catch {
+      // Non-critical; catalog-derived folders still work.
+    }
+  }
+
   function toggleFoldersExpanded(): void {
     foldersExpanded.value = !foldersExpanded.value
   }
@@ -172,6 +182,7 @@ export function useSidebarNavigation() {
     allTags,
     selectedTags,
     visibleCatalogRows,
+    loadFolders,
     selectInbox,
     selectFolder,
     toggleFoldersExpanded,

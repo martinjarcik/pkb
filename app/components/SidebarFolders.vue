@@ -4,11 +4,12 @@ const { topLevelFolders, foldersExpanded } = useSidebarNavigation()
 
 <template>
   <section
-    v-if="topLevelFolders.length > 0"
     data-testid="sidebar-folders"
     class="sidebar-folders-shell flex flex-col"
   >
     <SidebarFoldersControls />
-    <SidebarFoldersActions v-if="foldersExpanded" />
+    <SidebarFoldersActions
+      v-if="foldersExpanded && topLevelFolders.length > 0"
+    />
   </section>
 </template>

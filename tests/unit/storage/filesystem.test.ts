@@ -310,4 +310,19 @@ describe('filesystemStorage', () => {
       'Note ID resolves outside the vault: ../escape',
     )
   })
+
+  it('loads top-level folder names from the vault', async () => {
+    await storage.createFolder('Work')
+    await storage.createFolder('Personal')
+
+    const folders = await storage.loadFolders()
+
+    expect(folders).toEqual(['Personal', 'Work'])
+  })
+
+  it('returns an empty array when no folders exist', async () => {
+    const folders = await storage.loadFolders()
+
+    expect(folders).toEqual([])
+  })
 })

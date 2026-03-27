@@ -435,4 +435,19 @@ describe('browserStorage', () => {
 
     expect(stored).toEqual(['Projects'])
   })
+
+  it('loads stored folder names in sorted order', async () => {
+    await browserStorage.createFolder('Work')
+    await browserStorage.createFolder('Personal')
+
+    const folders = await browserStorage.loadFolders()
+
+    expect(folders).toEqual(['Personal', 'Work'])
+  })
+
+  it('returns an empty array when no folders are stored', async () => {
+    const folders = await browserStorage.loadFolders()
+
+    expect(folders).toEqual([])
+  })
 })

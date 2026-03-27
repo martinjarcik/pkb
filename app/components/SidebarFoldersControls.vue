@@ -1,20 +1,10 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '~/components/ui/dialog'
-import { Button } from '~/components/ui/button'
-import { Input } from '~/components/ui/input'
 
 const { foldersExpanded, toggleFoldersExpanded, createFolder } =
   useSidebarNavigation()
 
-const showCreateDialog = ref(false)
+const showCreateDialog = useState('createFolderDialog', () => false)
 const folderNameInput = ref('')
 const createError = ref<string | null>(null)
 const isCreating = ref(false)
@@ -90,14 +80,7 @@ function handleInputKeydown(event: KeyboardEvent): void {
       </button>
     </div>
 
-    <Dialog
-      :open="showCreateDialog"
-      @update:open="
-        (v: boolean) => {
-          if (!v) closeCreateDialog()
-        }
-      "
-    >
+    <Dialog v-model:open="showCreateDialog">
       <DialogContent class="sm:max-w-[400px]">
         <DialogHeader>
           <DialogTitle>{{ $t('sidebarFolders.createFolder') }}</DialogTitle>

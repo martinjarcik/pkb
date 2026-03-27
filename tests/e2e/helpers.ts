@@ -40,6 +40,19 @@ export async function mockNotesApi(
 ): Promise<void> {
   let notes = [...initialNotes]
 
+  await page.route('**/api/folders', async (route: Route) => {
+    if (route.request().method() === 'GET') {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify([]),
+      })
+      return
+    }
+
+    await route.fallback()
+  })
+
   await page.route('**/api/notes/**', async (route: Route) => {
     if (route.request().method() !== 'GET') {
       await route.fallback()

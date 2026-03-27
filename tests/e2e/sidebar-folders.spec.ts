@@ -3,11 +3,23 @@ import { createMockNote, mockNotesApi } from './helpers'
 
 async function mockFoldersApi(
   page: Page,
+  initialFolders: string[] = [],
 ): Promise<{ createdFolders: string[] }> {
-  const state = { createdFolders: [] as string[] }
+  const state = { createdFolders: [...initialFolders] }
 
   await page.route('**/api/folders', async (route: Route) => {
-    if (route.request().method() === 'POST') {
+    const method = route.request().method()
+
+    if (method === 'GET') {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify(state.createdFolders),
+      })
+      return
+    }
+
+    if (method === 'POST') {
       const body = route.request().postDataJSON() as { name: string }
 
       state.createdFolders.push(body.name)
@@ -33,6 +45,7 @@ test('shows Folders title in the sidebar when folders exist', async ({
     createMockNote('Work/report.md', '# Report'),
     createMockNote('inbox.md', '# Inbox'),
   ])
+  await mockFoldersApi(page)
 
   await page.goto('/')
   await expect(page.getByTestId('sidebar-folders')).toBeVisible({
@@ -52,6 +65,7 @@ test('hides action icons by default and shows them on hover', async ({
     createMockNote('Work/report.md', '# Report'),
     createMockNote('inbox.md', '# Inbox'),
   ])
+  await mockFoldersApi(page)
 
   await page.goto('/')
   await expect(page.getByTestId('sidebar-folders')).toBeVisible({
@@ -78,6 +92,7 @@ test('collapses and expands the folder list with the chevron', async ({
     createMockNote('Work/report.md', '# Report'),
     createMockNote('inbox.md', '# Inbox'),
   ])
+  await mockFoldersApi(page)
 
   await page.goto('/')
   await expect(page.getByTestId('sidebar-folders')).toBeVisible({
@@ -106,15 +121,17 @@ test('opens create-folder modal and creates a folder', async ({ page }) => {
   ])
   const foldersApi = await mockFoldersApi(page)
 
-  await page.goto('/')
+  await page.goto('/', { waitUntil: 'networkidle' })
   await expect(page.getByTestId('sidebar-folders')).toBeVisible({
     timeout: 10000,
   })
 
   const controls = page.getByTestId('sidebar-folders-controls')
+  const createButton = page.getByTestId('sidebar-folders-create')
 
   await controls.hover()
-  await page.getByTestId('sidebar-folders-create').click()
+  await expect(createButton).toBeVisible()
+  await createButton.click()
 
   await expect(page.getByTestId('create-folder-name-input')).toBeVisible()
 
@@ -136,15 +153,17 @@ test('cancels folder creation without creating', async ({ page }) => {
   ])
   const foldersApi = await mockFoldersApi(page)
 
-  await page.goto('/')
+  await page.goto('/', { waitUntil: 'networkidle' })
   await expect(page.getByTestId('sidebar-folders')).toBeVisible({
     timeout: 10000,
   })
 
   const controls = page.getByTestId('sidebar-folders-controls')
+  const createButton = page.getByTestId('sidebar-folders-create')
 
   await controls.hover()
-  await page.getByTestId('sidebar-folders-create').click()
+  await expect(createButton).toBeVisible()
+  await createButton.click()
 
   await expect(page.getByTestId('create-folder-name-input')).toBeVisible()
 

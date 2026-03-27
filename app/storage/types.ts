@@ -13,6 +13,7 @@ export type RenameNoteTitleInput = {
 
 export type NoteStorage = {
   loadNotesCatalog(): Promise<NoteCatalogRow[]>
+  loadFolders(): Promise<string[]>
   loadNoteById(id: string): Promise<Note | null>
   saveNote(input: SaveNoteInput): Promise<Note>
   renameNoteTitle(input: RenameNoteTitleInput): Promise<Note>

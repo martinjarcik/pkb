@@ -191,7 +191,9 @@
     transition: opacity 0.15s ease;
   }
 
-  .sidebar-folders-controls-shell:hover .sidebar-folders-controls-actions {
+  .sidebar-folders-controls-shell:hover .sidebar-folders-controls-actions,
+  .sidebar-folders-controls-shell:focus-within
+    .sidebar-folders-controls-actions {
     opacity: 1;
   }
 

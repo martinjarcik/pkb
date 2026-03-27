@@ -147,6 +147,10 @@ export const browserStorage: NoteStorage = {
     )
   },
 
+  async loadFolders(): Promise<string[]> {
+    return readStoredFolders().sort((left, right) => left.localeCompare(right))
+  },
+
   async loadNoteById(id: string): Promise<Note | null> {
     const storedNote = readStoredNotes()[id]
 
