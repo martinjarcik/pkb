@@ -41,3 +41,7 @@ Treat the app as the primary note editor while keeping vault files user-accessib
 ## D011 — 2026-03
 
 Promote `title` and `description` to Derived Properties on the in-memory Note object. They are computed from the note `id` and Content at composition time, listed in `NOTE_SYSTEM_PROPERTY_KEYS` to prevent serialization, and shadow any user-defined frontmatter keys with the same names. Supersedes D006.
+
+## D012 — 2026-03
+
+Add explicit folder creation and persistence to the storage layer. Folders are still not first-class domain objects; they remain path prefixes on note IDs. However, `NoteStorage` now exposes `createFolder(name)` and `loadFolders()` so that empty folders (with no notes) survive across page reloads. On desktop the filesystem adapter uses `mkdir` and `readdir`; the browser adapter persists folder names in a dedicated `localStorage` key. The sidebar merges catalog-derived folders with explicitly created folders. Collapse/expand state is session-only (useState, not persisted).

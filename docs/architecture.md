@@ -72,10 +72,16 @@ preview slice used by the notes list, capped at 1024 UTF-8 bytes.
     - `SidebarNavigationItem`
       (`app/components/SidebarNavigationItem.vue`) — individual sidebar view item
       (for example `Inbox`).
-  - `SidebarFoldersActions`
-    (`app/components/SidebarFoldersActions.vue`) — top-level Vault folder list.
-    - `SidebarFolderItem`
-      (`app/components/SidebarFolderItem.vue`) — individual folder view item.
+  - `SidebarFolders` (`app/components/SidebarFolders.vue`) — folders section
+    wrapper with header and collapsible folder list.
+    - `SidebarFoldersControls`
+      (`app/components/SidebarFoldersControls.vue`) — folders header with
+      hover-reveal "create folder" and "collapse/expand" controls, plus the
+      create-folder modal dialog.
+    - `SidebarFoldersActions`
+      (`app/components/SidebarFoldersActions.vue`) — top-level Vault folder list.
+      - `SidebarFolderItem`
+        (`app/components/SidebarFolderItem.vue`) — individual folder view item.
   - `SidebarTags` (`app/components/SidebarTags.vue`) — tag filter section.
     - `SidebarTagsControls`
       (`app/components/SidebarTagsControls.vue`) — tag section header.
@@ -202,8 +208,9 @@ produce stale views, failed saves, or overwritten files.
 ## Storage (`app/storage/`)
 
 - `NoteStorage` — adapter boundary for loading Workspace Catalog rows, loading
-  full logical note documents by id, and saving logical note documents while
-  hiding backend-specific serialization details.
+  full logical note documents by id, saving logical note documents, creating
+  folders, and loading folder names, while hiding backend-specific
+  serialization details.
 - `app/storage/router.ts` selects the active `NoteStorage` from configuration.
 - The active storage adapter is determined by `applicationType` in
   `app/config/default.yaml`: `desktop` → filesystem adapter (default),
