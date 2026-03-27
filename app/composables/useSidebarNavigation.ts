@@ -1,6 +1,8 @@
 import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { loadConfig } from '~/config/loader'
 import type { NoteCatalogRow } from '~/notes/types'
+import { sanitizeNoteTitleForFilename } from '~/notes/renameNoteTitle'
 import {
   isDirectChildOfVaultFolder,
   isVaultRootNote,
@@ -43,15 +45,36 @@ export function filterCatalogBySelectedTags(
   })
 }
 
+export function mergeTopLevelFolders(
+  catalogDerived: string[],
+  explicit: string[],
+): string[] {
+  return [...new Set([...catalogDerived, ...explicit])].sort((left, right) =>
+    left.localeCompare(right),
+  )
+}
+
 export function useSidebarNavigation() {
   const { catalog, selectNoteById } = useNotes()
+  const { t } = useI18n({ useScope: 'global' })
   const selectedView = useState<SidebarWorkspaceView>(
     'sidebarNavigation.selectedView',
     () => ({ kind: 'inbox' }),
   )
+  const foldersExpanded = useState(
+    'sidebarNavigation.foldersExpanded',
+    () => true,
+  )
+  const explicitFolders = useState<string[]>(
+    'sidebarNavigation.explicitFolders',
+    () => [],
+  )
   const accentColor = computed(() => defaultTheme.accentColor)
-  const topLevelFolders = computed(() =>
+  const catalogDerivedFolders = computed(() =>
     vaultTopLevelFolderNames(catalog.value.map((row) => row.id)),
+  )
+  const topLevelFolders = computed(() =>
+    mergeTopLevelFolders(catalogDerivedFolders.value, explicitFolders.value),
   )
   const allTags = computed(() => allTagsFromCatalog(catalog.value))
   const selectedTags = computed(() =>
@@ -112,15 +135,47 @@ export function useSidebarNavigation() {
     await selectView({ kind: 'tags', selectedTags: nextSelectedTags })
   }
 
+  function toggleFoldersExpanded(): void {
+    foldersExpanded.value = !foldersExpanded.value
+  }
+
+  async function createFolder(name: string): Promise<string | null> {
+    const sanitized = sanitizeNoteTitleForFilename(name)
+
+    if (sanitized.length === 0) {
+      return t('sidebarFolders.errorEmpty')
+    }
+
+    if (topLevelFolders.value.includes(sanitized)) {
+      return t('sidebarFolders.errorDuplicate')
+    }
+
+    try {
+      await globalThis.$fetch('/api/folders', {
+        method: 'POST',
+        body: { name: sanitized },
+      })
+
+      explicitFolders.value = [...explicitFolders.value, sanitized]
+
+      return null
+    } catch {
+      return t('sidebarFolders.errorCreateFallback')
+    }
+  }
+
   return {
     selectedView,
     accentColor,
     topLevelFolders,
+    foldersExpanded,
     allTags,
     selectedTags,
     visibleCatalogRows,
     selectInbox,
     selectFolder,
+    toggleFoldersExpanded,
+    createFolder,
     toggleTag,
   }
 }

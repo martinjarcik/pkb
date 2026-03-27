@@ -17,4 +17,5 @@ export type NoteStorage = {
   saveNote(input: SaveNoteInput): Promise<Note>
   renameNoteTitle(input: RenameNoteTitleInput): Promise<Note>
   deleteNote(id: string): Promise<void>
+  createFolder(name: string): Promise<void>
 }

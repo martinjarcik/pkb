@@ -10,7 +10,7 @@ const { allTags, topLevelFolders } = useSidebarNavigation()
     <SidebarNavigation />
     <template v-if="topLevelFolders.length > 0">
       <div aria-hidden="true" class="h-[30px] shrink-0" />
-      <SidebarFoldersActions />
+      <SidebarFolders />
     </template>
 
     <template v-if="allTags.length > 0">

@@ -243,5 +243,11 @@ export function createFilesystemStorage(vaultPath: string): NoteStorage {
         if ((error as NodeJS.ErrnoException).code !== 'ENOENT') throw error
       }
     },
+
+    async createFolder(name: string): Promise<void> {
+      const folderPath = assertSafeId(vaultPath, name)
+
+      await mkdir(folderPath, { recursive: true })
+    },
   }
 }

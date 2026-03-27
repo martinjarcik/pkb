@@ -7,6 +7,7 @@ import type { NoteStorage, RenameNoteTitleInput, SaveNoteInput } from './types'
 import { parseDocument, serializeDocument } from './document'
 
 const STORAGE_KEY = 'notes'
+const FOLDERS_STORAGE_KEY = 'folders'
 
 type BrowserStoredNote = {
   document: string
@@ -96,6 +97,33 @@ function readStoredNotes(): BrowserStoredNotes {
   return parseStoredNotes(getLocalStorage().getItem(STORAGE_KEY))
 }
 
+function readStoredFolders(): string[] {
+  const raw = getLocalStorage().getItem(FOLDERS_STORAGE_KEY)
+
+  if (!raw) return []
+
+  try {
+    const parsed: unknown = JSON.parse(raw)
+
+    return Array.isArray(parsed)
+      ? parsed.filter((item): item is string => typeof item === 'string')
+      : []
+  } catch {
+    return []
+  }
+}
+
+function writeStoredFolders(folders: string[]): void {
+  const storage = getLocalStorage()
+
+  if (folders.length === 0) {
+    storage.removeItem(FOLDERS_STORAGE_KEY)
+    return
+  }
+
+  storage.setItem(FOLDERS_STORAGE_KEY, JSON.stringify(folders))
+}
+
 function writeStoredNotes(notes: BrowserStoredNotes): void {
   const storage = getLocalStorage()
 
@@ -182,5 +210,13 @@ export const browserStorage: NoteStorage = {
     const { [id]: _, ...remaining } = notes
 
     writeStoredNotes(remaining)
+  },
+
+  async createFolder(name: string): Promise<void> {
+    const stored = readStoredFolders()
+
+    if (!stored.includes(name)) {
+      writeStoredFolders([...stored, name])
+    }
   },
 }
