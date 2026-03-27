@@ -121,11 +121,14 @@ export function applyTagCycle(
     return nextView
   }
 
-  if (pinned.length === 0) {
+  const active =
+    view.kind === 'tags' ? view.activeTags.filter((t) => t !== tag) : []
+
+  if (pinned.length === 0 && active.length === 0) {
     return null
   }
 
-  return { kind: 'tags', activeTags: [], pinnedTags: pinned }
+  return { kind: 'tags', activeTags: active, pinnedTags: pinned }
 }
 
 export function mergeTopLevelFolders(
