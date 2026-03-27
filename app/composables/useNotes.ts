@@ -7,6 +7,7 @@ import { noteDescriptionFromContent } from '~/notes/noteDescriptionFromContent'
 import { resolveUniqueNoteIdForParentPath } from '~/notes/renameNoteTitle'
 import { noteWithToggledFavorite } from '~/notes/noteWithToggledFavorite'
 import { noteWithToggledPinned } from '~/notes/noteWithToggledPinned'
+import { noteWithWebhookUrl } from '~/notes/noteWithWebhookUrl'
 import { buildSaveNoteInput } from '~/notes/saveNoteInput'
 import type { Note, NoteCatalogRow } from '~/notes/types'
 import { catalogRowIsTrashed } from '~/notes/trash'
@@ -374,6 +375,34 @@ export function useNotes() {
     }
   }
 
+  async function saveWebhookForSelectedNote(url: string): Promise<void> {
+    const current = selectedNote.value
+
+    if (!current) {
+      return
+    }
+
+    saveError.value = null
+
+    try {
+      await editorFlush.value?.()
+
+      const next = noteWithWebhookUrl(current, url)
+      const saveInput = buildSaveNoteInput(next, next.content)
+
+      const savedNote = await globalThis.$fetch<Note>('/api/notes', {
+        method: 'PUT',
+        body: saveInput,
+      })
+
+      replaceNote(savedNote)
+      selectedNoteFull.value = savedNote
+    } catch (error) {
+      saveError.value =
+        error instanceof Error ? error.message : t('notes.errorSaveFallback')
+    }
+  }
+
   async function deleteSelectedNote(
     visibleNoteIds: readonly string[],
   ): Promise<boolean> {
@@ -463,6 +492,7 @@ export function useNotes() {
     deleteSelectedNote,
     toggleFavoriteSelectedNote,
     togglePinnedSelectedNote,
+    saveWebhookForSelectedNote,
     moveNote,
     registerEditorFlush,
     renameSelectedNoteTitle,

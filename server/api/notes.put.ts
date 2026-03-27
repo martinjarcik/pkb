@@ -2,6 +2,7 @@ import { createError, defineEventHandler, readBody } from 'h3'
 import { getNoteStorage } from '~/storage/router'
 import { sanitizeProperties } from '~/storage/document'
 import type { SaveNoteInput } from '~/storage/types'
+import { dispatchNoteWebhook } from '../dispatchNoteWebhook'
 import { loadServerConfig } from '../loadServerConfig'
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -47,5 +48,12 @@ export default defineEventHandler(async (event) => {
   const storage = getNoteStorage(await loadServerConfig())
   const body = await readBody(event)
 
-  return storage.saveNote(parseSaveNoteInput(body))
+  const saved = await storage.saveNote(parseSaveNoteInput(body))
+  const hook = saved.webhook
+
+  if (typeof hook === 'string' && hook.length > 0) {
+    void dispatchNoteWebhook(hook, 'updated', saved)
+  }
+
+  return saved
 })

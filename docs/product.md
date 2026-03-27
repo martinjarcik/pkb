@@ -15,9 +15,11 @@
   Notes with the `pinned` Application Property sort to the top of the current
   sidebar view and use a light accent-tinted row background when not selected.
 - **NotePanel** (center) — hosts the main note area and fills the remaining
-  space. `NoteControls` above the editor includes a pin toggle (alongside
-  favorite when enabled and delete): it sets the note’s `pinned` Application
-  Property; the active pin state uses `theme.accentColor`.
+  space. `NoteControls` above the editor includes a favorite toggle (when
+  enabled in config), a pin toggle, a webhook control (dialog for the optional
+  HTTPS `webhook` Application Property; accent-colored icon when set), and
+  delete. Pin sets the `pinned` Application Property; active pin, favorite, and
+  set-webhook icon states use `theme.accentColor`.
 - **InspectorPanel** (right panel) — shows and edits the selected note's properties.
 
 Default visibility of the sidebar, note list, and inspector is set in
@@ -138,6 +140,16 @@ catalog.
   logic.
 - When no tags remain active or pinned, the view falls back to Inbox.
 - Clicking `Inbox` or a folder row clears all tag states to idle.
+
+### Note webhooks
+
+- From `NoteControls`, the webhook icon opens a dialog where you can paste an
+  **HTTPS** URL or clear it. The value is stored as the `webhook` Application
+  Property (under `app` in frontmatter).
+- When a note with a webhook URL is saved, or after it is moved to trash from
+  the toolbar, the server sends a single POST request to that URL with JSON
+  `{ "event": "updated" | "deleted", "note": <full note object> }`. Failed
+  deliveries do not block saving or trashing.
 
 ### Browser Storage
 

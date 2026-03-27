@@ -136,4 +136,22 @@ describe('parseDocument', () => {
       content: '# Body',
     })
   })
+
+  it('round-trips webhook under app', () => {
+    const document = serializeDocument(
+      {
+        hasTasks: false,
+        webhook: 'https://example.com/webhook',
+      },
+      '# Body',
+    )
+
+    expect(parseDocument(document)).toEqual({
+      properties: {
+        hasTasks: false,
+        webhook: 'https://example.com/webhook',
+      },
+      content: '# Body',
+    })
+  })
 })

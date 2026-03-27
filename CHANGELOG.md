@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+- Add per-note webhooks: optional `webhook` Application Property (HTTPS URL
+  under `app` in frontmatter), webhook icon and dialog in `NoteControls`, and
+  server-side POST to that URL after successful save (`event: updated`) or
+  trash (`event: deleted`) with a JSON body containing the full note snapshot.
 - Add note pinning: `pinned` Application Property under `app` frontmatter, pin
   control in `NoteControls` (accent when pinned, `Pin` / `PinOff` icons), pinned
   notes sorted to the top of each sidebar view’s list with a 5% accent row

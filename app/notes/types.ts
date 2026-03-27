@@ -14,6 +14,7 @@ export const APPLICATION_PROPERTY_KEYS = [
   'trashedAt',
   'favorite',
   'pinned',
+  'webhook',
 ] as const
 
 export type ApplicationPropertyKey = (typeof APPLICATION_PROPERTY_KEYS)[number]

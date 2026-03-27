@@ -53,3 +53,7 @@ Recompute `hasTasks` from unchecked markdown checklist items on save and persist
 ## D014 — 2026-03
 
 Soft-delete notes by setting the `trashedAt` Application Property instead of removing storage. The Trashed sidebar view lists only trashed notes; other views exclude them. Restoring clears `trashedAt` on `moveNote` to Inbox or a folder. Expired trashed notes are permanently deleted when serving `GET /api/notes`, using `notes.trashRetentionDays` from config (default 30). The note toolbar is hidden while a trashed note is selected.
+
+## D015 — 2026-03
+
+Deliver per-note webhooks from the Nitro server only: accept HTTPS URLs, POST JSON with `event` (`updated` after `PUT /api/notes`, `deleted` after `POST /api/notes/trash`) and a full note snapshot, use a short request timeout, and swallow errors so persistence never depends on webhook success.

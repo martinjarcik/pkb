@@ -28,7 +28,12 @@
     "errorSaveFallback": "Failed to save note",
     "errorRenameFallback": "Failed to rename note title",
     "errorDeleteFallback": "Failed to delete note",
-    "errorLoadFallback": "Failed to load notes"
+    "errorLoadFallback": "Failed to load notes",
+    "webhookDialogTitle": "Webhook",
+    "webhookUrlLabel": "Webhook URL",
+    "webhookUrlPlaceholder": "https://example.com/your-endpoint",
+    "webhookSave": "Save",
+    "webhookCancel": "Cancel"
   },
   "sidebarNavigation": {
     "inbox": "Inbox",

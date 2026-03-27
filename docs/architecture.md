@@ -102,7 +102,7 @@ preview slice used by the notes list, capped at 1024 UTF-8 bytes.
 - `NotePanel` (`app/components/NotePanel.vue`) — active note region.
   - `NoteControls` (`app/components/NoteControls.vue`) — note toolbar region
     with note-scoped actions (for example favorite toggle when enabled, pin
-    toggle, delete).
+    toggle, webhook URL dialog, delete).
   - `NoteView` (`app/components/NoteView.vue`) — bounded note display and
     editing region.
     - `NoteTemplate` — template (Liquid) output wrapper.
@@ -156,6 +156,10 @@ New contexts may be introduced when corresponding features are specified.
   loaded full note in shared state. The page selects the initial note after
   load; when a note is selected, `NoteTemplate` passes that note's title and
   Content into `NoteEditor`.
+- After `PUT /api/notes` and after `POST /api/notes/trash`, the Nitro layer may
+  POST to the note’s `webhook` Application Property (HTTPS URL only) with a JSON
+  body `{ event, note }` where `event` is `updated` or `deleted`. Delivery is
+  best-effort and does not affect persistence.
 - `useSidebarNavigation()` owns the active sidebar view in shared state.
   The default `Inbox` view filters `NotesList` to notes whose `id` lives at the
   vault root. The `Favorites` view (when enabled in config) filters across the
