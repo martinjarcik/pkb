@@ -170,23 +170,119 @@ test('lists tags in the sidebar and filters notes by selected tags', async ({
   await expect(tagItems.nth(2)).toHaveText('#idea')
 
   const engineeringTag = page.locator('[data-tag="engineering"]')
-  const ideaTag = page.locator('[data-tag="idea"]')
 
   await engineeringTag.click()
-  await ideaTag.click()
 
-  await expect(engineeringTag).toHaveAttribute('data-selected', 'true')
-  await expect(ideaTag).toHaveAttribute('data-selected', 'true')
+  await expect(engineeringTag).toHaveAttribute('data-state', 'active')
   await expect(engineeringTag).toHaveCSS('color', 'rgb(63, 87, 223)')
-
-  await expect(page.getByTestId('notes-list-item')).toHaveCount(1)
-  await expect(page.locator('[data-note-id="a.md"]')).toBeVisible()
+  await expect(page.getByTestId('notes-list-item')).toHaveCount(2)
 
   await page.locator('[data-navigation-id="inbox"]').click()
 
-  await expect(engineeringTag).toHaveAttribute('data-selected', 'false')
-  await expect(ideaTag).toHaveAttribute('data-selected', 'false')
+  await expect(engineeringTag).toHaveAttribute('data-state', 'idle')
   await expect(page.getByTestId('notes-list-item')).toHaveCount(3)
+})
+
+test('cycles tag through active, pinned, and idle states', async ({ page }) => {
+  await mockTagNotesApi(page, [
+    createMockNote('a.md', 'Alpha note.', FIXED_TIMESTAMP, {
+      tags: ['engineering', 'idea'],
+    }),
+    createMockNote('b.md', 'Beta note.', FIXED_TIMESTAMP, {
+      tags: ['engineering', 'dream'],
+    }),
+    createMockNote('c.md', 'Gamma note.', FIXED_TIMESTAMP, {
+      tags: ['idea'],
+    }),
+  ])
+
+  await page.goto('/')
+
+  const engineeringTag = page.locator('[data-tag="engineering"]')
+  const ideaTag = page.locator('[data-tag="idea"]')
+
+  await engineeringTag.click()
+  await expect(engineeringTag).toHaveAttribute('data-state', 'active')
+
+  await engineeringTag.click()
+  await expect(engineeringTag).toHaveAttribute('data-state', 'pinned')
+
+  await ideaTag.click()
+  await expect(ideaTag).toHaveAttribute('data-state', 'active')
+  await expect(engineeringTag).toHaveAttribute('data-state', 'pinned')
+  await expect(page.getByTestId('notes-list-item')).toHaveCount(1)
+  await expect(page.locator('[data-note-id="a.md"]')).toBeVisible()
+
+  await engineeringTag.click()
+  await expect(engineeringTag).toHaveAttribute('data-state', 'idle')
+  await expect(ideaTag).toHaveAttribute('data-state', 'active')
+})
+
+test('pinned tag is displayed in bold', async ({ page }) => {
+  await mockTagNotesApi(page, [
+    createMockNote('a.md', 'Alpha note.', FIXED_TIMESTAMP, {
+      tags: ['engineering'],
+    }),
+  ])
+
+  await page.goto('/')
+
+  const engineeringTag = page.locator('[data-tag="engineering"]')
+
+  await engineeringTag.click()
+  await expect(engineeringTag).not.toHaveCSS('font-weight', '700')
+
+  await engineeringTag.click()
+  await expect(engineeringTag).toHaveCSS('font-weight', '700')
+
+  await engineeringTag.click()
+  await expect(engineeringTag).not.toHaveCSS('font-weight', '700')
+})
+
+test('clicking a new tag replaces the previously active tag', async ({
+  page,
+}) => {
+  await mockTagNotesApi(page, [
+    createMockNote('a.md', 'Alpha note.', FIXED_TIMESTAMP, {
+      tags: ['engineering', 'idea'],
+    }),
+    createMockNote('b.md', 'Beta note.', FIXED_TIMESTAMP, {
+      tags: ['dream'],
+    }),
+  ])
+
+  await page.goto('/')
+
+  const engineeringTag = page.locator('[data-tag="engineering"]')
+  const ideaTag = page.locator('[data-tag="idea"]')
+
+  await engineeringTag.click()
+  await expect(engineeringTag).toHaveAttribute('data-state', 'active')
+
+  await ideaTag.click()
+  await expect(ideaTag).toHaveAttribute('data-state', 'active')
+  await expect(engineeringTag).toHaveAttribute('data-state', 'idle')
+})
+
+test('unpinning the last tag returns to inbox', async ({ page }) => {
+  await mockTagNotesApi(page, [
+    createMockNote('a.md', 'Alpha note.', FIXED_TIMESTAMP, {
+      tags: ['engineering'],
+    }),
+    createMockNote('b.md', 'Beta note.', FIXED_TIMESTAMP),
+  ])
+
+  await page.goto('/')
+
+  const engineeringTag = page.locator('[data-tag="engineering"]')
+
+  await engineeringTag.click()
+  await engineeringTag.click()
+  await expect(engineeringTag).toHaveAttribute('data-state', 'pinned')
+
+  await engineeringTag.click()
+  await expect(engineeringTag).toHaveAttribute('data-state', 'idle')
+  await expect(page.getByTestId('notes-list-item')).toHaveCount(2)
 })
 
 test('renders sidebar tags with the hash prefix', async ({ page }) => {
