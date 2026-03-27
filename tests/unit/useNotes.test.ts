@@ -421,7 +421,7 @@ describe('useNotes', () => {
       method: 'PUT',
       body: {
         id: 'entry.md',
-        properties: { rating: 5, tags: [] },
+        properties: { hasTasks: false, rating: 5, tags: [] },
         content: '# Updated note',
       },
     })

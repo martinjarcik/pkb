@@ -89,6 +89,16 @@ The default sidebar view is `Inbox`.
 - The selected Inbox item uses `theme.accentColor` from
   `app/config/default.yaml`.
 
+### Tasks View
+
+The sidebar navigation includes a `Tasks` item alongside `Inbox`.
+
+- `Tasks` shows notes whose `hasTasks` Application Property is `true`.
+- `hasTasks` is recomputed on save from unchecked markdown checklist items such
+  as `- [ ] Buy milk`.
+- The `Tasks` view filters across the whole catalog, not just the vault root.
+- The selected Tasks item uses the same accent styling as `Inbox`.
+
 ### Vault Folder Views
 
 Top-level Vault folders appear below `Inbox` in `SidebarPanel`.
@@ -128,6 +138,9 @@ catalog.
 When `applicationType` is `browser`, notes are stored in the browser's
 localStorage as JSON-serialized Markdown documents with YAML frontmatter.
 
+- Application Properties such as `hasTasks` are serialized under the `app`
+  frontmatter namespace and loaded back as flat top-level note fields in memory.
+
 ### Note Editor
 
 The note content area uses Editor.js as the editing surface.
@@ -147,6 +160,8 @@ The note content area uses Editor.js as the editing surface.
 - Switching to a different note flushes any pending autosave before selection changes.
 - On save, inline hashtags such as `#engineering` are extracted into the
   top-level `tags` frontmatter property and remain visible in the note content.
+- On save, unchecked markdown checklist items cause the `hasTasks` Application
+  Property to be stored under the `app` frontmatter namespace.
 - The inline toolbar includes an `Inline Hashtag` tool for visually highlighting
   selected hashtag text inside the editor.
 

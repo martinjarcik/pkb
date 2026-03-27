@@ -21,7 +21,7 @@ five parts:
   Never serialized to frontmatter. Recomputed at note load and on save/rename.
   They shadow any user-defined Properties with the same key names (see D011).
 - **Application Properties** — application-managed per-note state (e.g.
-  `favorite`). Controlled through dedicated UI, not editable in the property
+  `hasTasks`). Controlled through dedicated UI, not editable in the property
   editor. In memory these are flat top-level Note fields. On disk they are
   serialized under the `app` namespace key in YAML frontmatter (see D009).
 - **Properties** — user-defined data, unique per note. In memory these live as
@@ -48,11 +48,12 @@ preview slice used by the notes list, capped at 1024 UTF-8 bytes.
   note-by-id loading, and separate properties/content save inputs.
 - `app/storage/browser.ts` — browser localStorage adapter storing Markdown
   documents with YAML frontmatter plus timestamps, then deriving catalog rows
-  from parsed notes.
+  from parsed notes, including `app`-namespaced Application Properties.
 - `app/storage/filesystem.ts` — filesystem adapter storing notes as Markdown
   files with YAML frontmatter in a configurable vault directory. Timestamps
   derived from file stats. Catalog rows are loaded in mtime-descending order
-  without reading full note bodies.
+  without reading full note bodies, while preserving `app`-namespaced
+  Application Properties.
 - `app/storage/router.ts` — active storage selection from `applicationType`.
 - `app/config/loader.ts` — typed `AppConfig` parsed from `app/config/default.yaml`,
   including the active locale and theme settings.
@@ -60,8 +61,8 @@ preview slice used by the notes list, capped at 1024 UTF-8 bytes.
 - `app/composables/useLayout.ts` — layout panel visibility state initialized
   from config defaults.
 - `app/composables/useSidebarNavigation.ts` — sidebar view state initialized
-  from config defaults, including the Inbox, top-level folder note filters, and
-  tag-based note filtering.
+  from config defaults, including the Inbox, Tasks, top-level folder note
+  filters, and tag-based note filtering.
 - `app/layouts/default.vue` — application shell composing SidebarPanel, NotesListPanel,
   page slot, and InspectorPanel in a horizontal flexbox.
 - `app/pages/index.vue` — renders `NotePanel` and retargets selection to the
@@ -141,7 +142,8 @@ New contexts may be introduced when corresponding features are specified.
   Markdown and Editor.js blocks in the browser.
 - On save, the app extracts inline hashtags from Markdown Content and persists
   them as the top-level `tags` Property while keeping the visible Content text
-  unchanged.
+  unchanged. It also recomputes the `hasTasks` Application Property from
+  unchecked markdown checklist items.
 - Templates wrap content to provide rendered page context. Liquid and layout
   code lives outside the editor. Templates are not edited inline.
 - Properties are edited separately in the InspectorPanel, not inside the editor.
@@ -152,11 +154,13 @@ New contexts may be introduced when corresponding features are specified.
   passes that note's title and Content into `NoteEditor`.
 - `useSidebarNavigation()` owns the active sidebar view in shared state.
   The default `Inbox` view filters `NotesList` to notes whose `id` lives at the
-  vault root, while folder views filter to notes that are direct children of a
-  selected top-level Vault folder. Tag views filter across the whole catalog to
-  notes whose `tags` Property contains all active and pinned Tags (AND logic).
-  Each Tag has a tri-state filter cycle (idle -> active -> pinned -> idle):
-  at most one Tag can be active; pinned Tags survive further clicks.
+  vault root. The `Tasks` view filters across the whole catalog to notes whose
+  `hasTasks` Application Property is `true`, while folder views filter to notes
+  that are direct children of a selected top-level Vault folder. Tag views
+  filter across the whole catalog to notes whose `tags` Property contains all
+  active and pinned Tags (AND logic). Each Tag has a tri-state filter cycle
+  (idle -> active -> pinned -> idle): at most one Tag can be active; pinned
+  Tags survive further clicks.
 - Renaming a note title changes the note `id` by replacing its basename with the
   edited title plus `.md`, while keeping the parent folder unchanged. On
   collisions, storage selects a unique suffixed filename.
@@ -172,6 +176,8 @@ New contexts may be introduced when corresponding features are specified.
 - The default `Inbox` sidebar view narrows the broad note set to notes whose
   `id` contains no `/`, which corresponds to notes stored directly in the
   Vault root.
+- The `Tasks` sidebar view narrows the broad note set to notes whose
+  `hasTasks` Application Property is `true`, regardless of folder.
 - Folder sidebar views narrow the broad note set to notes whose `id` has the
   shape `<topLevelFolder>/<note>.md`, excluding deeper descendants.
 - Tag sidebar views narrow the broad note set to notes whose `tags` Property
@@ -193,7 +199,7 @@ New contexts may be introduced when corresponding features are specified.
   ```yaml
   ---
   app:
-    favorite: true
+    hasTasks: true
   tags: [cooking]
   rating: 5
   ---

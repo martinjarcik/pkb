@@ -65,7 +65,7 @@ async function handleDrop(event: DragEvent): Promise<void> {
     :selected="selected"
     :accent-color="accentColor"
     :drop-active="isDropActive"
-    @click="handleClick"
+    @activate="handleClick"
     @dragenter="handleDragEnter"
     @dragleave="handleDragLeave"
     @dragover="handleDragOver"

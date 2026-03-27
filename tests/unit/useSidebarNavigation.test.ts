@@ -4,6 +4,7 @@ import {
   allTagsFromCatalog,
   applyTagCycle,
   cycleTagState,
+  filterCatalogByHasTasks,
   filterCatalogBySelectedTags,
   mergeTopLevelFolders,
   selectedTagsFromView,
@@ -55,6 +56,24 @@ describe('filterCatalogBySelectedTags', () => {
         (row) => row.id,
       ),
     ).toEqual(['a.md'])
+  })
+})
+
+describe('filterCatalogByHasTasks', () => {
+  it('returns only notes with hasTasks set to true', () => {
+    const rows = [
+      createCatalogRow('a.md', []),
+      {
+        ...createCatalogRow('b.md', []),
+        hasTasks: true,
+      },
+      {
+        ...createCatalogRow('c.md', []),
+        hasTasks: false,
+      },
+    ]
+
+    expect(filterCatalogByHasTasks(rows).map((row) => row.id)).toEqual(['b.md'])
   })
 })
 

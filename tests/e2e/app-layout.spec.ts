@@ -13,13 +13,6 @@ function visiblePopoverItems(page: Page) {
   return page.locator('.ce-popover-item:visible')
 }
 
-async function openHeadingNote(page: Page): Promise<void> {
-  await page.goto('/')
-  await page.locator('[data-note-id="heading-note.md"]').click()
-  await waitForEditorReady(page)
-  await expect(page.getByTestId('note-title')).toHaveText('heading-note')
-}
-
 test.beforeEach(async ({ page }) => {
   await mockNotesApi(page, buildAppLayoutNotes())
 })
@@ -133,10 +126,14 @@ test('updates the active note when a different list row is clicked', async ({
   await expect(page.locator('.ce-block')).not.toHaveCount(0)
 })
 
-test('shows block conversion options for a heading block', async ({ page }) => {
-  await openHeadingNote(page)
+test('shows block conversion options for a content block', async ({ page }) => {
+  await page.goto('/')
+  await waitForEditorReady(page)
+  const contentBlock = page.locator('.ce-paragraph').first()
 
-  await page.locator('.ce-header').first().click()
+  await expect(contentBlock).toBeVisible()
+
+  await contentBlock.click()
   await page.locator('.ce-toolbar__settings-btn').first().click()
 
   await expect(visiblePopoverItems(page).first()).toBeVisible()

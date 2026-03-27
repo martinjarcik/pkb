@@ -9,10 +9,21 @@ const props = defineProps<{
   accentColor: string
   dropActive?: boolean
 }>()
+const emit = defineEmits<{
+  activate: []
+  dragenter: [event: DragEvent]
+  dragleave: [event: DragEvent]
+  dragover: [event: DragEvent]
+  drop: [event: DragEvent]
+}>()
 
 const selectedStyle = computed(() =>
   props.selected ? { backgroundColor: props.accentColor } : undefined,
 )
+
+function handleClick(): void {
+  emit('activate')
+}
 </script>
 
 <template>
@@ -28,6 +39,11 @@ const selectedStyle = computed(() =>
     }"
     :data-drop-active="dropActive ? 'true' : 'false'"
     :style="selectedStyle"
+    @click="handleClick"
+    @dragenter="emit('dragenter', $event)"
+    @dragleave="emit('dragleave', $event)"
+    @dragover="emit('dragover', $event)"
+    @drop="emit('drop', $event)"
   >
     <component
       :is="icon"

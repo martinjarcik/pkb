@@ -13,6 +13,7 @@ export type TagFilterState = 'idle' | 'active' | 'pinned'
 
 export type SidebarWorkspaceView =
   | { kind: 'inbox' }
+  | { kind: 'tasks' }
   | { kind: 'folder'; folderName: string }
   | { kind: 'tags'; activeTags: string[]; pinnedTags: string[] }
 
@@ -24,6 +25,10 @@ function rowTags(row: NoteCatalogRow): string[] {
   }
 
   return row.tags.filter((tag): tag is string => typeof tag === 'string')
+}
+
+function rowHasTasks(row: NoteCatalogRow): boolean {
+  return row.hasTasks === true
 }
 
 export function allTagsFromCatalog(rows: readonly NoteCatalogRow[]): string[] {
@@ -45,6 +50,12 @@ export function filterCatalogBySelectedTags(
 
     return selectedTags.every((tag) => tags.includes(tag))
   })
+}
+
+export function filterCatalogByHasTasks(
+  rows: readonly NoteCatalogRow[],
+): readonly NoteCatalogRow[] {
+  return rows.filter((row) => rowHasTasks(row))
 }
 
 export function tagFilterState(
@@ -179,6 +190,10 @@ export function useSidebarNavigation() {
       )
     }
 
+    if (view.kind === 'tasks') {
+      return filterCatalogByHasTasks(catalog.value)
+    }
+
     return catalog.value.filter((row) =>
       isDirectChildOfVaultFolder(row.id, view.folderName),
     )
@@ -193,6 +208,10 @@ export function useSidebarNavigation() {
 
   async function selectInbox(): Promise<void> {
     await selectView({ kind: 'inbox' })
+  }
+
+  async function selectTasks(): Promise<void> {
+    await selectView({ kind: 'tasks' })
   }
 
   async function selectFolder(folderName: string): Promise<void> {
@@ -272,6 +291,7 @@ export function useSidebarNavigation() {
     visibleCatalogRows,
     loadFolders,
     selectInbox,
+    selectTasks,
     selectFolder,
     toggleFoldersExpanded,
     toggleTagsExpanded,

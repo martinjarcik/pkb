@@ -9,6 +9,10 @@ export const NOTE_SYSTEM_PROPERTY_KEYS = [
 
 export type NoteSystemPropertyKey = (typeof NOTE_SYSTEM_PROPERTY_KEYS)[number]
 
+export const APPLICATION_PROPERTY_KEYS = ['hasTasks'] as const
+
+export type ApplicationPropertyKey = (typeof APPLICATION_PROPERTY_KEYS)[number]
+
 export type NotePropertyValue =
   | string
   | number

@@ -1,5 +1,6 @@
 import type { SaveNoteInput } from '~/storage/types'
 import { sanitizeProperties } from '~/storage/document'
+import { detectHasTasks } from './detectHasTasks'
 import { extractTagsFromMarkdown } from './extractTags'
 import type { Note } from './types'
 
@@ -24,6 +25,7 @@ export function buildSaveNoteInput(note: Note, content: string): SaveNoteInput {
     id: note.id,
     properties: {
       ...properties,
+      hasTasks: detectHasTasks(content),
       tags: mergeTags(existingTags(note), extractTagsFromMarkdown(content)),
     },
     content,

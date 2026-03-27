@@ -45,3 +45,7 @@ Promote `title` and `description` to Derived Properties on the in-memory Note ob
 ## D012 — 2026-03
 
 Add explicit folder creation and persistence to the storage layer. Folders are still not first-class domain objects; they remain path prefixes on note IDs. However, `NoteStorage` now exposes `createFolder(name)` and `loadFolders()` so that empty folders (with no notes) survive across page reloads. On desktop the filesystem adapter uses `mkdir` and `readdir`; the browser adapter persists folder names in a dedicated `localStorage` key. The sidebar merges catalog-derived folders with explicitly created folders. Collapse/expand state is session-only (useState, not persisted).
+
+## D013 — 2026-03
+
+Recompute `hasTasks` from unchecked markdown checklist items on save and persist it as an Application Property under the `app` frontmatter namespace so the sidebar can filter to notes with unfinished tasks without reparsing every note body.

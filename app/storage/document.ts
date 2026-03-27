@@ -1,8 +1,12 @@
 import yaml from 'yaml'
 import type { NoteProperties, NotePropertyValue } from '~/notes/types'
-import { NOTE_SYSTEM_PROPERTY_KEYS } from '~/notes/types'
+import {
+  APPLICATION_PROPERTY_KEYS,
+  NOTE_SYSTEM_PROPERTY_KEYS,
+} from '~/notes/types'
 
 const NOTE_SYSTEM_PROPERTY_KEY_SET = new Set<string>(NOTE_SYSTEM_PROPERTY_KEYS)
+const APPLICATION_PROPERTY_KEY_SET = new Set<string>(APPLICATION_PROPERTY_KEYS)
 const MAX_PROPERTY_DEPTH = 10
 
 function coercePropertyValue(
@@ -44,17 +48,77 @@ export function sanitizeProperties(value: unknown): NoteProperties {
   ) as NoteProperties
 }
 
+function splitApplicationProperties(properties: NoteProperties): {
+  userProperties: NoteProperties
+  applicationProperties: NoteProperties
+} {
+  const userEntries: [string, NotePropertyValue][] = []
+  const applicationEntries: [string, NotePropertyValue][] = []
+
+  for (const [key, value] of Object.entries(properties)) {
+    if (APPLICATION_PROPERTY_KEY_SET.has(key)) {
+      applicationEntries.push([key, value])
+      continue
+    }
+
+    userEntries.push([key, value])
+  }
+
+  return {
+    userProperties: Object.fromEntries(userEntries),
+    applicationProperties: Object.fromEntries(applicationEntries),
+  }
+}
+
+function mergeApplicationProperties(value: unknown): NoteProperties {
+  const sanitizedProperties = Object.fromEntries(
+    Object.entries(sanitizeProperties(value)).filter(([key]) => key !== 'app'),
+  ) as NoteProperties
+  const appValue =
+    typeof value === 'object' && value !== null && !Array.isArray(value)
+      ? (value as Record<string, unknown>).app
+      : undefined
+
+  if (
+    typeof appValue !== 'object' ||
+    appValue === null ||
+    Array.isArray(appValue)
+  ) {
+    return sanitizedProperties
+  }
+
+  const applicationProperties = Object.fromEntries(
+    Object.entries(sanitizeProperties(appValue)).filter(([key]) =>
+      APPLICATION_PROPERTY_KEY_SET.has(key),
+    ),
+  ) as NoteProperties
+
+  return {
+    ...sanitizedProperties,
+    ...applicationProperties,
+  }
+}
+
 export function serializeDocument(
   properties: NoteProperties,
   content: string,
 ): string {
   const sanitizedProperties = sanitizeProperties(properties)
+  const { userProperties, applicationProperties } =
+    splitApplicationProperties(sanitizedProperties)
+  const serializedProperties =
+    Object.keys(applicationProperties).length === 0
+      ? userProperties
+      : {
+          ...userProperties,
+          app: applicationProperties,
+        }
 
-  if (Object.keys(sanitizedProperties).length === 0) {
+  if (Object.keys(serializedProperties).length === 0) {
     return content
   }
 
-  const frontmatter = yaml.stringify(sanitizedProperties).trimEnd()
+  const frontmatter = yaml.stringify(serializedProperties).trimEnd()
 
   return `---\n${frontmatter}\n---\n${content}`
 }
@@ -82,7 +146,7 @@ export function parseDocument(raw: string): {
     const parsed = yaml.parse(rawFrontmatter)
 
     return {
-      properties: sanitizeProperties(parsed),
+      properties: mergeApplicationProperties(parsed),
       content,
     }
   } catch {

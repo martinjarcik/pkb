@@ -126,6 +126,7 @@ test('persists editor changes after autosave and survives a reload', async ({
       .toContain(marker)
     await page.reload()
     await openNote(page, originalNote.id)
+    await expect(firstBodyParagraph(page)).toBeVisible({ timeout: 10000 })
 
     await expect(firstBodyParagraph(page)).toContainText(marker)
   } finally {

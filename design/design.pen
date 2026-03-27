@@ -119,14 +119,14 @@
                       "x": 0,
                       "y": 0,
                       "width": "fill_container",
-                      "height": 7602.619336055087,
+                      "height": 16041.88708540936,
                       "descendants": {
                         "ZYZFX": {
-                          "y": 3793.8096680275435
+                          "y": 8013.44354270468
                         },
                         "Rv7um": {
                           "x": -39,
-                          "y": 3793.8096680275435
+                          "y": 8013.44354270468
                         }
                       }
                     },
@@ -135,17 +135,17 @@
                       "type": "ref",
                       "ref": "XpvfC",
                       "x": 0,
-                      "y": 7602.619336055087,
+                      "y": 16041.88708540936,
                       "width": "fill_container",
-                      "height": 7602.619336055087,
+                      "height": 16041.88708540936,
                       "descendants": {
                         "ZYZFX": {
                           "content": "modifiedAt",
-                          "y": 3793.8096680275435
+                          "y": 8013.44354270468
                         },
                         "Rv7um": {
                           "x": -39,
-                          "y": 3793.8096680275435
+                          "y": 8013.44354270468
                         }
                       }
                     },
@@ -154,18 +154,18 @@
                       "type": "ref",
                       "ref": "XpvfC",
                       "x": 0,
-                      "y": 15205.238672110174,
+                      "y": 32083.77417081872,
                       "width": "fill_container",
-                      "height": 7602.619336055095,
+                      "height": 16041.887085409377,
                       "descendants": {
                         "ZYZFX": {
                           "content": "favorite",
-                          "y": 3793.8096680275476
+                          "y": 8013.443542704688
                         },
                         "Rv7um": {
                           "content": "false",
                           "x": -27,
-                          "y": 3793.8096680275476
+                          "y": 8013.443542704688
                         }
                       }
                     },
@@ -174,18 +174,18 @@
                       "type": "ref",
                       "ref": "XpvfC",
                       "x": 0,
-                      "y": 22807.85800816527,
+                      "y": 48125.66125622809,
                       "width": "fill_container",
-                      "height": 7602.619336055091,
+                      "height": 16041.887085409366,
                       "descendants": {
                         "ZYZFX": {
                           "content": "pinned",
-                          "y": 3793.8096680275453
+                          "y": 8013.443542704683
                         },
                         "Rv7um": {
                           "content": "false",
                           "x": -27,
-                          "y": 3793.8096680275453
+                          "y": 8013.443542704683
                         }
                       }
                     },
@@ -195,7 +195,7 @@
                       "name": "InspectorPropertyItem",
                       "reusable": true,
                       "width": "fill_container",
-                      "height": 7602.619336055087,
+                      "height": 16041.88708540936,
                       "justifyContent": "space_between",
                       "alignItems": "center",
                       "children": [
@@ -226,14 +226,14 @@
                       "id": "Xn4l2",
                       "name": "spacer",
                       "width": "fill_container",
-                      "height": 13077.225830681002
+                      "height": 27593.56622937766
                     },
                     {
                       "type": "frame",
                       "id": "KkocO",
                       "name": "addBtn",
                       "width": "fill_container",
-                      "height": 13077.22583068101,
+                      "height": 27593.566229377677,
                       "cornerRadius": 6,
                       "stroke": {
                         "thickness": 1,
@@ -1601,21 +1601,6 @@
               "width": 160,
               "height": 30,
               "content": "Hide Sidebar",
-              "lineHeight": 2,
-              "textAlignVertical": "middle",
-              "fontFamily": "Inter",
-              "fontSize": 12,
-              "fontWeight": "normal"
-            },
-            {
-              "type": "text",
-              "id": "qVPai",
-              "name": "xxx",
-              "fill": "#000000",
-              "textGrowth": "fixed-width-height",
-              "width": 160,
-              "height": 30,
-              "content": "Split View",
               "lineHeight": 2,
               "textAlignVertical": "middle",
               "fontFamily": "Inter",

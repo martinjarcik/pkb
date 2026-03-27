@@ -24,7 +24,8 @@
     "errorLoadFallback": "Failed to load notes"
   },
   "sidebarNavigation": {
-    "inbox": "Inbox"
+    "inbox": "Inbox",
+    "tasks": "Tasks"
   },
   "sidebarFolders": {
     "title": "Folders",

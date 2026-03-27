@@ -4,6 +4,9 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+- Add a `Tasks` sidebar view that shows notes with unfinished checklist items,
+  compute `hasTasks` on save from unchecked markdown task list entries, and
+  persist Application Properties under the `app` frontmatter namespace.
 - Add three-state tag selection cycle (idle / active / pinned) in the sidebar.
   Clicking a tag activates it (replacing any previously active tag). Clicking
   an active tag pins it (survives further clicks). Clicking a pinned tag
