@@ -2,6 +2,12 @@ import { loadConfig } from '~/config/loader'
 
 const defaultLayout = loadConfig().layout
 
+type LayoutVisibilitySnapshot = {
+  showInspectorPanel: boolean
+  showNotesListPanel: boolean
+  showSidebarPanel: boolean
+}
+
 export function persistAppConfigPatch(patch: Record<string, unknown>): void {
   $fetch('/api/app-config', {
     method: 'PUT',
@@ -25,6 +31,12 @@ export function useLayout() {
     () => defaultLayout.showNotesListPanel,
   )
 
+  const nonDistractionMode = useState('layout.nonDistractionMode', () => false)
+  const nonDistractionSnapshot = useState<LayoutVisibilitySnapshot | null>(
+    'layout.nonDistractionSnapshot',
+    () => null,
+  )
+
   function toggleSidebarPanel(): void {
     const next = !showSidebarPanel.value
     showSidebarPanel.value = next
@@ -37,11 +49,37 @@ export function useLayout() {
     persistAppConfigPatch({ layout: { showInspectorPanel: next } })
   }
 
+  function toggleNonDistractionMode(): void {
+    if (nonDistractionMode.value) {
+      const snapshot = nonDistractionSnapshot.value
+      if (snapshot) {
+        showInspectorPanel.value = snapshot.showInspectorPanel
+        showNotesListPanel.value = snapshot.showNotesListPanel
+        showSidebarPanel.value = snapshot.showSidebarPanel
+      }
+      nonDistractionSnapshot.value = null
+      nonDistractionMode.value = false
+      return
+    }
+
+    nonDistractionSnapshot.value = {
+      showInspectorPanel: showInspectorPanel.value,
+      showNotesListPanel: showNotesListPanel.value,
+      showSidebarPanel: showSidebarPanel.value,
+    }
+    showInspectorPanel.value = false
+    showNotesListPanel.value = false
+    showSidebarPanel.value = false
+    nonDistractionMode.value = true
+  }
+
   return {
+    nonDistractionMode,
     showInspectorPanel,
     showSidebarPanel,
     showNotesListPanel,
     toggleInspectorPanel,
+    toggleNonDistractionMode,
     toggleSidebarPanel,
   }
 }

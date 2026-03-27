@@ -1,9 +1,12 @@
 <script setup lang="ts">
+import { cn } from '~/lib/utils'
+
 type NoteEditorHandle = {
   focusTitle(): Promise<void>
   flushContentSync(): Promise<void>
 }
 
+const { nonDistractionMode } = useLayout()
 const {
   clearShouldFocusTitle,
   editorAutosaveDelay,
@@ -54,7 +57,12 @@ watch(shouldFocusTitle, async (nextShouldFocusTitle) => {
 <template>
   <div
     data-testid="note-template"
-    class="note-template-shell flex min-h-0 min-w-0 flex-1 flex-col"
+    :class="
+      cn(
+        'note-template-shell flex min-h-0 min-w-0 flex-1 flex-col',
+        nonDistractionMode && 'w-1/2 self-center',
+      )
+    "
   >
     <ClientOnly>
       <NoteEditor

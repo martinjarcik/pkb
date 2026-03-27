@@ -250,3 +250,18 @@ export async function mockNotesApi(
     },
   )
 }
+
+export async function mockAppConfigApi(page: Page): Promise<void> {
+  await page.route('**/api/app-config', async (route) => {
+    if (route.request().method() === 'PUT') {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({}),
+      })
+      return
+    }
+
+    await route.fallback()
+  })
+}

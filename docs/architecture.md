@@ -61,7 +61,8 @@ preview slice used by the notes list, capped at 1024 UTF-8 bytes.
   including the active locale, theme settings, and `notes.trashRetentionDays`.
 - `app/app.vue` — root app shell that applies the configured locale to Nuxt i18n.
 - `app/composables/useLayout.ts` — layout panel visibility state initialized
-  from config defaults.
+  from config defaults, plus session-only non-distraction mode (snapshot and
+  restore of the three panel flags).
 - `app/composables/useSidebarNavigation.ts` — sidebar view state initialized
   from config defaults, including the Inbox, Tasks, Favorites (when
   `features.favorites` is true), Trashed, top-level folder note filters, and
@@ -102,10 +103,11 @@ preview slice used by the notes list, capped at 1024 UTF-8 bytes.
 - `NotePanel` (`app/components/NotePanel.vue`) — active note region.
   - `NoteControls` (`app/components/NoteControls.vue`) — note toolbar region
     with note-scoped actions (for example favorite toggle when enabled, pin
-    toggle, webhook URL dialog, delete).
+    toggle, non-distraction mode, webhook URL dialog, delete).
   - `NoteView` (`app/components/NoteView.vue`) — bounded note display and
     editing region.
-    - `NoteTemplate` — template (Liquid) output wrapper.
+    - `NoteTemplate` — template (Liquid) output wrapper; narrows and centers the
+      editor column when non-distraction mode is active.
       - `NoteEditor` — content editing surface (includes an EditorJS
         `noteTitle` block pinned at index 0 for inline title editing and an
         inline hashtag formatting tool).

@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+- Add non-distraction mode: `NoteControls` toggle (accent `Maximize2` icon) hides
+  SidebarPanel, NotesListPanel, and InspectorPanel for the session; a second
+  click restores the previous panel visibility without persisting to app config.
+  While active, `NoteTemplate` constrains the editor column to 50% width and
+  centers it horizontally.
 - Add per-note webhooks: optional `webhook` Application Property (HTTPS URL
   under `app` in frontmatter), webhook icon and dialog in `NoteControls`, and
   server-side POST to that URL after successful save (`event: updated`) or

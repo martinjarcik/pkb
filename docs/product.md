@@ -16,9 +16,11 @@
   sidebar view and use a light accent-tinted row background when not selected.
 - **NotePanel** (center) — hosts the main note area and fills the remaining
   space. `NoteControls` above the editor includes a favorite toggle (when
-  enabled in config), a pin toggle, a webhook control (dialog for the optional
-  HTTPS `webhook` Application Property; accent-colored icon when set), and
-  delete. Pin sets the `pinned` Application Property; active pin, favorite, and
+  enabled in config), a pin toggle, non-distraction mode (hides the sidebar,
+  notes list, and inspector until toggled off; accent-colored icon while
+  active; note editor area is half width and centered), a webhook control (dialog for the optional HTTPS `webhook`
+  Application Property; accent-colored icon when set), and delete. Pin sets the
+  `pinned` Application Property; active pin, favorite, non-distraction, and
   set-webhook icon states use `theme.accentColor`.
 - **InspectorPanel** (right panel) — shows and edits the selected note's properties.
 

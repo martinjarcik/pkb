@@ -1,20 +1,10 @@
 import { expect, test, type Page } from '@playwright/test'
-import { createMockNote, mockNotesApi, waitForEditorReady } from './helpers'
-
-async function mockAppConfigApi(page: Page): Promise<void> {
-  await page.route('**/api/app-config', async (route) => {
-    if (route.request().method() === 'PUT') {
-      await route.fulfill({
-        status: 200,
-        contentType: 'application/json',
-        body: JSON.stringify({}),
-      })
-      return
-    }
-
-    await route.fallback()
-  })
-}
+import {
+  createMockNote,
+  mockAppConfigApi,
+  mockNotesApi,
+  waitForEditorReady,
+} from './helpers'
 
 function layoutMenuTrigger(page: Page) {
   return page.getByLabel('Layout options')

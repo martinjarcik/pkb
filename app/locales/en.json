@@ -101,5 +101,8 @@
       "moveUp": "Move up",
       "moveDown": "Move down"
     }
+  },
+  "noteControls": {
+    "nonDistraction": "Non-distraction mode"
   }
 }

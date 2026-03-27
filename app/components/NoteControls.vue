@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import { Pin, PinOff, PlugZap, Star, Trash2 } from 'lucide-vue-next'
+import { Maximize2, Pin, PinOff, PlugZap, Star, Trash2 } from 'lucide-vue-next'
 import { loadConfig } from '~/config/loader'
 
 const {
@@ -12,6 +12,7 @@ const {
   saveError,
 } = useNotes()
 const { visibleCatalogRows, accentColor } = useSidebarNavigation()
+const { nonDistractionMode, toggleNonDistractionMode } = useLayout()
 
 const favoritesEnabled = loadConfig().features.favorites
 
@@ -36,6 +37,10 @@ async function handleFavoriteClick(): Promise<void> {
 
 async function handlePinClick(): Promise<void> {
   await togglePinnedSelectedNote()
+}
+
+function handleNonDistractionClick(): void {
+  toggleNonDistractionMode()
 }
 
 function openWebhookDialog(): void {
@@ -88,6 +93,21 @@ function handleWebhookCancel(): void {
     >
       <Pin v-if="isPinned" :size="16" />
       <PinOff v-else :size="16" />
+    </button>
+    <button
+      v-if="selectedNote"
+      type="button"
+      data-testid="note-non-distraction"
+      class="flex items-center justify-center hover:opacity-90"
+      :class="
+        nonDistractionMode ? '' : 'text-muted-foreground hover:text-foreground'
+      "
+      :style="nonDistractionMode ? { color: accentColor } : undefined"
+      :aria-label="$t('noteControls.nonDistraction')"
+      :title="$t('noteControls.nonDistraction')"
+      @click="handleNonDistractionClick"
+    >
+      <Maximize2 :size="16" />
     </button>
     <button
       v-if="selectedNote"
