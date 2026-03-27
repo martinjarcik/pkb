@@ -28,16 +28,14 @@ vi.mock('#app', () => {
   }
 })
 
-vi.mock('vue-i18n', () => ({
-  useI18n: () => ({
-    t: (key: string) =>
-      (
-        ({
-          'notes.newNoteTitle': 'New Note',
-          'notes.errorCreateFallback': 'Failed to create note',
-        }) as Record<string, string>
-      )[key] ?? key,
-  }),
+vi.mock('~/composables/useTranslations', () => ({
+  t: (key: string) =>
+    (
+      ({
+        'notes.newNoteTitle': 'New Note',
+        'notes.errorCreateFallback': 'Failed to create note',
+      }) as Record<string, string>
+    )[key] ?? key,
 }))
 
 function createTestNote(

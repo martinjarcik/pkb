@@ -56,13 +56,23 @@ watch(shouldFocusTitle, async (nextShouldFocusTitle) => {
     data-testid="note-template"
     class="note-template-shell flex min-h-0 min-w-0 flex-1 flex-col"
   >
-    <NoteEditor
-      ref="noteEditor"
-      :autosave-delay="editorAutosaveDelay"
-      :content="selectedNote?.content ?? ''"
-      :title="selectedNoteTitle"
-      @content-change="handleContentChange"
-      @title-change="handleTitleChange"
-    />
+    <ClientOnly>
+      <NoteEditor
+        ref="noteEditor"
+        :autosave-delay="editorAutosaveDelay"
+        :content="selectedNote?.content ?? ''"
+        :title="selectedNoteTitle"
+        @content-change="handleContentChange"
+        @title-change="handleTitleChange"
+      />
+      <template #fallback>
+        <div
+          data-testid="note-editor-loading"
+          class="notes-list-state notes-list-state-muted min-h-0 min-w-0 flex-1"
+        >
+          {{ $t('noteEditor.loading') }}
+        </div>
+      </template>
+    </ClientOnly>
   </div>
 </template>

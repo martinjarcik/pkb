@@ -1,6 +1,6 @@
 import { computed } from 'vue'
-import { useI18n } from 'vue-i18n'
 import { loadConfig } from '~/config/loader'
+import { t } from '~/composables/useTranslations'
 import type { NoteCatalogRow } from '~/notes/types'
 import { sanitizeNoteTitleForFilename } from '~/notes/renameNoteTitle'
 import {
@@ -56,7 +56,6 @@ export function mergeTopLevelFolders(
 
 export function useSidebarNavigation() {
   const { catalog, selectNoteById } = useNotes()
-  const { t } = useI18n({ useScope: 'global' })
   const selectedView = useState<SidebarWorkspaceView>(
     'sidebarNavigation.selectedView',
     () => ({ kind: 'inbox' }),

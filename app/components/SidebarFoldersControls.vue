@@ -80,48 +80,14 @@ function handleInputKeydown(event: KeyboardEvent): void {
       </button>
     </div>
 
-    <Dialog v-model:open="showCreateDialog">
-      <DialogContent class="sm:max-w-[400px]">
-        <DialogHeader>
-          <DialogTitle>{{ $t('sidebarFolders.createFolder') }}</DialogTitle>
-          <DialogDescription class="sr-only">
-            {{ $t('sidebarFolders.folderNameLabel') }}
-          </DialogDescription>
-        </DialogHeader>
-
-        <div class="flex flex-col gap-3 py-2">
-          <Input
-            v-model="folderNameInput"
-            :placeholder="$t('sidebarFolders.folderNamePlaceholder')"
-            data-testid="create-folder-name-input"
-            @keydown="handleInputKeydown"
-          />
-          <p
-            v-if="createError"
-            class="text-sm text-destructive"
-            data-testid="create-folder-error"
-          >
-            {{ createError }}
-          </p>
-        </div>
-
-        <DialogFooter>
-          <Button
-            variant="outline"
-            data-testid="create-folder-cancel"
-            @click="closeCreateDialog"
-          >
-            {{ $t('sidebarFolders.cancel') }}
-          </Button>
-          <Button
-            :disabled="isCreating"
-            data-testid="create-folder-confirm"
-            @click="handleCreate"
-          >
-            {{ $t('sidebarFolders.create') }}
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+    <CreateFolderDialog
+      v-model:open="showCreateDialog"
+      v-model:folder-name="folderNameInput"
+      :create-error="createError"
+      :is-creating="isCreating"
+      @cancel="closeCreateDialog"
+      @create="handleCreate"
+      @input-keydown="handleInputKeydown"
+    />
   </div>
 </template>

@@ -1,7 +1,7 @@
 import { useState } from '#app'
 import { computed } from 'vue'
-import { useI18n } from 'vue-i18n'
 import { loadConfig } from '~/config/loader'
+import { t } from '~/composables/useTranslations'
 import { createNoteCatalogRow } from '~/notes/catalogRow'
 import { noteDescriptionFromContent } from '~/notes/noteDescriptionFromContent'
 import { resolveUniqueNoteIdForParentPath } from '~/notes/renameNoteTitle'
@@ -17,7 +17,6 @@ const defaultEditor = loadConfig().editor
 export function useNotes() {
   type EditorFlush = () => Promise<void>
 
-  const { t } = useI18n({ useScope: 'global' })
   const editorAutosaveDelay = defaultEditor.autosaveDelay
   const notes = useState<NoteCatalogRow[]>('notes.items', () => [])
   const isLoading = useState('notes.isLoading', () => false)

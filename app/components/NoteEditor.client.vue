@@ -13,6 +13,7 @@ import {
 } from '~/lib/editorjsTitleBlock'
 import InlineHashtagTool from '~/lib/inlineHashtagTool'
 import NoteTitleTool from '~/lib/noteTitleTool'
+import { t as translate } from '~/composables/useTranslations'
 import SimpleQuoteTool from '~/lib/simpleQuoteTool'
 
 type EditorjsInstance = {
@@ -56,18 +57,6 @@ const emit = defineEmits<{
   'content-change': [value: string]
   'title-change': [value: string]
 }>()
-
-const componentInstance = getCurrentInstance()
-
-function translate(key: string): string {
-  const translator = componentInstance?.proxy?.$t
-
-  if (typeof translator === 'function') {
-    return String(translator(key))
-  }
-
-  return key
-}
 
 const holder = ref<HTMLDivElement | null>(null)
 const editorError = ref<string | null>(null)
@@ -648,39 +637,28 @@ onBeforeUnmount(() => {
 
 <template>
   <div data-testid="note-editor" class="note-editor-shell">
-    <ClientOnly>
+    <div
+      v-if="editorError"
+      data-testid="note-editor-error"
+      class="notes-list-state notes-list-state-error"
+    >
+      {{ editorError }}
+    </div>
+
+    <div v-else class="note-editor-surface relative min-h-0 min-w-0 flex-1">
       <div
-        v-if="editorError"
-        data-testid="note-editor-error"
-        class="notes-list-state notes-list-state-error"
+        v-if="isEditorLoading"
+        data-testid="note-editor-loading"
+        class="notes-list-state notes-list-state-muted absolute inset-0 z-10 bg-card/80 backdrop-blur-sm"
       >
-        {{ editorError }}
+        {{ $t('noteEditor.loading') }}
       </div>
 
-      <div v-else class="note-editor-surface relative min-h-0 min-w-0 flex-1">
-        <div
-          v-if="isEditorLoading"
-          data-testid="note-editor-loading"
-          class="notes-list-state notes-list-state-muted absolute inset-0 z-10 bg-card/80 backdrop-blur-sm"
-        >
-          {{ $t('noteEditor.loading') }}
-        </div>
-
-        <div
-          ref="holder"
-          data-testid="note-editor-holder"
-          class="min-h-full w-full"
-        />
-      </div>
-
-      <template #fallback>
-        <div
-          data-testid="note-editor-loading"
-          class="notes-list-state notes-list-state-muted"
-        >
-          {{ $t('noteEditor.loading') }}
-        </div>
-      </template>
-    </ClientOnly>
+      <div
+        ref="holder"
+        data-testid="note-editor-holder"
+        class="min-h-full w-full"
+      />
+    </div>
   </div>
 </template>
