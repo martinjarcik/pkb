@@ -450,4 +450,71 @@ describe('browserStorage', () => {
 
     expect(folders).toEqual([])
   })
+
+  it('softDeleteNote sets trashedAt in persisted document', async () => {
+    vi.setSystemTime(new Date('2026-03-20T10:00:00.000Z'))
+
+    await browserStorage.saveNote({
+      id: 'inbox.md',
+      properties: { hasTasks: false },
+      content: '# A',
+    })
+
+    const trashed = await browserStorage.softDeleteNote('inbox.md')
+
+    expect(typeof trashed.trashedAt).toBe('string')
+    expect(readStoredNotes()['inbox.md']!.document).toContain('trashedAt')
+  })
+
+  it('moveNote removes trashedAt from persisted document', async () => {
+    vi.setSystemTime(new Date('2026-03-20T10:00:00.000Z'))
+
+    await browserStorage.createFolder('Work')
+    await browserStorage.saveNote({
+      id: 't.md',
+      properties: {
+        hasTasks: false,
+        trashedAt: '2025-01-01T00:00:00.000Z',
+      },
+      content: '# T',
+    })
+
+    const moved = await browserStorage.moveNote({
+      id: 't.md',
+      targetParentPath: 'Work',
+    })
+
+    expect(moved.trashedAt).toBeUndefined()
+    expect(readStoredNotes()['Work/t.md']!.document).not.toContain('trashedAt')
+  })
+
+  it('purgeExpiredTrashedNotes deletes only expired trashed notes', async () => {
+    vi.setSystemTime(new Date('2026-03-20T10:00:00.000Z'))
+
+    await browserStorage.saveNote({
+      id: 'expired.md',
+      properties: {
+        hasTasks: false,
+        trashedAt: '2020-01-01T00:00:00.000Z',
+      },
+      content: '# E',
+    })
+    await browserStorage.saveNote({
+      id: 'kept.md',
+      properties: {
+        hasTasks: false,
+        trashedAt: '2026-05-25T00:00:00.000Z',
+      },
+      content: '# K',
+    })
+
+    await browserStorage.purgeExpiredTrashedNotes(
+      30,
+      new Date('2026-06-01T00:00:00.000Z'),
+    )
+
+    const catalog = await browserStorage.loadNotesCatalog()
+
+    expect(catalog.map((n) => n.id).sort()).toEqual(['kept.md'])
+  })
 })

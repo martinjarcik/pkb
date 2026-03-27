@@ -7,6 +7,7 @@ import { noteDescriptionFromContent } from '~/notes/noteDescriptionFromContent'
 import { resolveUniqueNoteIdForParentPath } from '~/notes/renameNoteTitle'
 import { buildSaveNoteInput } from '~/notes/saveNoteInput'
 import type { Note, NoteCatalogRow } from '~/notes/types'
+import { catalogRowIsTrashed } from '~/notes/trash'
 
 function buildNoteContentPath(id: string): string {
   return `/api/notes/${id.split('/').map(encodeURIComponent).join('/')}`
@@ -41,6 +42,10 @@ export function useNotes() {
     selectedNoteFull.value?.id === selectedNoteId.value
       ? selectedNoteFull.value
       : null,
+  )
+  const showNoteControls = computed(
+    () =>
+      selectedNote.value !== null && !catalogRowIsTrashed(selectedNote.value),
   )
   const selectedNoteTitle = computed(() => {
     if (selectedNote.value) {
@@ -327,12 +332,16 @@ export function useNotes() {
     try {
       await editorFlush.value?.()
 
-      await globalThis.$fetch('/api/notes', {
-        method: 'DELETE',
+      const trashedNote = await globalThis.$fetch<Note>('/api/notes/trash', {
+        method: 'POST',
         body: { id: noteToDelete.id },
       })
 
-      notes.value = notes.value.filter((note) => note.id !== noteToDelete.id)
+      notes.value = sortNotesByModifiedAt(
+        notes.value.map((note) =>
+          note.id === trashedNote.id ? createNoteCatalogRow(trashedNote) : note,
+        ),
+      )
       selectedNoteFull.value = null
       selectedNoteId.value = null
 
@@ -389,6 +398,7 @@ export function useNotes() {
     shouldFocusTitle,
     selectedNoteId,
     selectedNote,
+    showNoteControls,
     selectedNoteTitle,
     catalog,
     clearShouldFocusTitle,

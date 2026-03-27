@@ -12,7 +12,7 @@ function handleDelete(): void {
 <template>
   <div
     data-testid="note-controls"
-    class="note-controls-shell flex shrink-0 items-center justify-end gap-5 px-4"
+    class="note-controls-shell flex shrink-0 items-center justify-center gap-5 px-4"
   >
     <button
       v-if="selectedNote"

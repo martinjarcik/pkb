@@ -23,6 +23,8 @@ export type NoteStorage = {
   saveNote(input: SaveNoteInput): Promise<Note>
   renameNoteTitle(input: RenameNoteTitleInput): Promise<Note>
   moveNote(input: MoveNoteInput): Promise<Note>
+  softDeleteNote(id: string): Promise<Note>
+  purgeExpiredTrashedNotes(retentionDays: number, now?: Date): Promise<void>
   deleteNote(id: string): Promise<void>
   createFolder(name: string): Promise<void>
 }

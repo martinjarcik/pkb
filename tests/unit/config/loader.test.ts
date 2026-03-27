@@ -6,6 +6,9 @@ function createConfig() {
     applicationType: 'desktop',
     locale: 'en',
     vault: './vault',
+    notes: {
+      trashRetentionDays: 30,
+    },
     editor: {
       autosaveDelay: 2000,
     },

@@ -7,6 +7,9 @@ export type AppConfig = {
   applicationType: ApplicationType
   locale: string
   vault: string
+  notes: {
+    trashRetentionDays: number
+  }
   editor: {
     autosaveDelay: number
   }
@@ -43,6 +46,22 @@ export function parseAppConfig(value: unknown): AppConfig {
 
   if (typeof obj.vault !== 'string' || obj.vault.length === 0) {
     throw new Error('Config vault must be a non-empty string')
+  }
+
+  if (typeof obj.notes !== 'object' || obj.notes === null) {
+    throw new Error('Config notes must be an object')
+  }
+
+  const notes = obj.notes as Record<string, unknown>
+
+  if (
+    typeof notes.trashRetentionDays !== 'number' ||
+    !Number.isInteger(notes.trashRetentionDays) ||
+    notes.trashRetentionDays < 1
+  ) {
+    throw new Error(
+      'Config notes.trashRetentionDays must be a positive integer',
+    )
   }
 
   if (typeof obj.editor !== 'object' || obj.editor === null) {

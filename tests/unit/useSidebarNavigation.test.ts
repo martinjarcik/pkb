@@ -6,6 +6,7 @@ import {
   cycleTagState,
   filterCatalogByHasTasks,
   filterCatalogBySelectedTags,
+  filterCatalogForSidebarView,
   mergeTopLevelFolders,
   selectedTagsFromView,
   type SidebarWorkspaceView,
@@ -187,6 +188,54 @@ describe('applyTagCycle', () => {
       activeTags: ['engineering'],
       pinnedTags: [],
     })
+  })
+})
+
+describe('filterCatalogForSidebarView', () => {
+  it('excludes trashed notes from inbox', () => {
+    const rows = [
+      createCatalogRow('a.md', []),
+      {
+        ...createCatalogRow('b.md', []),
+        trashedAt: '2026-01-01T00:00:00.000Z',
+      },
+    ]
+
+    expect(
+      filterCatalogForSidebarView(rows, { kind: 'inbox' }).map((r) => r.id),
+    ).toEqual(['a.md'])
+  })
+
+  it('lists only trashed notes in trashed view', () => {
+    const rows = [
+      createCatalogRow('a.md', []),
+      {
+        ...createCatalogRow('b.md', []),
+        trashedAt: '2026-01-01T00:00:00.000Z',
+      },
+    ]
+
+    expect(
+      filterCatalogForSidebarView(rows, { kind: 'trashed' }).map((r) => r.id),
+    ).toEqual(['b.md'])
+  })
+
+  it('excludes trashed notes from tasks view', () => {
+    const rows = [
+      {
+        ...createCatalogRow('task.md', []),
+        hasTasks: true,
+      },
+      {
+        ...createCatalogRow('trashed-task.md', []),
+        hasTasks: true,
+        trashedAt: '2026-01-01T00:00:00.000Z',
+      },
+    ]
+
+    expect(
+      filterCatalogForSidebarView(rows, { kind: 'tasks' }).map((r) => r.id),
+    ).toEqual(['task.md'])
   })
 })
 

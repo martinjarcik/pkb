@@ -57,6 +57,39 @@ export async function mockNotesApi(
   await page.route('**/api/notes/**', async (route: Route) => {
     const pathname = new URL(route.request().url()).pathname
 
+    if (
+      route.request().method() === 'POST' &&
+      pathname === '/api/notes/trash'
+    ) {
+      const body = route.request().postDataJSON() as { id: string }
+      const noteIndex = notes.findIndex((note) => note.id === body.id)
+
+      if (noteIndex === -1) {
+        await route.fulfill({
+          status: 404,
+          contentType: 'application/json',
+          body: JSON.stringify({ statusMessage: 'Note not found' }),
+        })
+        return
+      }
+
+      const trashedNote = {
+        ...notes[noteIndex]!,
+        trashedAt: FIXED_TIMESTAMP,
+        modifiedAt: FIXED_TIMESTAMP,
+      }
+
+      notes = notes.map((note, index) =>
+        index === noteIndex ? trashedNote : note,
+      )
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify(trashedNote),
+      })
+      return
+    }
+
     if (route.request().method() === 'POST' && pathname === '/api/notes/move') {
       const body = route.request().postDataJSON() as {
         id: string
@@ -78,8 +111,10 @@ export async function mockNotesApi(
         body.targetParentPath,
         notes.map((note) => note.id),
       )
+      const source = notes[noteIndex]!
+      const { trashedAt: _removedTrashed, ...rest } = source
       const movedNote = {
-        ...notes[noteIndex]!,
+        ...rest,
         id: nextId,
         title: noteTitleFromId(nextId),
         modifiedAt: FIXED_TIMESTAMP,

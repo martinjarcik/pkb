@@ -2,6 +2,11 @@ import { createNoteCatalogRow } from '~/notes/catalogRow'
 import { noteDescriptionFromContent } from '~/notes/noteDescriptionFromContent'
 import { moveNoteId, resolveUniqueNoteId } from '~/notes/renameNoteTitle'
 import { noteTitleFromId } from '~/notes/noteTitleFromId'
+import {
+  catalogRowIsTrashed,
+  trashExpired,
+  withoutTrashedAt,
+} from '~/notes/trash'
 import type { Note, NoteCatalogRow } from '~/notes/types'
 import type {
   MoveNoteInput,
@@ -9,7 +14,11 @@ import type {
   RenameNoteTitleInput,
   SaveNoteInput,
 } from './types'
-import { parseDocument, serializeDocument } from './document'
+import {
+  parseDocument,
+  sanitizeProperties,
+  serializeDocument,
+} from './document'
 
 const STORAGE_KEY = 'notes'
 const FOLDERS_STORAGE_KEY = 'folders'
@@ -223,16 +232,89 @@ export const browserStorage: NoteStorage = {
       Object.keys(notes),
     )
 
+    const parsedMove = parseDocument(storedNote.document)
+    const content = parsedMove.content
+    let properties = parsedMove.properties
+    const hadTrashed =
+      typeof properties.trashedAt === 'string' &&
+      properties.trashedAt.length > 0
+
+    if (hadTrashed) {
+      properties = withoutTrashedAt(properties)
+    }
+
+    const document = hadTrashed
+      ? serializeDocument(sanitizeProperties(properties), content)
+      : storedNote.document
+
+    const nextStored: BrowserStoredNote = hadTrashed
+      ? {
+          document,
+          createdAt: storedNote.createdAt,
+          modifiedAt: new Date().toISOString(),
+        }
+      : {
+          document: storedNote.document,
+          createdAt: storedNote.createdAt,
+          modifiedAt: storedNote.modifiedAt,
+        }
+
     if (nextId !== input.id) {
       const { [input.id]: _removed, ...remaining } = notes
 
       writeStoredNotes({
         ...remaining,
-        [nextId]: storedNote,
+        [nextId]: nextStored,
+      })
+    } else if (hadTrashed) {
+      writeStoredNotes({
+        ...notes,
+        [input.id]: nextStored,
       })
     }
 
-    return composeNote(nextId, storedNote)
+    const effectiveStored =
+      nextId !== input.id || hadTrashed ? nextStored : storedNote
+
+    return composeNote(nextId, effectiveStored)
+  },
+
+  async softDeleteNote(id: string): Promise<Note> {
+    const note = await this.loadNoteById(id)
+
+    if (!note) {
+      throw new Error(`Note not found: ${id}`)
+    }
+
+    const properties = sanitizeProperties(note)
+
+    return this.saveNote({
+      id: note.id,
+      properties: {
+        ...properties,
+        trashedAt: new Date().toISOString(),
+      },
+      content: note.content,
+    })
+  },
+
+  async purgeExpiredTrashedNotes(
+    retentionDays: number,
+    now: Date = new Date(),
+  ): Promise<void> {
+    const catalog = await this.loadNotesCatalog()
+    const idsToDelete = catalog
+      .filter(
+        (row) =>
+          catalogRowIsTrashed(row) &&
+          typeof row.trashedAt === 'string' &&
+          trashExpired(row.trashedAt, retentionDays, now),
+      )
+      .map((row) => row.id)
+
+    for (const id of idsToDelete) {
+      await this.deleteNote(id)
+    }
   },
 
   async deleteNote(id: string): Promise<void> {

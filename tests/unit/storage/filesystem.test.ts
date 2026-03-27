@@ -325,4 +325,72 @@ describe('filesystemStorage', () => {
 
     expect(folders).toEqual([])
   })
+
+  it('softDeleteNote sets trashedAt in frontmatter', async () => {
+    await storage.saveNote({
+      id: 'keep.md',
+      properties: { hasTasks: false },
+      content: '# A',
+    })
+
+    const trashed = await storage.softDeleteNote('keep.md')
+
+    expect(typeof trashed.trashedAt).toBe('string')
+    expect((trashed.trashedAt as string).length).toBeGreaterThan(0)
+
+    const written = await readFile(join(vaultPath, 'keep.md'), 'utf-8')
+
+    expect(written).toContain('trashedAt')
+  })
+
+  it('moveNote removes trashedAt from persisted document', async () => {
+    await storage.createFolder('Work')
+    await storage.saveNote({
+      id: 'gone.md',
+      properties: {
+        hasTasks: false,
+        trashedAt: '2025-01-01T00:00:00.000Z',
+      },
+      content: '# T',
+    })
+
+    const moved = await storage.moveNote({
+      id: 'gone.md',
+      targetParentPath: 'Work',
+    })
+
+    expect(moved.trashedAt).toBeUndefined()
+
+    const written = await readFile(join(vaultPath, 'Work', 'gone.md'), 'utf-8')
+
+    expect(written).not.toContain('trashedAt')
+  })
+
+  it('purgeExpiredTrashedNotes deletes only expired trashed notes', async () => {
+    await storage.saveNote({
+      id: 'expired.md',
+      properties: {
+        hasTasks: false,
+        trashedAt: '2020-01-01T00:00:00.000Z',
+      },
+      content: '# E',
+    })
+    await storage.saveNote({
+      id: 'kept.md',
+      properties: {
+        hasTasks: false,
+        trashedAt: '2026-05-25T00:00:00.000Z',
+      },
+      content: '# K',
+    })
+
+    await storage.purgeExpiredTrashedNotes(
+      30,
+      new Date('2026-06-01T00:00:00.000Z'),
+    )
+
+    const catalog = await storage.loadNotesCatalog()
+
+    expect(catalog.map((n) => n.id).sort()).toEqual(['kept.md'])
+  })
 })

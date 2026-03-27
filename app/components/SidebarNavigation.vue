@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import { Inbox, ListTodo } from 'lucide-vue-next'
+import { Inbox, ListTodo, Trash2 } from 'lucide-vue-next'
 
-const { accentColor, selectedView, selectInbox, selectTasks } =
+const { accentColor, selectedView, selectInbox, selectTasks, selectTrashed } =
   useSidebarNavigation()
 const { moveNote } = useNotes()
 const dragDepth = ref(0)
@@ -69,6 +69,14 @@ async function handleDrop(event: DragEvent): Promise<void> {
       :selected="selectedView.kind === 'tasks'"
       :accent-color="accentColor"
       @activate="selectTasks"
+    />
+    <SidebarNavigationItem
+      navigation-id="trashed"
+      :icon="Trash2"
+      :label="$t('sidebarNavigation.trashed')"
+      :selected="selectedView.kind === 'trashed'"
+      :accent-color="accentColor"
+      @activate="selectTrashed"
     />
   </nav>
 </template>

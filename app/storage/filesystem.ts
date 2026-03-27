@@ -19,6 +19,11 @@ import {
   type NoteProperties,
 } from '~/notes/types'
 import { moveNoteId, resolveUniqueNoteId } from '~/notes/renameNoteTitle'
+import {
+  catalogRowIsTrashed,
+  trashExpired,
+  withoutTrashedAt,
+} from '~/notes/trash'
 import type {
   MoveNoteInput,
   NoteStorage,
@@ -258,6 +263,9 @@ export function createFilesystemStorage(vaultPath: string): NoteStorage {
       )
       const nextId = moveNoteId(input.id, input.targetParentPath, existingIds)
       const raw = await readFile(currentPath, 'utf-8')
+      const parsed = parseDocument(raw)
+      const content = parsed.content
+      let properties = parsed.properties
 
       if (nextId !== input.id) {
         const nextPath = assertSafeId(vaultPath, nextId)
@@ -266,16 +274,67 @@ export function createFilesystemStorage(vaultPath: string): NoteStorage {
         await rename(currentPath, nextPath)
       }
 
-      const fileStats = await stat(assertSafeId(vaultPath, nextId))
-      const { properties, content } = parseDocument(raw)
+      const finalPath = assertSafeId(vaultPath, nextId)
+      const hadTrashed =
+        typeof properties.trashedAt === 'string' &&
+        properties.trashedAt.length > 0
+
+      if (hadTrashed) {
+        properties = withoutTrashedAt(properties)
+        await writeFile(
+          finalPath,
+          serializeDocument(sanitizeProperties(properties), content),
+          'utf-8',
+        )
+      }
+
+      const fileStats = await stat(finalPath)
 
       return composeNote(
         nextId,
-        properties,
+        sanitizeProperties(properties),
         content,
         fileStats.birthtime.toISOString(),
         fileStats.mtime.toISOString(),
       )
+    },
+
+    async softDeleteNote(id: string): Promise<Note> {
+      const note = await this.loadNoteById(id)
+
+      if (!note) {
+        throw new Error(`Note not found: ${id}`)
+      }
+
+      const properties = sanitizeProperties(note)
+
+      return this.saveNote({
+        id: note.id,
+        properties: {
+          ...properties,
+          trashedAt: new Date().toISOString(),
+        },
+        content: note.content,
+      })
+    },
+
+    async purgeExpiredTrashedNotes(
+      retentionDays: number,
+      now: Date = new Date(),
+    ): Promise<void> {
+      const catalog = await this.loadNotesCatalog()
+      const idsToDelete = catalog
+        .filter(
+          (row) =>
+            catalogRowIsTrashed(row) &&
+            typeof row.trashedAt === 'string' &&
+            trashExpired(row.trashedAt, retentionDays, now),
+        )
+        .map((row) => row.id)
+
+      for (const id of idsToDelete) {
+        await this.deleteNote(id)
+      }
     },
 
     async deleteNote(id: string): Promise<void> {

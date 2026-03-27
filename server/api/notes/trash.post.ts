@@ -1,16 +1,16 @@
 import { createError, defineEventHandler, readBody } from 'h3'
 import { getNoteStorage } from '~/storage/router'
-import { loadServerConfig } from '../loadServerConfig'
+import { loadServerConfig } from '../../loadServerConfig'
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value)
 }
 
-export function parseDeleteNoteInput(body: unknown): string {
+function parseSoftDeleteNoteInput(body: unknown): string {
   if (!isRecord(body)) {
     throw createError({
       statusCode: 400,
-      statusMessage: 'Invalid note delete payload',
+      statusMessage: 'Invalid note trash payload',
     })
   }
 
@@ -19,7 +19,7 @@ export function parseDeleteNoteInput(body: unknown): string {
   if (typeof id !== 'string' || id.length === 0) {
     throw createError({
       statusCode: 400,
-      statusMessage: 'Invalid note delete payload',
+      statusMessage: 'Invalid note trash payload',
     })
   }
 
@@ -30,7 +30,5 @@ export default defineEventHandler(async (event) => {
   const storage = getNoteStorage(await loadServerConfig())
   const body = await readBody(event)
 
-  await storage.deleteNote(parseDeleteNoteInput(body))
-
-  return { success: true }
+  return storage.softDeleteNote(parseSoftDeleteNoteInput(body))
 })

@@ -49,3 +49,7 @@ Add explicit folder creation and persistence to the storage layer. Folders are s
 ## D013 — 2026-03
 
 Recompute `hasTasks` from unchecked markdown checklist items on save and persist it as an Application Property under the `app` frontmatter namespace so the sidebar can filter to notes with unfinished tasks without reparsing every note body.
+
+## D014 — 2026-03
+
+Soft-delete notes by setting the `trashedAt` Application Property instead of removing storage. The Trashed sidebar view lists only trashed notes; other views exclude them. Restoring clears `trashedAt` on `moveNote` to Inbox or a folder. Expired trashed notes are permanently deleted when serving `GET /api/notes`, using `notes.trashRetentionDays` from config (default 30). The note toolbar is hidden while a trashed note is selected.

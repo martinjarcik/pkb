@@ -8,12 +8,14 @@ import {
   isVaultRootNote,
   vaultTopLevelFolderNames,
 } from '~/notes/noteFilters'
+import { catalogRowIsTrashed } from '~/notes/trash'
 
 export type TagFilterState = 'idle' | 'active' | 'pinned'
 
 export type SidebarWorkspaceView =
   | { kind: 'inbox' }
   | { kind: 'tasks' }
+  | { kind: 'trashed' }
   | { kind: 'folder'; folderName: string }
   | { kind: 'tags'; activeTags: string[]; pinnedTags: string[] }
 
@@ -151,6 +153,40 @@ export function mergeTopLevelFolders(
   )
 }
 
+export function filterCatalogForSidebarView(
+  rows: readonly NoteCatalogRow[],
+  view: SidebarWorkspaceView,
+): readonly NoteCatalogRow[] {
+  if (view.kind === 'inbox') {
+    return rows.filter(
+      (row) => isVaultRootNote(row.id) && !catalogRowIsTrashed(row),
+    )
+  }
+
+  if (view.kind === 'tags') {
+    return filterCatalogBySelectedTags(
+      rows.filter((row) => !catalogRowIsTrashed(row)),
+      selectedTagsFromView(view),
+    )
+  }
+
+  if (view.kind === 'tasks') {
+    return filterCatalogByHasTasks(
+      rows.filter((row) => !catalogRowIsTrashed(row)),
+    )
+  }
+
+  if (view.kind === 'trashed') {
+    return rows.filter((row) => catalogRowIsTrashed(row))
+  }
+
+  return rows.filter(
+    (row) =>
+      isDirectChildOfVaultFolder(row.id, view.folderName) &&
+      !catalogRowIsTrashed(row),
+  )
+}
+
 export function useSidebarNavigation() {
   const { catalog, selectNoteById } = useNotes()
   const selectedView = useState<SidebarWorkspaceView>(
@@ -176,34 +212,15 @@ export function useSidebarNavigation() {
   const allTags = computed(() => allTagsFromCatalog(catalog.value))
   const selectedTags = computed(() => selectedTagsFromView(selectedView.value))
 
-  function filterCatalog(
-    view: SidebarWorkspaceView,
-  ): readonly NoteCatalogRow[] {
-    if (view.kind === 'inbox') {
-      return catalog.value.filter((row) => isVaultRootNote(row.id))
-    }
-
-    if (view.kind === 'tags') {
-      return filterCatalogBySelectedTags(
-        catalog.value,
-        selectedTagsFromView(view),
-      )
-    }
-
-    if (view.kind === 'tasks') {
-      return filterCatalogByHasTasks(catalog.value)
-    }
-
-    return catalog.value.filter((row) =>
-      isDirectChildOfVaultFolder(row.id, view.folderName),
-    )
-  }
-
-  const visibleCatalogRows = computed(() => filterCatalog(selectedView.value))
+  const visibleCatalogRows = computed(() =>
+    filterCatalogForSidebarView(catalog.value, selectedView.value),
+  )
 
   async function selectView(view: SidebarWorkspaceView): Promise<void> {
     selectedView.value = view
-    await selectNoteById(filterCatalog(view)[0]?.id ?? null)
+    await selectNoteById(
+      filterCatalogForSidebarView(catalog.value, view)[0]?.id ?? null,
+    )
   }
 
   async function selectInbox(): Promise<void> {
@@ -212,6 +229,10 @@ export function useSidebarNavigation() {
 
   async function selectTasks(): Promise<void> {
     await selectView({ kind: 'tasks' })
+  }
+
+  async function selectTrashed(): Promise<void> {
+    await selectView({ kind: 'trashed' })
   }
 
   async function selectFolder(folderName: string): Promise<void> {
@@ -292,6 +313,7 @@ export function useSidebarNavigation() {
     loadFolders,
     selectInbox,
     selectTasks,
+    selectTrashed,
     selectFolder,
     toggleFoldersExpanded,
     toggleTagsExpanded,

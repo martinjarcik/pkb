@@ -25,7 +25,8 @@
   },
   "sidebarNavigation": {
     "inbox": "Inbox",
-    "tasks": "Tasks"
+    "tasks": "Tasks",
+    "trashed": "Trashed"
   },
   "sidebarFolders": {
     "title": "Folders",

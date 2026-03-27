@@ -55,13 +55,15 @@ preview slice used by the notes list, capped at 1024 UTF-8 bytes.
   without reading full note bodies, while preserving `app`-namespaced
   Application Properties.
 - `app/storage/router.ts` — active storage selection from `applicationType`.
+- `server/loadServerConfig.ts` — shared YAML load for Nitro API handlers (vault,
+  `applicationType`, and `notes.trashRetentionDays` for trash retention).
 - `app/config/loader.ts` — typed `AppConfig` parsed from `app/config/default.yaml`,
-  including the active locale and theme settings.
+  including the active locale, theme settings, and `notes.trashRetentionDays`.
 - `app/app.vue` — root app shell that applies the configured locale to Nuxt i18n.
 - `app/composables/useLayout.ts` — layout panel visibility state initialized
   from config defaults.
 - `app/composables/useSidebarNavigation.ts` — sidebar view state initialized
-  from config defaults, including the Inbox, Tasks, top-level folder note
+  from config defaults, including the Inbox, Tasks, Trashed, top-level folder note
   filters, and tag-based note filtering.
 - `app/layouts/default.vue` — application shell composing SidebarPanel, NotesListPanel,
   page slot, and InspectorPanel in a horizontal flexbox.

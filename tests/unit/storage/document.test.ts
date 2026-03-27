@@ -24,6 +24,20 @@ describe('serializeDocument', () => {
       ),
     ).toBe('---\ntags:\n  - cooking\napp:\n  hasTasks: true\n---\n# Hello')
   })
+
+  it('nests trashedAt under app with other application properties', () => {
+    expect(
+      serializeDocument(
+        {
+          hasTasks: false,
+          trashedAt: '2025-01-01T00:00:00.000Z',
+        },
+        '# Hi',
+      ),
+    ).toBe(
+      '---\napp:\n  hasTasks: false\n  trashedAt: 2025-01-01T00:00:00.000Z\n---\n# Hi',
+    )
+  })
 })
 
 describe('parseDocument', () => {
@@ -66,6 +80,24 @@ describe('parseDocument', () => {
         tags: ['cooking'],
       },
       content: '# Hello',
+    })
+  })
+
+  it('round-trips trashedAt under app', () => {
+    const document = serializeDocument(
+      {
+        hasTasks: false,
+        trashedAt: '2025-03-01T12:00:00.000Z',
+      },
+      '# Body',
+    )
+
+    expect(parseDocument(document)).toEqual({
+      properties: {
+        hasTasks: false,
+        trashedAt: '2025-03-01T12:00:00.000Z',
+      },
+      content: '# Body',
     })
   })
 })

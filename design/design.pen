@@ -119,14 +119,14 @@
                       "x": 0,
                       "y": 0,
                       "width": "fill_container",
-                      "height": 16041.88708540936,
+                      "height": 33849.14197145053,
                       "descendants": {
                         "ZYZFX": {
-                          "y": 8013.44354270468
+                          "y": 16917.070985725266
                         },
                         "Rv7um": {
                           "x": -39,
-                          "y": 8013.44354270468
+                          "y": 16917.070985725266
                         }
                       }
                     },
@@ -135,17 +135,17 @@
                       "type": "ref",
                       "ref": "XpvfC",
                       "x": 0,
-                      "y": 16041.88708540936,
+                      "y": 33849.14197145053,
                       "width": "fill_container",
-                      "height": 16041.88708540936,
+                      "height": 33849.14197145053,
                       "descendants": {
                         "ZYZFX": {
                           "content": "modifiedAt",
-                          "y": 8013.44354270468
+                          "y": 16917.070985725266
                         },
                         "Rv7um": {
                           "x": -39,
-                          "y": 8013.44354270468
+                          "y": 16917.070985725266
                         }
                       }
                     },
@@ -154,18 +154,18 @@
                       "type": "ref",
                       "ref": "XpvfC",
                       "x": 0,
-                      "y": 32083.77417081872,
+                      "y": 67698.28394290106,
                       "width": "fill_container",
-                      "height": 16041.887085409377,
+                      "height": 33849.141971450554,
                       "descendants": {
                         "ZYZFX": {
                           "content": "favorite",
-                          "y": 8013.443542704688
+                          "y": 16917.070985725277
                         },
                         "Rv7um": {
                           "content": "false",
                           "x": -27,
-                          "y": 8013.443542704688
+                          "y": 16917.070985725277
                         }
                       }
                     },
@@ -174,18 +174,18 @@
                       "type": "ref",
                       "ref": "XpvfC",
                       "x": 0,
-                      "y": 48125.66125622809,
+                      "y": 101547.42591435162,
                       "width": "fill_container",
-                      "height": 16041.887085409366,
+                      "height": 33849.14197145055,
                       "descendants": {
                         "ZYZFX": {
                           "content": "pinned",
-                          "y": 8013.443542704683
+                          "y": 16917.070985725273
                         },
                         "Rv7um": {
                           "content": "false",
                           "x": -27,
-                          "y": 8013.443542704683
+                          "y": 16917.070985725273
                         }
                       }
                     },
@@ -195,7 +195,7 @@
                       "name": "InspectorPropertyItem",
                       "reusable": true,
                       "width": "fill_container",
-                      "height": 16041.88708540936,
+                      "height": 33849.14197145053,
                       "justifyContent": "space_between",
                       "alignItems": "center",
                       "children": [
@@ -226,14 +226,14 @@
                       "id": "Xn4l2",
                       "name": "spacer",
                       "width": "fill_container",
-                      "height": 27593.56622937766
+                      "height": 58223.73239656753
                     },
                     {
                       "type": "frame",
                       "id": "KkocO",
                       "name": "addBtn",
                       "width": "fill_container",
-                      "height": 27593.566229377677,
+                      "height": 58223.73239656757,
                       "cornerRadius": 6,
                       "stroke": {
                         "thickness": 1,
@@ -1205,12 +1205,12 @@
                   "descendants": {
                     "IxHw5": {
                       "iconFontFamily": "lucide",
-                      "iconFontName": "calendar-days",
+                      "iconFontName": "trash-2",
                       "x": 10,
                       "y": 9
                     },
                     "5rc5Q": {
-                      "content": "Calendar",
+                      "content": "Trashed",
                       "x": 27,
                       "y": 0
                     }
