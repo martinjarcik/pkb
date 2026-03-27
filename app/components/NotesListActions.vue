@@ -1,11 +1,16 @@
 <script setup lang="ts">
+import { selectedTagsFromView } from '~/composables/useSidebarNavigation'
+
 const { createNote } = useNotes()
 const { selectedView } = useSidebarNavigation()
 
 async function handleCreateNote(): Promise<void> {
-  await createNote(
-    selectedView.value.kind === 'folder' ? selectedView.value.folderName : '',
-  )
+  const view = selectedView.value
+  const parentPath = view.kind === 'folder' ? view.folderName : ''
+  const tags = selectedTagsFromView(view)
+  const initialProperties = tags.length > 0 ? { tags } : {}
+
+  await createNote(parentPath, initialProperties)
 }
 </script>
 

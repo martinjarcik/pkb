@@ -40,7 +40,7 @@ describe('buildSaveNoteInput', () => {
       id: 'notes/example.md',
       content: '# Updated',
       properties: {
-        tags: [],
+        tags: ['autosave', 'fixture'],
         meta: {
           nested: true,
         },
@@ -63,6 +63,26 @@ describe('buildSaveNoteInput', () => {
       content: '#idea #engineering',
       properties: {
         tags: ['engineering', 'idea'],
+      },
+    })
+  })
+
+  it('merges existing tags with content-extracted tags', () => {
+    const note = {
+      id: 'notes/example.md',
+      title: 'example',
+      description: '',
+      tags: ['cooking', 'recipes'],
+      content: '',
+      createdAt: '2026-03-25T08:00:00.000Z',
+      modifiedAt: '2026-03-25T08:00:00.000Z',
+    } satisfies Note
+
+    expect(buildSaveNoteInput(note, '#idea #cooking')).toEqual({
+      id: 'notes/example.md',
+      content: '#idea #cooking',
+      properties: {
+        tags: ['cooking', 'idea', 'recipes'],
       },
     })
   })

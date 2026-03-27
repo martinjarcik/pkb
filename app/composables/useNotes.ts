@@ -180,7 +180,10 @@ export function useNotes() {
     }
   }
 
-  async function createNote(parentPath: string = ''): Promise<Note | null> {
+  async function createNote(
+    parentPath: string = '',
+    initialProperties: Record<string, unknown> = {},
+  ): Promise<Note | null> {
     const translatedDefaultTitle = t('notes.newNoteTitle').trim()
     const defaultTitle =
       translatedDefaultTitle.length === 0 ||
@@ -206,7 +209,7 @@ export function useNotes() {
             defaultTitle,
             notes.value.map((note) => note.id),
           ),
-          properties: {},
+          properties: initialProperties,
           content: '',
         },
       })
