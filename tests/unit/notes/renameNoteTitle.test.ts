@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import {
   createNoteIdFromTitle,
+  moveNoteId,
   resolveUniqueNoteId,
   resolveUniqueNoteIdForParentPath,
   sanitizeNoteTitleForFilename,
@@ -57,5 +58,35 @@ describe('renameNoteTitle', () => {
     expect(
       resolveUniqueNoteIdForParentPath('', 'Fresh Title', ['Fresh Title.md']),
     ).toBe('Fresh Title (2).md')
+  })
+
+  it('returns the same id when the note is already in the target folder', () => {
+    expect(
+      moveNoteId('recipes/Pasta.md', 'recipes', ['recipes/Pasta.md']),
+    ).toBe('recipes/Pasta.md')
+  })
+
+  it('moves a vault root note into a folder', () => {
+    expect(moveNoteId('Pasta.md', 'recipes', ['Pasta.md'])).toBe(
+      'recipes/Pasta.md',
+    )
+  })
+
+  it('moves a folder note back to the vault root', () => {
+    expect(moveNoteId('recipes/Pasta.md', '', ['recipes/Pasta.md'])).toBe(
+      'Pasta.md',
+    )
+  })
+
+  it('moves a note between folders', () => {
+    expect(moveNoteId('work/Report.md', 'archive', ['work/Report.md'])).toBe(
+      'archive/Report.md',
+    )
+  })
+
+  it('adds a numeric suffix when moving into a folder with a collision', () => {
+    expect(
+      moveNoteId('Pasta.md', 'recipes', ['Pasta.md', 'recipes/Pasta.md']),
+    ).toBe('recipes/Pasta (2).md')
   })
 })

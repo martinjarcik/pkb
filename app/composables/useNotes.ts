@@ -274,6 +274,43 @@ export function useNotes() {
     }
   }
 
+  async function moveNote(
+    id: string,
+    targetParentPath: string,
+  ): Promise<Note | null> {
+    if (!notes.value.some((note) => note.id === id)) {
+      return null
+    }
+
+    saveError.value = null
+
+    try {
+      await editorFlush.value?.()
+
+      const movedNote = await globalThis.$fetch<Note>('/api/notes/move', {
+        method: 'POST',
+        body: {
+          id,
+          targetParentPath,
+        },
+      })
+
+      replaceRenamedNote(id, movedNote)
+
+      if (selectedNoteId.value === id) {
+        selectedNoteId.value = movedNote.id
+        selectedNoteFull.value = movedNote
+      }
+
+      return movedNote
+    } catch (error) {
+      saveError.value =
+        error instanceof Error ? error.message : t('notes.errorSaveFallback')
+
+      return null
+    }
+  }
+
   async function deleteSelectedNote(
     visibleNoteIds: readonly string[],
   ): Promise<boolean> {
@@ -357,6 +394,7 @@ export function useNotes() {
     clearShouldFocusTitle,
     createNote,
     deleteSelectedNote,
+    moveNote,
     registerEditorFlush,
     renameSelectedNoteTitle,
     saveSelectedNoteContent,

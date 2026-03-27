@@ -18,8 +18,13 @@ import {
   type NoteCatalogRow,
   type NoteProperties,
 } from '~/notes/types'
-import { resolveUniqueNoteId } from '~/notes/renameNoteTitle'
-import type { NoteStorage, RenameNoteTitleInput, SaveNoteInput } from './types'
+import { moveNoteId, resolveUniqueNoteId } from '~/notes/renameNoteTitle'
+import type {
+  MoveNoteInput,
+  NoteStorage,
+  RenameNoteTitleInput,
+  SaveNoteInput,
+} from './types'
 import {
   parseDocument,
   sanitizeProperties,
@@ -229,6 +234,35 @@ export function createFilesystemStorage(vaultPath: string): NoteStorage {
       if (nextId !== input.id) {
         const nextPath = assertSafeId(vaultPath, nextId)
 
+        await rename(currentPath, nextPath)
+      }
+
+      const fileStats = await stat(assertSafeId(vaultPath, nextId))
+      const { properties, content } = parseDocument(raw)
+
+      return composeNote(
+        nextId,
+        properties,
+        content,
+        fileStats.birthtime.toISOString(),
+        fileStats.mtime.toISOString(),
+      )
+    },
+
+    async moveNote(input: MoveNoteInput): Promise<Note> {
+      const normalizedVault = resolve(vaultPath)
+      const currentPath = assertSafeId(vaultPath, input.id)
+      const existingFilePaths = await findMarkdownFiles(normalizedVault)
+      const existingIds = existingFilePaths.map((filePath) =>
+        relative(normalizedVault, filePath),
+      )
+      const nextId = moveNoteId(input.id, input.targetParentPath, existingIds)
+      const raw = await readFile(currentPath, 'utf-8')
+
+      if (nextId !== input.id) {
+        const nextPath = assertSafeId(vaultPath, nextId)
+
+        await mkdir(dirname(nextPath), { recursive: true })
         await rename(currentPath, nextPath)
       }
 

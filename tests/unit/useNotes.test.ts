@@ -282,6 +282,33 @@ describe('useNotes', () => {
     expect(selectedNoteId.value).toBe('second.md')
   })
 
+  it('retargets selection to the new id after moving a note', async () => {
+    const { moveNote, notes, selectedNoteId, selectNoteById } = useNotes()
+
+    notes.value = [
+      createTestNote('first.md', '# First preview', '2026-03-24'),
+      createTestNote('recipes/existing.md', '# Existing', '2026-03-23'),
+    ]
+
+    mockFetchRoutes({
+      'GET /api/notes/first.md': createTestNote(
+        'first.md',
+        '# First',
+        '2026-03-24',
+      ),
+      'POST /api/notes/move': createTestNote(
+        'recipes/first.md',
+        '# First',
+        '2026-03-24',
+      ),
+    })
+
+    await selectNoteById('first.md')
+    await moveNote('first.md', 'recipes')
+
+    expect(selectedNoteId.value).toBe('recipes/first.md')
+  })
+
   it('prepends the created note to the list', async () => {
     const { createNote: createNewNote, notes } = useNotes()
 

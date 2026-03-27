@@ -17,6 +17,7 @@ async function openHeadingNote(page: Page): Promise<void> {
   await page.goto('/')
   await page.locator('[data-note-id="heading-note.md"]').click()
   await waitForEditorReady(page)
+  await expect(page.getByTestId('note-title')).toHaveText('heading-note')
 }
 
 test.beforeEach(async ({ page }) => {

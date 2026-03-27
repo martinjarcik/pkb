@@ -11,12 +11,18 @@ export type RenameNoteTitleInput = {
   title: string
 }
 
+export type MoveNoteInput = {
+  id: string
+  targetParentPath: string
+}
+
 export type NoteStorage = {
   loadNotesCatalog(): Promise<NoteCatalogRow[]>
   loadFolders(): Promise<string[]>
   loadNoteById(id: string): Promise<Note | null>
   saveNote(input: SaveNoteInput): Promise<Note>
   renameNoteTitle(input: RenameNoteTitleInput): Promise<Note>
+  moveNote(input: MoveNoteInput): Promise<Note>
   deleteNote(id: string): Promise<void>
   createFolder(name: string): Promise<void>
 }

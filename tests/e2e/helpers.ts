@@ -1,4 +1,5 @@
 import { expect, type Page, type Route } from '@playwright/test'
+import { moveNoteId } from '../../app/notes/renameNoteTitle'
 import { noteDescriptionFromContent } from '../../app/notes/noteDescriptionFromContent'
 import { noteTitleFromId } from '../../app/notes/noteTitleFromId'
 import type { Note, NoteProperties } from '../../app/notes/types'
@@ -54,12 +55,52 @@ export async function mockNotesApi(
   })
 
   await page.route('**/api/notes/**', async (route: Route) => {
+    const pathname = new URL(route.request().url()).pathname
+
+    if (route.request().method() === 'POST' && pathname === '/api/notes/move') {
+      const body = route.request().postDataJSON() as {
+        id: string
+        targetParentPath: string
+      }
+      const noteIndex = notes.findIndex((note) => note.id === body.id)
+
+      if (noteIndex === -1) {
+        await route.fulfill({
+          status: 404,
+          contentType: 'application/json',
+          body: JSON.stringify({ statusMessage: 'Note not found' }),
+        })
+        return
+      }
+
+      const nextId = moveNoteId(
+        body.id,
+        body.targetParentPath,
+        notes.map((note) => note.id),
+      )
+      const movedNote = {
+        ...notes[noteIndex]!,
+        id: nextId,
+        title: noteTitleFromId(nextId),
+        modifiedAt: FIXED_TIMESTAMP,
+      }
+
+      notes = notes.map((note, index) =>
+        index === noteIndex ? movedNote : note,
+      )
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify(movedNote),
+      })
+      return
+    }
+
     if (route.request().method() !== 'GET') {
       await route.fallback()
       return
     }
 
-    const pathname = new URL(route.request().url()).pathname
     const noteId = pathname
       .replace(/^\/api\/notes\//, '')
       .split('/')

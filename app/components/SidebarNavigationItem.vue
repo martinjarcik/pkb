@@ -7,6 +7,7 @@ const props = defineProps<{
   label: string
   selected: boolean
   accentColor: string
+  dropActive?: boolean
 }>()
 
 const selectedStyle = computed(() =>
@@ -23,7 +24,9 @@ const selectedStyle = computed(() =>
     class="sidebar-navigation-item-shell"
     :class="{
       'sidebar-navigation-item-selected': selected,
+      'sidebar-navigation-item-drop-active': dropActive,
     }"
+    :data-drop-active="dropActive ? 'true' : 'false'"
     :style="selectedStyle"
   >
     <component

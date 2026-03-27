@@ -1,4 +1,6 @@
-function splitNoteId(id: string): {
+import { noteTitleFromId } from './noteTitleFromId'
+
+export function splitNoteId(id: string): {
   parentPath: string
   normalizedId: string
 } {
@@ -92,4 +94,26 @@ export function resolveUniqueNoteId(
   ids.delete(currentId)
 
   return resolveUniqueNoteIdForParentPath(parentPath, title, ids)
+}
+
+export function moveNoteId(
+  currentId: string,
+  targetParentPath: string,
+  existingIds: Iterable<string>,
+): string {
+  const { parentPath } = splitNoteId(currentId)
+
+  if (parentPath === targetParentPath) {
+    return currentId
+  }
+
+  const ids = new Set(existingIds)
+
+  ids.delete(currentId)
+
+  return resolveUniqueNoteIdForParentPath(
+    targetParentPath,
+    noteTitleFromId(currentId),
+    ids,
+  )
 }

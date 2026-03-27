@@ -1,9 +1,14 @@
 import { createNoteCatalogRow } from '~/notes/catalogRow'
 import { noteDescriptionFromContent } from '~/notes/noteDescriptionFromContent'
+import { moveNoteId, resolveUniqueNoteId } from '~/notes/renameNoteTitle'
 import { noteTitleFromId } from '~/notes/noteTitleFromId'
 import type { Note, NoteCatalogRow } from '~/notes/types'
-import { resolveUniqueNoteId } from '~/notes/renameNoteTitle'
-import type { NoteStorage, RenameNoteTitleInput, SaveNoteInput } from './types'
+import type {
+  MoveNoteInput,
+  NoteStorage,
+  RenameNoteTitleInput,
+  SaveNoteInput,
+} from './types'
 import { parseDocument, serializeDocument } from './document'
 
 const STORAGE_KEY = 'notes'
@@ -189,6 +194,32 @@ export const browserStorage: NoteStorage = {
     const nextId = resolveUniqueNoteId(
       input.id,
       input.title,
+      Object.keys(notes),
+    )
+
+    if (nextId !== input.id) {
+      const { [input.id]: _removed, ...remaining } = notes
+
+      writeStoredNotes({
+        ...remaining,
+        [nextId]: storedNote,
+      })
+    }
+
+    return composeNote(nextId, storedNote)
+  },
+
+  async moveNote(input: MoveNoteInput): Promise<Note> {
+    const notes = readStoredNotes()
+    const storedNote = notes[input.id]
+
+    if (!storedNote) {
+      throw new Error(`Note not found: ${input.id}`)
+    }
+
+    const nextId = moveNoteId(
+      input.id,
+      input.targetParentPath,
       Object.keys(notes),
     )
 

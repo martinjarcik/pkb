@@ -9,6 +9,9 @@ type NotesListItem = {
   meta: string
 }
 
+let dragPreview: HTMLElement | null = null
+const DRAG_PREVIEW_SCALE = 0.5
+
 function toListItem(row: NoteCatalogRow): NotesListItem {
   return {
     id: row.id,
@@ -25,6 +28,54 @@ const listItems = computed(() => visibleCatalogRows.value.map(toListItem))
 
 async function handleSelectNote(id: string): Promise<void> {
   await selectNoteById(id)
+}
+
+function handleDragStart(event: DragEvent, id: string): void {
+  const source = event.currentTarget
+
+  if (!(source instanceof HTMLElement) || !event.dataTransfer) {
+    return
+  }
+
+  event.dataTransfer.effectAllowed = 'move'
+  event.dataTransfer.setData('text/plain', id)
+
+  dragPreview?.remove()
+
+  const nextPreview = source.cloneNode(true)
+
+  if (!(nextPreview instanceof HTMLElement)) {
+    return
+  }
+
+  const { width } = source.getBoundingClientRect()
+
+  nextPreview.style.position = 'fixed'
+  nextPreview.style.top = '-10000px'
+  nextPreview.style.left = '-10000px'
+  nextPreview.style.width = `${width * DRAG_PREVIEW_SCALE}px`
+  nextPreview.style.minWidth = `${width * DRAG_PREVIEW_SCALE}px`
+  nextPreview.style.maxWidth = `${width * DRAG_PREVIEW_SCALE}px`
+  nextPreview.style.margin = '0'
+  nextPreview.style.zoom = String(DRAG_PREVIEW_SCALE)
+  nextPreview.style.backgroundColor = '#ffffff'
+  nextPreview.style.border = `1px solid ${accentColor.value}`
+  nextPreview.style.borderRight = '0'
+  nextPreview.style.pointerEvents = 'none'
+
+  document.body.append(nextPreview)
+  event.dataTransfer.setDragImage(
+    nextPreview,
+    12 * DRAG_PREVIEW_SCALE,
+    12 * DRAG_PREVIEW_SCALE,
+  )
+  dragPreview = nextPreview
+}
+
+function handleDragEnd(event: DragEvent): void {
+  event.dataTransfer?.clearData()
+  dragPreview?.remove()
+  dragPreview = null
 }
 
 function getItemStyle(
@@ -67,11 +118,14 @@ function getItemStyle(
         :data-selected="item.id === selectedNoteId ? 'true' : 'false'"
         data-testid="notes-list-item"
         class="notes-list-item"
+        draggable="true"
         :class="{
           'notes-list-item-selected': item.id === selectedNoteId,
         }"
         :style="getItemStyle(item.id === selectedNoteId)"
         @click="handleSelectNote(item.id)"
+        @dragstart="handleDragStart($event, item.id)"
+        @dragend="handleDragEnd"
       >
         <div class="notes-list-item-content">
           <p
