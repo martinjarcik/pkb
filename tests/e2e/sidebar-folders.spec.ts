@@ -58,7 +58,7 @@ test('shows Folders title in the sidebar when folders exist', async ({
   )
 })
 
-test('hides action icons by default and shows them on hover', async ({
+test('hides create-folder icon by default and shows it on hover', async ({
   page,
 }) => {
   await mockNotesApi(page, [
@@ -79,6 +79,7 @@ test('hides action icons by default and shows them on hover', async ({
   const actions = controls.locator('.sidebar-section-controls-actions')
 
   await expect(actions).toHaveCSS('opacity', '0')
+  await expect(page.getByTestId('sidebar-folders-toggle')).toBeVisible()
 
   await controls.hover()
 
@@ -101,14 +102,10 @@ test('collapses and expands the folder list with the chevron', async ({
 
   await expect(page.getByTestId('sidebar-folders-actions')).toBeVisible()
 
-  const controls = page.getByTestId('sidebar-folders-controls')
-
-  await controls.hover()
   await page.getByTestId('sidebar-folders-toggle').click()
 
   await expect(page.getByTestId('sidebar-folders-actions')).toHaveCount(0)
 
-  await controls.hover()
   await page.getByTestId('sidebar-folders-toggle').click()
 
   await expect(page.getByTestId('sidebar-folders-actions')).toBeVisible()

@@ -63,12 +63,13 @@ preview slice used by the notes list, capped at 1024 UTF-8 bytes.
 - `app/composables/useLayout.ts` — layout panel visibility state initialized
   from config defaults.
 - `app/composables/useSidebarNavigation.ts` — sidebar view state initialized
-  from config defaults, including the Inbox, Tasks, Trashed, top-level folder note
-  filters, and tag-based note filtering.
+  from config defaults, including the Inbox, Tasks, Favorites (when
+  `features.favorites` is true), Trashed, top-level folder note filters, and
+  tag-based note filtering.
 - `app/layouts/default.vue` — application shell composing SidebarPanel, NotesListPanel,
   page slot, and InspectorPanel in a horizontal flexbox.
-- `app/pages/index.vue` — renders `NotePanel` and retargets selection to the
-  first note visible in the active sidebar view after load.
+- `app/pages/index.vue` — renders `NotePanel` and, after catalog load, selects
+  the first note in the Inbox view (vault root, not trashed).
 - `SidebarPanel` (`app/components/SidebarPanel.vue`) — sidebar shell.
   - `SidebarNavigation` (`app/components/SidebarNavigation.vue`) — view-selection
     navigation.
@@ -100,7 +101,7 @@ preview slice used by the notes list, capped at 1024 UTF-8 bytes.
   - `NotesList` (`app/components/NotesList.vue`) — scrollable note list.
 - `NotePanel` (`app/components/NotePanel.vue`) — active note region.
   - `NoteControls` (`app/components/NoteControls.vue`) — note toolbar region
-    with note-scoped actions (for example delete).
+    with note-scoped actions (for example favorite toggle when enabled, delete).
   - `NoteView` (`app/components/NoteView.vue`) — bounded note display and
     editing region.
     - `NoteTemplate` — template (Liquid) output wrapper.
@@ -151,13 +152,15 @@ New contexts may be introduced when corresponding features are specified.
 - Properties are edited separately in the InspectorPanel, not inside the editor.
 - In filesystem-backed storage, properties are serialized as YAML frontmatter.
 - `useNotes()` owns the note catalog, the active note id, and the currently
-  loaded full note in shared state. After a successful catalog load, it selects
-  the first loaded note by default, fetches the full note, and `NoteTemplate`
-  passes that note's title and Content into `NoteEditor`.
+  loaded full note in shared state. The page selects the initial note after
+  load; when a note is selected, `NoteTemplate` passes that note's title and
+  Content into `NoteEditor`.
 - `useSidebarNavigation()` owns the active sidebar view in shared state.
   The default `Inbox` view filters `NotesList` to notes whose `id` lives at the
-  vault root. The `Tasks` view filters across the whole catalog to notes whose
-  `hasTasks` Application Property is `true`, while folder views filter to notes
+  vault root. The `Favorites` view (when enabled in config) filters across the
+  whole catalog to notes whose `favorite` Application Property is `true`,
+  excluding trashed notes. The `Tasks` view filters across the whole catalog to
+  notes whose `hasTasks` Application Property is `true`, while folder views filter to notes
   that are direct children of a selected top-level Vault folder. Tag views
   filter across the whole catalog to notes whose `tags` Property contains all
   active and pinned Tags (AND logic). Each Tag has a tri-state filter cycle
@@ -178,6 +181,9 @@ New contexts may be introduced when corresponding features are specified.
 - The default `Inbox` sidebar view narrows the broad note set to notes whose
   `id` contains no `/`, which corresponds to notes stored directly in the
   Vault root.
+- The `Favorites` sidebar view (when enabled in config) narrows the broad note
+  set to notes whose `favorite` Application Property is `true`, excluding trashed
+  notes.
 - The `Tasks` sidebar view narrows the broad note set to notes whose
   `hasTasks` Application Property is `true`, regardless of folder.
 - Folder sidebar views narrow the broad note set to notes whose `id` has the

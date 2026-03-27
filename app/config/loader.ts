@@ -21,6 +21,10 @@ export type AppConfig = {
   theme: {
     accentColor: string
   }
+  features: {
+    favorites: boolean
+    tasks: boolean
+  }
 }
 
 const VALID_APPLICATION_TYPES: ApplicationType[] = ['desktop', 'browser']
@@ -103,7 +107,56 @@ export function parseAppConfig(value: unknown): AppConfig {
     throw new Error('Config theme.accentColor must be a non-empty string')
   }
 
-  return value as AppConfig
+  let favorites = true
+  let tasks = true
+
+  if (obj.features !== undefined) {
+    if (typeof obj.features !== 'object' || obj.features === null) {
+      throw new Error('Config features must be an object')
+    }
+
+    const features = obj.features as Record<string, unknown>
+
+    if (features.favorites !== undefined) {
+      if (typeof features.favorites !== 'boolean') {
+        throw new Error('Config features.favorites must be a boolean')
+      }
+
+      favorites = features.favorites
+    }
+
+    if (features.tasks !== undefined) {
+      if (typeof features.tasks !== 'boolean') {
+        throw new Error('Config features.tasks must be a boolean')
+      }
+
+      tasks = features.tasks
+    }
+  }
+
+  return {
+    applicationType: obj.applicationType as ApplicationType,
+    locale: obj.locale as string,
+    vault: obj.vault as string,
+    notes: {
+      trashRetentionDays: notes.trashRetentionDays as number,
+    },
+    editor: {
+      autosaveDelay: editor.autosaveDelay as number,
+    },
+    layout: {
+      showInspectorPanel: layout.showInspectorPanel as boolean,
+      showSidebarPanel: layout.showSidebarPanel as boolean,
+      showNotesListPanel: layout.showNotesListPanel as boolean,
+    },
+    theme: {
+      accentColor: theme.accentColor as string,
+    },
+    features: {
+      favorites,
+      tasks,
+    },
+  }
 }
 
 const DEFAULT_CONFIG = parseAppConfig(yaml.parse(rawDefaultConfig) as unknown)

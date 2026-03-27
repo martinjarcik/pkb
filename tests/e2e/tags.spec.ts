@@ -299,7 +299,7 @@ test('renders sidebar tags with the hash prefix', async ({ page }) => {
   ])
 })
 
-test('reveals tags chevron on hover and collapses the tag list', async ({
+test('tags chevron is always visible and collapses the tag list', async ({
   page,
 }) => {
   await mockTagNotesApi(page, [
@@ -311,21 +311,15 @@ test('reveals tags chevron on hover and collapses the tag list', async ({
   await page.goto('/')
 
   const controls = page.getByTestId('sidebar-tags-controls')
-  const actions = controls.locator('.sidebar-section-controls-actions')
 
   await expect(controls).toBeVisible()
-  await expect(actions).toHaveCSS('opacity', '0')
-
-  await controls.hover()
-
-  await expect(actions).toHaveCSS('opacity', '1')
+  await expect(page.getByTestId('sidebar-tags-toggle')).toBeVisible()
   await expect(page.getByTestId('sidebar-tags-list')).toBeVisible()
 
   await page.getByTestId('sidebar-tags-toggle').click()
 
   await expect(page.getByTestId('sidebar-tags-list')).toHaveCount(0)
 
-  await controls.hover()
   await page.getByTestId('sidebar-tags-toggle').click()
 
   await expect(page.getByTestId('sidebar-tags-list')).toBeVisible()

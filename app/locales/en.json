@@ -26,6 +26,7 @@
   "sidebarNavigation": {
     "inbox": "Inbox",
     "tasks": "Tasks",
+    "favorites": "Favorites",
     "trashed": "Trashed"
   },
   "sidebarFolders": {

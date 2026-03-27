@@ -15,6 +15,7 @@ export type TagFilterState = 'idle' | 'active' | 'pinned'
 export type SidebarWorkspaceView =
   | { kind: 'inbox' }
   | { kind: 'tasks' }
+  | { kind: 'favorites' }
   | { kind: 'trashed' }
   | { kind: 'folder'; folderName: string }
   | { kind: 'tags'; activeTags: string[]; pinnedTags: string[] }
@@ -176,6 +177,12 @@ export function filterCatalogForSidebarView(
     )
   }
 
+  if (view.kind === 'favorites') {
+    return rows.filter(
+      (row) => row.favorite === true && !catalogRowIsTrashed(row),
+    )
+  }
+
   if (view.kind === 'trashed') {
     return rows.filter((row) => catalogRowIsTrashed(row))
   }
@@ -229,6 +236,10 @@ export function useSidebarNavigation() {
 
   async function selectTasks(): Promise<void> {
     await selectView({ kind: 'tasks' })
+  }
+
+  async function selectFavorites(): Promise<void> {
+    await selectView({ kind: 'favorites' })
   }
 
   async function selectTrashed(): Promise<void> {
@@ -313,6 +324,7 @@ export function useSidebarNavigation() {
     loadFolders,
     selectInbox,
     selectTasks,
+    selectFavorites,
     selectTrashed,
     selectFolder,
     toggleFoldersExpanded,

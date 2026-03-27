@@ -52,17 +52,19 @@ function handleInputKeydown(event: KeyboardEvent): void {
   >
     <span class="sidebar-section-title">{{ $t('sidebarFolders.title') }}</span>
 
-    <div class="sidebar-section-controls-actions">
-      <button
-        type="button"
-        :aria-label="$t('sidebarFolders.createFolder')"
-        :title="$t('sidebarFolders.createFolder')"
-        class="sidebar-section-control-button"
-        data-testid="sidebar-folders-create"
-        @click="openCreateDialog"
-      >
-        <Plus :size="14" aria-hidden="true" />
-      </button>
+    <div class="flex shrink-0 items-center gap-0.5">
+      <div class="sidebar-section-controls-actions">
+        <button
+          type="button"
+          :aria-label="$t('sidebarFolders.createFolder')"
+          :title="$t('sidebarFolders.createFolder')"
+          class="sidebar-section-control-button"
+          data-testid="sidebar-folders-create"
+          @click="openCreateDialog"
+        >
+          <Plus :size="14" aria-hidden="true" />
+        </button>
+      </div>
       <button
         type="button"
         :aria-label="$t('sidebarFolders.toggleFolders')"

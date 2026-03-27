@@ -193,13 +193,13 @@
     align-items: center;
     gap: 2px;
     opacity: 0;
+    pointer-events: none;
     transition: opacity 0.15s ease;
   }
 
-  .sidebar-section-controls-shell:hover .sidebar-section-controls-actions,
-  .sidebar-section-controls-shell:focus-within
-    .sidebar-section-controls-actions {
+  .sidebar-section-controls-shell:hover .sidebar-section-controls-actions {
     opacity: 1;
+    pointer-events: auto;
   }
 
   .sidebar-section-control-button {

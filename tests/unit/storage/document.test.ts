@@ -100,4 +100,22 @@ describe('parseDocument', () => {
       content: '# Body',
     })
   })
+
+  it('round-trips favorite under app', () => {
+    const document = serializeDocument(
+      {
+        hasTasks: false,
+        favorite: true,
+      },
+      '# Body',
+    )
+
+    expect(parseDocument(document)).toEqual({
+      properties: {
+        hasTasks: false,
+        favorite: true,
+      },
+      content: '# Body',
+    })
+  })
 })

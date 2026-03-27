@@ -1,9 +1,19 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import { Inbox, ListTodo, Trash2 } from 'lucide-vue-next'
+import { Inbox, ListTodo, Star, Trash2 } from 'lucide-vue-next'
+import { loadConfig } from '~/config/loader'
 
-const { accentColor, selectedView, selectInbox, selectTasks, selectTrashed } =
-  useSidebarNavigation()
+const {
+  accentColor,
+  selectedView,
+  selectInbox,
+  selectTasks,
+  selectFavorites,
+  selectTrashed,
+} = useSidebarNavigation()
+
+const { favorites: favoritesEnabled, tasks: tasksEnabled } =
+  loadConfig().features
 const { moveNote } = useNotes()
 const dragDepth = ref(0)
 const isInboxDropActive = ref(false)
@@ -63,12 +73,22 @@ async function handleDrop(event: DragEvent): Promise<void> {
       @drop="handleDrop"
     />
     <SidebarNavigationItem
+      v-if="tasksEnabled"
       navigation-id="tasks"
       :icon="ListTodo"
       :label="$t('sidebarNavigation.tasks')"
       :selected="selectedView.kind === 'tasks'"
       :accent-color="accentColor"
       @activate="selectTasks"
+    />
+    <SidebarNavigationItem
+      v-if="favoritesEnabled"
+      navigation-id="favorites"
+      :icon="Star"
+      :label="$t('sidebarNavigation.favorites')"
+      :selected="selectedView.kind === 'favorites'"
+      :accent-color="accentColor"
+      @activate="selectFavorites"
     />
     <SidebarNavigationItem
       navigation-id="trashed"

@@ -313,7 +313,11 @@
                 "thickness": {
                   "top": 1
                 },
-                "fill": "#eeeeee"
+                "fill": {
+                  "type": "color",
+                  "color": "#eeeeee",
+                  "enabled": false
+                }
               },
               "layout": "vertical",
               "alignItems": "center",
@@ -723,6 +727,41 @@
               "layout": "vertical",
               "children": [
                 {
+                  "id": "MnYAF",
+                  "type": "ref",
+                  "ref": "WGNZk",
+                  "x": 0,
+                  "y": 0,
+                  "width": "fill_container",
+                  "height": "fit_content",
+                  "fill": "#3f57df0d",
+                  "name": "NotesListItem pinned",
+                  "descendants": {
+                    "Sfrab": {
+                      "width": "fill_container",
+                      "height": "fit_content"
+                    },
+                    "AMfuF": {
+                      "content": "Create bridges with people and walk ...",
+                      "width": "fill_container",
+                      "x": 20,
+                      "y": 20
+                    },
+                    "5Q8lF": {
+                      "content": "Kent Beck learned to build 'bridges' by reaching out halfway and then patiently...",
+                      "width": "fill_container",
+                      "x": 20,
+                      "y": 42
+                    },
+                    "7d0mj": {
+                      "content": "📅 22.1. 2025.         📍Lukasova 10, Praha",
+                      "width": "fill_container",
+                      "x": 20,
+                      "y": 75
+                    }
+                  }
+                },
+                {
                   "type": "frame",
                   "id": "WGNZk",
                   "name": "NotesListItem",
@@ -799,7 +838,7 @@
                   "type": "ref",
                   "ref": "WGNZk",
                   "x": 0,
-                  "y": 107,
+                  "y": 214,
                   "stroke": {
                     "align": "inside",
                     "thickness": {
@@ -830,39 +869,6 @@
                     },
                     "7d0mj": {
                       "content": "Rating: 80%; Director: Sten Kubric",
-                      "width": "fill_container",
-                      "x": 20,
-                      "y": 75
-                    }
-                  }
-                },
-                {
-                  "id": "MnYAF",
-                  "type": "ref",
-                  "ref": "WGNZk",
-                  "x": 0,
-                  "y": 214,
-                  "width": "fill_container",
-                  "height": "fit_content",
-                  "descendants": {
-                    "Sfrab": {
-                      "width": "fill_container",
-                      "height": "fit_content"
-                    },
-                    "AMfuF": {
-                      "content": "Create bridges with people and walk ...",
-                      "width": "fill_container",
-                      "x": 20,
-                      "y": 20
-                    },
-                    "5Q8lF": {
-                      "content": "Kent Beck learned to build 'bridges' by reaching out halfway and then patiently...",
-                      "width": "fill_container",
-                      "x": 20,
-                      "y": 42
-                    },
-                    "7d0mj": {
-                      "content": "📅 22.1. 2025.         📍Lukasova 10, Praha",
                       "width": "fill_container",
                       "x": 20,
                       "y": 75
@@ -1205,12 +1211,12 @@
                   "descendants": {
                     "IxHw5": {
                       "iconFontFamily": "lucide",
-                      "iconFontName": "trash-2",
+                      "iconFontName": "star",
                       "x": 10,
                       "y": 9
                     },
                     "5rc5Q": {
-                      "content": "Trashed",
+                      "content": "Favorites",
                       "x": 27,
                       "y": 0
                     }

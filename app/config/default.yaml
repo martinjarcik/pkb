@@ -2,6 +2,10 @@ applicationType: desktop
 locale: en
 vault: ./vault
 
+features:
+  favorites: true
+  tasks: true
+
 notes:
   trashRetentionDays: 30
 

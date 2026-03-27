@@ -20,6 +20,10 @@ function createConfig() {
     theme: {
       accentColor: '#3f57dfff',
     },
+    features: {
+      favorites: true,
+      tasks: true,
+    },
   }
 }
 
@@ -61,6 +65,47 @@ describe('parseAppConfig', () => {
 
     expect(() => parseAppConfig(config)).toThrow(
       'Config theme.accentColor must be a non-empty string',
+    )
+  })
+
+  it('defaults features.favorites to true when features is missing', () => {
+    const config = createConfig()
+    delete (config as { features?: { favorites: boolean } }).features
+
+    expect(parseAppConfig(config).features.favorites).toBe(true)
+  })
+
+  it('throws when features is not an object', () => {
+    const config = createConfig()
+    ;(config as { features: unknown }).features = 'nope'
+
+    expect(() => parseAppConfig(config)).toThrow(
+      'Config features must be an object',
+    )
+  })
+
+  it('throws when features.favorites is not a boolean', () => {
+    const config = createConfig()
+    config.features.favorites = 1 as unknown as boolean
+
+    expect(() => parseAppConfig(config)).toThrow(
+      'Config features.favorites must be a boolean',
+    )
+  })
+
+  it('defaults features.tasks to true when features.tasks is omitted', () => {
+    const config = createConfig()
+    delete (config.features as { tasks?: boolean }).tasks
+
+    expect(parseAppConfig(config).features.tasks).toBe(true)
+  })
+
+  it('throws when features.tasks is not a boolean', () => {
+    const config = createConfig()
+    config.features.tasks = 1 as unknown as boolean
+
+    expect(() => parseAppConfig(config)).toThrow(
+      'Config features.tasks must be a boolean',
     )
   })
 })

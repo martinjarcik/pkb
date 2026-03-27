@@ -237,6 +237,39 @@ describe('filterCatalogForSidebarView', () => {
       filterCatalogForSidebarView(rows, { kind: 'tasks' }).map((r) => r.id),
     ).toEqual(['task.md'])
   })
+
+  it('lists only non-trashed favorited notes in favorites view', () => {
+    const rows = [
+      createCatalogRow('plain.md', []),
+      {
+        ...createCatalogRow('fav.md', []),
+        favorite: true,
+      },
+      {
+        ...createCatalogRow('trashed-fav.md', []),
+        favorite: true,
+        trashedAt: '2026-01-01T00:00:00.000Z',
+      },
+    ]
+
+    expect(
+      filterCatalogForSidebarView(rows, { kind: 'favorites' }).map((r) => r.id),
+    ).toEqual(['fav.md'])
+  })
+
+  it('returns no notes in favorites view when none are favorited', () => {
+    const rows = [
+      createCatalogRow('a.md', []),
+      {
+        ...createCatalogRow('b.md', []),
+        favorite: false,
+      },
+    ]
+
+    expect(
+      filterCatalogForSidebarView(rows, { kind: 'favorites' }),
+    ).toHaveLength(0)
+  })
 })
 
 describe('selectedTagsFromView', () => {

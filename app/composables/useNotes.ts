@@ -5,6 +5,7 @@ import { t } from '~/composables/useTranslations'
 import { createNoteCatalogRow } from '~/notes/catalogRow'
 import { noteDescriptionFromContent } from '~/notes/noteDescriptionFromContent'
 import { resolveUniqueNoteIdForParentPath } from '~/notes/renameNoteTitle'
+import { noteWithToggledFavorite } from '~/notes/noteWithToggledFavorite'
 import { buildSaveNoteInput } from '~/notes/saveNoteInput'
 import type { Note, NoteCatalogRow } from '~/notes/types'
 import { catalogRowIsTrashed } from '~/notes/trash'
@@ -316,6 +317,34 @@ export function useNotes() {
     }
   }
 
+  async function toggleFavoriteSelectedNote(): Promise<void> {
+    const current = selectedNote.value
+
+    if (!current) {
+      return
+    }
+
+    saveError.value = null
+
+    try {
+      await editorFlush.value?.()
+
+      const toggled = noteWithToggledFavorite(current)
+      const saveInput = buildSaveNoteInput(toggled, toggled.content)
+
+      const savedNote = await globalThis.$fetch<Note>('/api/notes', {
+        method: 'PUT',
+        body: saveInput,
+      })
+
+      replaceNote(savedNote)
+      selectedNoteFull.value = savedNote
+    } catch (error) {
+      saveError.value =
+        error instanceof Error ? error.message : t('notes.errorSaveFallback')
+    }
+  }
+
   async function deleteSelectedNote(
     visibleNoteIds: readonly string[],
   ): Promise<boolean> {
@@ -372,7 +401,6 @@ export function useNotes() {
         await globalThis.$fetch<NoteCatalogRow[]>('/api/notes')
 
       notes.value = loadedNotes
-      await selectNoteById(loadedNotes[0]?.id ?? null)
 
       return loadedNotes
     } catch (error) {
@@ -404,6 +432,7 @@ export function useNotes() {
     clearShouldFocusTitle,
     createNote,
     deleteSelectedNote,
+    toggleFavoriteSelectedNote,
     moveNote,
     registerEditorFlush,
     renameSelectedNoteTitle,

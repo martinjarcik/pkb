@@ -1,13 +1,18 @@
 <script setup lang="ts">
-const { loadNotes, selectNoteById } = useNotes()
-const { visibleCatalogRows, loadFolders } = useSidebarNavigation()
+import { filterCatalogForSidebarView } from '~/composables/useSidebarNavigation'
+
+const { loadNotes, notes, selectNoteById } = useNotes()
+const { loadFolders } = useSidebarNavigation()
 
 onMounted(() => {
   void (async () => {
     const loadFoldersPromise = loadFolders()
 
     await loadNotes()
-    await selectNoteById(visibleCatalogRows.value[0]?.id ?? null)
+    await selectNoteById(
+      filterCatalogForSidebarView(notes.value, { kind: 'inbox' })[0]?.id ??
+        null,
+    )
     await loadFoldersPromise
   })()
 })

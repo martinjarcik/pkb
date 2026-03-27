@@ -4,7 +4,9 @@
 
 - **SidebarPanel** (left) — navigation and app-level actions.
 - **SidebarNavigation** (inside SidebarPanel) — starts in the `Inbox` view and
-  highlights the selected item with `theme.accentColor`.
+  highlights the selected item with `theme.accentColor`. When
+  `features.favorites` is true in config, a `Favorites` item lists notes with the
+  `favorite` application property (non-trashed only).
 - **SidebarFoldersActions** (inside SidebarPanel, below SidebarNavigation) —
   lists top-level Vault folders as selectable rows below a 30 px spacer.
 - **SidebarTags** (inside SidebarPanel, below SidebarFoldersActions) — lists all
@@ -23,8 +25,8 @@ only notes from the vault root in `NotesListPanel`. Each catalog row includes
 the note title derived from its `id`, the modified date, and only the first
 1024 UTF-8 bytes of Content for the list preview.
 
-After notes load, the first visible note in the active sidebar view becomes the
-active note automatically and is highlighted in `NotesListPanel`. When a note
+After notes load, the first note in the Inbox view becomes the active note
+automatically and is highlighted in `NotesListPanel`. When a note
 becomes active, the frontend fetches the full note from `GET /api/notes/<id>`
 before rendering that note in the `NotePanel`, including the note title above
 the Editor.js surface.

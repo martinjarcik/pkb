@@ -7,6 +7,9 @@ const baseConfig: AppConfig = {
   applicationType: 'browser',
   locale: 'en',
   vault: './vault',
+  notes: {
+    trashRetentionDays: 30,
+  },
   editor: {
     autosaveDelay: 2000,
   },
@@ -14,6 +17,13 @@ const baseConfig: AppConfig = {
     showInspectorPanel: true,
     showSidebarPanel: true,
     showNotesListPanel: true,
+  },
+  theme: {
+    accentColor: '#3f57dfff',
+  },
+  features: {
+    favorites: true,
+    tasks: true,
   },
 }
 

@@ -110,8 +110,9 @@ describe('useNotes', () => {
       ),
     })
 
-    const { loadNotes, selectedNoteId } = useNotes()
+    const { loadNotes, notes, selectedNoteId, selectNoteById } = useNotes()
     await loadNotes()
+    await selectNoteById(notes.value[0]?.id ?? null)
 
     expect(selectedNoteId.value).toBe('first.md')
   })
@@ -126,8 +127,9 @@ describe('useNotes', () => {
       ),
     })
 
-    const { loadNotes, selectedNote } = useNotes()
+    const { loadNotes, notes, selectedNote, selectNoteById } = useNotes()
     await loadNotes()
+    await selectNoteById(notes.value[0]?.id ?? null)
 
     expect(selectedNote.value?.content).toBe('# Full note\n\nMore content')
   })
