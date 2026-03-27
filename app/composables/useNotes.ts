@@ -274,6 +274,49 @@ export function useNotes() {
     }
   }
 
+  async function deleteSelectedNote(
+    visibleNoteIds: readonly string[],
+  ): Promise<boolean> {
+    const noteToDelete = selectedNote.value
+
+    if (!noteToDelete) {
+      return false
+    }
+
+    const deletedVisibleIndex = visibleNoteIds.indexOf(noteToDelete.id)
+
+    saveError.value = null
+
+    try {
+      await editorFlush.value?.()
+
+      await globalThis.$fetch('/api/notes', {
+        method: 'DELETE',
+        body: { id: noteToDelete.id },
+      })
+
+      notes.value = notes.value.filter((note) => note.id !== noteToDelete.id)
+      selectedNoteFull.value = null
+      selectedNoteId.value = null
+
+      const remainingVisibleIds = visibleNoteIds.filter(
+        (id) => id !== noteToDelete.id,
+      )
+      const nextIndex = Math.min(
+        deletedVisibleIndex,
+        remainingVisibleIds.length - 1,
+      )
+      await selectNoteById(remainingVisibleIds[nextIndex] ?? null)
+
+      return true
+    } catch (error) {
+      saveError.value =
+        error instanceof Error ? error.message : t('notes.errorDeleteFallback')
+
+      return false
+    }
+  }
+
   async function loadNotes(): Promise<NoteCatalogRow[]> {
     isLoading.value = true
     loadError.value = null
@@ -313,6 +356,7 @@ export function useNotes() {
     catalog,
     clearShouldFocusTitle,
     createNote,
+    deleteSelectedNote,
     registerEditorFlush,
     renameSelectedNoteTitle,
     saveSelectedNoteContent,

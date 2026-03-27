@@ -20,6 +20,7 @@
     "errorCreateFallback": "Failed to create note",
     "errorSaveFallback": "Failed to save note",
     "errorRenameFallback": "Failed to rename note title",
+    "errorDeleteFallback": "Failed to delete note",
     "errorLoadFallback": "Failed to load notes"
   },
   "sidebarNavigation": {

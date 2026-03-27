@@ -96,8 +96,8 @@ preview slice used by the notes list, capped at 1024 UTF-8 bytes.
       actions (for example create note).
   - `NotesList` (`app/components/NotesList.vue`) — scrollable note list.
 - `NotePanel` (`app/components/NotePanel.vue`) — active note region.
-  - `NoteControls` — note toolbar region.
-    - `NoteActions` — note-scoped actions (for example favorite, delete).
+  - `NoteControls` (`app/components/NoteControls.vue`) — note toolbar region
+    with note-scoped actions (for example delete).
   - `NoteView` (`app/components/NoteView.vue`) — bounded note display and
     editing region.
     - `NoteTemplate` — template (Liquid) output wrapper.
@@ -163,7 +163,7 @@ New contexts may be introduced when corresponding features are specified.
 
 ## UI interaction patterns
 
-- Actions are scoped to their parent context: `NoteActions` operates on the
+- Actions are scoped to their parent context: `NoteControls` operates on the
   active note, while `NotesListActions` operates on the list as a whole.
   Creating a note uses the active sidebar view to choose the parent path.
 - Filtering happens in two levels: `SidebarNavigation` selects the view (the
