@@ -154,7 +154,9 @@ New contexts may be introduced when corresponding features are specified.
   The default `Inbox` view filters `NotesList` to notes whose `id` lives at the
   vault root, while folder views filter to notes that are direct children of a
   selected top-level Vault folder. Tag views filter across the whole catalog to
-  notes whose `tags` Property contains all selected Tags.
+  notes whose `tags` Property contains all active and pinned Tags (AND logic).
+  Each Tag has a tri-state filter cycle (idle -> active -> pinned -> idle):
+  at most one Tag can be active; pinned Tags survive further clicks.
 - Renaming a note title changes the note `id` by replacing its basename with the
   edited title plus `.md`, while keeping the parent folder unchanged. On
   collisions, storage selects a unique suffixed filename.
@@ -173,7 +175,8 @@ New contexts may be introduced when corresponding features are specified.
 - Folder sidebar views narrow the broad note set to notes whose `id` has the
   shape `<topLevelFolder>/<note>.md`, excluding deeper descendants.
 - Tag sidebar views narrow the broad note set to notes whose `tags` Property
-  contains every selected Tag.
+  contains every active or pinned Tag. Tags cycle through idle, active, and
+  pinned states on click. Switching to Inbox or a folder clears all tag states.
 - Property mutation is an in-memory concern. Persistence is a separate
   cross-cutting concern and should not be part of an individual feature spec
   unless the feature introduces new persistence behavior.

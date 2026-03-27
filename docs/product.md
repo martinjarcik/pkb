@@ -108,11 +108,20 @@ catalog.
 
 - Tags are displayed with the `#` prefix in the sidebar, for example
   `#engineering`.
-- Clicking a tag switches the notes list into a tag filter view.
-- Multiple selected tags use AND logic: a note must contain every selected tag
-  to remain visible.
-- Selected tags use the accent color on the tag text.
-- Clicking `Inbox` or a folder row clears the active tag selection.
+- Each tag has three states: **idle** (default), **active** (selected), and
+  **pinned** (locked).
+- Clicking an idle tag activates it and switches the notes list into a tag
+  filter view. Any previously active (non-pinned) tag becomes idle.
+- Clicking an active tag promotes it to pinned. Pinned tags stay selected when
+  other tags are clicked.
+- Clicking a pinned tag removes it from the filter (returns to idle).
+- At most one tag can be active at a time. Multiple tags can be pinned.
+- Active and pinned tags use the accent color on the tag text. Pinned tags are
+  additionally displayed in bold.
+- The notes list filters to notes matching all active and pinned tags using AND
+  logic.
+- When no tags remain active or pinned, the view falls back to Inbox.
+- Clicking `Inbox` or a folder row clears all tag states to idle.
 
 ### Browser Storage
 

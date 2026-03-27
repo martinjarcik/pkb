@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+- Add three-state tag selection cycle (idle / active / pinned) in the sidebar.
+  Clicking a tag activates it (replacing any previously active tag). Clicking
+  an active tag pins it (survives further clicks). Clicking a pinned tag
+  removes it. Pinned tags display in bold. Switching to Inbox or a folder
+  clears all tag states.
 - Extract inline hashtags into the top-level `tags` frontmatter Property on
   save, add a `SidebarTags` section with multi-tag AND filtering, and add an
   Editor.js inline hashtag formatting tool.
