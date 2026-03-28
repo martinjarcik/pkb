@@ -33,6 +33,7 @@ export const editorMessages = {
     'Inline Hashtag': 'Inline Hashtag',
     InlineHashtag: 'Inline Hashtag',
     Table: 'Table',
+    Image: 'Image',
     'Simple Quote': 'Simple Quote',
     'Ordered List': 'Ordered List',
     'Unordered List': 'Unordered List',

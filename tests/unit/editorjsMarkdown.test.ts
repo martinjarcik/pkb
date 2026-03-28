@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import {
   editorjsBlocksToMarkdown,
   markdownToEditorjsBlocks,
+  VAULT_ASSETS_API_PREFIX,
 } from '~/lib/editorjsMarkdown'
 
 describe('editorjsMarkdown', () => {
@@ -583,5 +584,91 @@ describe('editorjsMarkdown', () => {
         },
       ]),
     ).toBe('- [ ] task 1\n## Section B')
+  })
+
+  it('parses a standalone markdown image into an Editor.js image block', () => {
+    const blocks = markdownToEditorjsBlocks('![](assets/a.png)')
+
+    expect(blocks).toEqual([
+      {
+        type: 'image',
+        data: {
+          file: { url: `${VAULT_ASSETS_API_PREFIX}/assets/a.png` },
+          caption: '',
+          withBorder: false,
+          withBackground: false,
+          stretched: false,
+        },
+      },
+    ])
+  })
+
+  it('renders an Editor.js image block as markdown', () => {
+    const md = editorjsBlocksToMarkdown([
+      {
+        type: 'image',
+        data: {
+          file: { url: `${VAULT_ASSETS_API_PREFIX}/assets/a.png` },
+          caption: '',
+          withBorder: false,
+          withBackground: false,
+          stretched: false,
+        },
+      },
+    ])
+
+    expect(md).toBe('![](assets/a.png)')
+  })
+
+  it('round-trips markdown image caption and path', () => {
+    const md = '![My caption](assets/b.jpg)'
+
+    expect(editorjsBlocksToMarkdown(markdownToEditorjsBlocks(md))).toBe(md)
+  })
+
+  it('keeps a paragraph with inline image as a paragraph (image omitted from HTML)', () => {
+    const blocks = markdownToEditorjsBlocks('Hello ![](assets/x.png)')
+
+    expect(blocks).toEqual([
+      {
+        type: 'paragraph',
+        data: {
+          text: 'Hello ',
+        },
+      },
+    ])
+  })
+
+  it('preserves external image URLs in markdown round-trip', () => {
+    const md = '![](https://example.com/pic.png)'
+
+    expect(editorjsBlocksToMarkdown(markdownToEditorjsBlocks(md))).toBe(md)
+  })
+
+  it('separates image block from preceding paragraph with a blank line', () => {
+    const blocks = [
+      { type: 'paragraph', data: { text: 'Hello world' } },
+      {
+        type: 'image',
+        data: {
+          file: { url: `${VAULT_ASSETS_API_PREFIX}/assets/photo.png` },
+          caption: '',
+          withBorder: false,
+          withBackground: false,
+          stretched: false,
+        },
+      },
+    ]
+
+    const md = editorjsBlocksToMarkdown(blocks)
+    expect(md).toBe('Hello world\n\n![](assets/photo.png)')
+
+    const parsed = markdownToEditorjsBlocks(md)
+    const imageBlock = parsed.find((b) => b.type === 'image')
+
+    expect(imageBlock).toBeDefined()
+    expect(imageBlock!.data.file).toEqual({
+      url: `${VAULT_ASSETS_API_PREFIX}/assets/photo.png`,
+    })
   })
 })

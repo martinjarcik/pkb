@@ -9,6 +9,7 @@ export type AppConfig = {
   }
   editor: {
     autosaveDelay: number
+    assetsFolder: string
   }
   layout: {
     showInspectorPanel: boolean
@@ -21,10 +22,43 @@ export type AppConfig = {
   features: {
     favorites: boolean
     tasks: boolean
+    pinned: boolean
+    nonDistractionMode: boolean
+    noteWebhook: boolean
   }
 }
 
 const VALID_APPLICATION_TYPES: ApplicationType[] = ['desktop', 'browser']
+
+export function parseEditorAssetsFolder(
+  editor: Record<string, unknown>,
+): string {
+  const raw = editor.assetsFolder
+
+  if (raw === undefined) {
+    return 'assets'
+  }
+
+  if (typeof raw !== 'string' || raw.trim().length === 0) {
+    throw new Error(
+      'Config editor.assetsFolder must be a non-empty string when set',
+    )
+  }
+
+  const name = raw.trim()
+
+  if (name.includes('/') || name.includes('\\')) {
+    throw new Error(
+      'Config editor.assetsFolder must be a single path segment (no slashes)',
+    )
+  }
+
+  if (name === '.' || name === '..') {
+    throw new Error('Config editor.assetsFolder must not be "." or ".."')
+  }
+
+  return name
+}
 
 export function parseAppConfig(value: unknown): AppConfig {
   if (typeof value !== 'object' || value === null) {
@@ -106,6 +140,9 @@ export function parseAppConfig(value: unknown): AppConfig {
 
   let favorites = true
   let tasks = true
+  let pinned = true
+  let nonDistractionMode = true
+  let noteWebhook = true
 
   if (obj.features !== undefined) {
     if (typeof obj.features !== 'object' || obj.features === null) {
@@ -129,6 +166,30 @@ export function parseAppConfig(value: unknown): AppConfig {
 
       tasks = features.tasks
     }
+
+    if (features.pinned !== undefined) {
+      if (typeof features.pinned !== 'boolean') {
+        throw new Error('Config features.pinned must be a boolean')
+      }
+
+      pinned = features.pinned
+    }
+
+    if (features.nonDistractionMode !== undefined) {
+      if (typeof features.nonDistractionMode !== 'boolean') {
+        throw new Error('Config features.nonDistractionMode must be a boolean')
+      }
+
+      nonDistractionMode = features.nonDistractionMode
+    }
+
+    if (features.noteWebhook !== undefined) {
+      if (typeof features.noteWebhook !== 'boolean') {
+        throw new Error('Config features.noteWebhook must be a boolean')
+      }
+
+      noteWebhook = features.noteWebhook
+    }
   }
 
   return {
@@ -140,6 +201,7 @@ export function parseAppConfig(value: unknown): AppConfig {
     },
     editor: {
       autosaveDelay: editor.autosaveDelay as number,
+      assetsFolder: parseEditorAssetsFolder(editor),
     },
     layout: {
       showInspectorPanel: layout.showInspectorPanel as boolean,
@@ -152,6 +214,9 @@ export function parseAppConfig(value: unknown): AppConfig {
     features: {
       favorites,
       tasks,
+      pinned,
+      nonDistractionMode,
+      noteWebhook,
     },
   }
 }

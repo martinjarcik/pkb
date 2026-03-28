@@ -3,7 +3,9 @@ import { getNoteStorage } from '~/storage/router'
 import { loadServerConfig } from '../loadServerConfig'
 
 export default defineEventHandler(async () => {
-  const storage = getNoteStorage(await loadServerConfig())
+  const config = await loadServerConfig()
+  const storage = getNoteStorage(config)
+  const folders = await storage.loadFolders()
 
-  return storage.loadFolders()
+  return folders.filter((name) => name !== config.assetsFolder)
 })

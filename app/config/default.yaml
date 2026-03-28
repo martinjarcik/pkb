@@ -4,10 +4,14 @@ vault: ./vault
 features:
   favorites: true
   tasks: true
+  pinned: true
+  nonDistractionMode: true
+  noteWebhook: true
 notes:
   trashRetentionDays: 30
 editor:
   autosaveDelay: 2000
+  assetsFolder: assets
 layout:
   showInspectorPanel: true
   showSidebarPanel: true

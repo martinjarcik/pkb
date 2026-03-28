@@ -1,8 +1,10 @@
 import { createError, defineEventHandler, readBody } from 'h3'
 import { getNoteStorage } from '~/storage/router'
 import { sanitizeProperties } from '~/storage/document'
+import { orphanedImageRefs } from '~/storage/imageRefs'
 import type { SaveNoteInput } from '~/storage/types'
 import { dispatchNoteWebhook } from '../dispatchNoteWebhook'
+import { deleteOrphanedAssetFiles } from '../deleteOrphanedAssetFiles'
 import { loadServerConfig } from '../loadServerConfig'
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -45,10 +47,24 @@ export function parseSaveNoteInput(body: unknown): SaveNoteInput {
 }
 
 export default defineEventHandler(async (event) => {
-  const storage = getNoteStorage(await loadServerConfig())
+  const config = await loadServerConfig()
+  const storage = getNoteStorage(config)
   const body = await readBody(event)
+  const input = parseSaveNoteInput(body)
 
-  const saved = await storage.saveNote(parseSaveNoteInput(body))
+  const oldNote = await storage.loadNoteById(input.id)
+  const oldContent = oldNote?.content ?? ''
+
+  const saved = await storage.saveNote(input)
+
+  if (config.applicationType === 'desktop') {
+    const orphaned = orphanedImageRefs(oldContent, input.content)
+
+    if (orphaned.length > 0) {
+      void deleteOrphanedAssetFiles(config.vault, orphaned)
+    }
+  }
+
   const hook = saved.webhook
 
   if (typeof hook === 'string' && hook.length > 0) {

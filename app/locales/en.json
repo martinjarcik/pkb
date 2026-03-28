@@ -80,6 +80,7 @@
       "inlineCode": "Inline Code",
       "simpleQuote": "Simple Quote",
       "table": "Table",
+      "image": "Image",
       "orderedList": "Ordered List",
       "unorderedList": "Unordered List",
       "checklist": "Checklist"

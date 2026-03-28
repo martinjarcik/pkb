@@ -11,6 +11,7 @@ function createConfig() {
     },
     editor: {
       autosaveDelay: 2000,
+      assetsFolder: 'assets',
     },
     layout: {
       showInspectorPanel: true,
@@ -23,6 +24,9 @@ function createConfig() {
     features: {
       favorites: true,
       tasks: true,
+      pinned: true,
+      nonDistractionMode: true,
+      noteWebhook: true,
     },
   }
 }
@@ -106,6 +110,87 @@ describe('parseAppConfig', () => {
 
     expect(() => parseAppConfig(config)).toThrow(
       'Config features.tasks must be a boolean',
+    )
+  })
+
+  it('defaults features.pinned to true when features.pinned is omitted', () => {
+    const config = createConfig()
+    delete (config.features as { pinned?: boolean }).pinned
+
+    expect(parseAppConfig(config).features.pinned).toBe(true)
+  })
+
+  it('throws when features.pinned is not a boolean', () => {
+    const config = createConfig()
+    config.features.pinned = 1 as unknown as boolean
+
+    expect(() => parseAppConfig(config)).toThrow(
+      'Config features.pinned must be a boolean',
+    )
+  })
+
+  it('defaults features.nonDistractionMode to true when omitted', () => {
+    const config = createConfig()
+    delete (config.features as { nonDistractionMode?: boolean })
+      .nonDistractionMode
+
+    expect(parseAppConfig(config).features.nonDistractionMode).toBe(true)
+  })
+
+  it('throws when features.nonDistractionMode is not a boolean', () => {
+    const config = createConfig()
+    config.features.nonDistractionMode = 1 as unknown as boolean
+
+    expect(() => parseAppConfig(config)).toThrow(
+      'Config features.nonDistractionMode must be a boolean',
+    )
+  })
+
+  it('defaults features.noteWebhook to true when omitted', () => {
+    const config = createConfig()
+    delete (config.features as { noteWebhook?: boolean }).noteWebhook
+
+    expect(parseAppConfig(config).features.noteWebhook).toBe(true)
+  })
+
+  it('throws when features.noteWebhook is not a boolean', () => {
+    const config = createConfig()
+    config.features.noteWebhook = 1 as unknown as boolean
+
+    expect(() => parseAppConfig(config)).toThrow(
+      'Config features.noteWebhook must be a boolean',
+    )
+  })
+
+  it('defaults editor.assetsFolder to assets when omitted', () => {
+    const config = createConfig()
+    delete (config.editor as { assetsFolder?: string }).assetsFolder
+
+    expect(parseAppConfig(config).editor.assetsFolder).toBe('assets')
+  })
+
+  it('accepts a valid editor.assetsFolder', () => {
+    const config = createConfig()
+    config.editor.assetsFolder = 'media'
+
+    expect(parseAppConfig(config).editor.assetsFolder).toBe('media')
+  })
+
+  it('rejects editor.assetsFolder with a slash', () => {
+    const config = createConfig()
+    config.editor.assetsFolder = 'a/b'
+
+    expect(() => parseAppConfig(config)).toThrow(
+      'Config editor.assetsFolder must be a single path segment',
+    )
+  })
+
+  it('rejects editor.assetsFolder when it is "."', () => {
+    const config = createConfig()
+    config.editor.assetsFolder = '.'
+
+    expect(() => parseAppConfig(config)).toThrow(
+      'Config editor.assetsFolder must not be "." or ".."',
     )
   })
 })

@@ -24,6 +24,9 @@ const baseConfig: AppConfig = {
   features: {
     favorites: true,
     tasks: true,
+    pinned: true,
+    nonDistractionMode: true,
+    noteWebhook: true,
   },
 }
 

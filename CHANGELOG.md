@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+- Add Editor.js image blocks: `@editorjs/image` with multipart upload to
+  `POST /api/vault-assets/upload`, serving files from `GET /api/vault-assets/*`,
+  Markdown round-trip as `![caption](<vault-relative path>)`, configurable
+  `editor.assetsFolder` (default `assets`), and exclusion of that top-level
+  folder name from the sidebar folder list (`GET /api/folders` and merged
+  catalog view).
 - Add folder emoji icons for the sidebar: optional icon per top-level folder
   via `FolderDialog` (create or edit), `vue3-emoji-picker` in a popover, hover
   pencil on folder rows, and persistence in workspace `meta.yaml` (`GET`/`PUT`

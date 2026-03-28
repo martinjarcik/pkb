@@ -467,6 +467,7 @@ onMounted(async () => {
       delimiterModule,
       inlineCodeModule,
       tableModule,
+      imageModule,
     ] = await Promise.all([
       import('@editorjs/editorjs'),
       import('@editorjs/header'),
@@ -475,6 +476,7 @@ onMounted(async () => {
       import('@editorjs/delimiter'),
       import('@editorjs/inline-code'),
       import('@editorjs/table'),
+      import('@editorjs/image'),
     ])
 
     const Editorjs = getDefaultExport(
@@ -486,6 +488,7 @@ onMounted(async () => {
     const Delimiter = getDefaultExport(delimiterModule) as EditorjsTool
     const InlineCode = getDefaultExport(inlineCodeModule) as EditorjsTool
     const Table = getDefaultExport(tableModule) as EditorjsTool
+    const ImageTool = getDefaultExport(imageModule) as EditorjsTool
     const blocks = renderNoteTitleBlocks(
       markdownToEditorjsBlocks(props.content),
       props.title,
@@ -574,6 +577,26 @@ onMounted(async () => {
         table: {
           class: Table,
           inlineToolbar: inlineToolbarTools,
+        },
+        image: {
+          class: ImageTool,
+          config: {
+            uploader: {
+              uploadByFile(file: File) {
+                const form = new FormData()
+
+                form.append('image', file)
+
+                return globalThis.$fetch<{
+                  success: number
+                  file: { url: string }
+                }>('/api/vault-assets/upload', {
+                  method: 'POST',
+                  body: form,
+                })
+              },
+            },
+          },
         },
       },
     })

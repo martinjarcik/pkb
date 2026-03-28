@@ -14,7 +14,11 @@ const {
 const { visibleCatalogRows, accentColor } = useSidebarNavigation()
 const { nonDistractionMode, toggleNonDistractionMode } = useLayout()
 
-const favoritesEnabled = loadConfig().features.favorites
+const config = loadConfig()
+const favoritesEnabled = config.features.favorites
+const pinnedEnabled = config.features.pinned
+const nonDistractionModeEnabled = config.features.nonDistractionMode
+const noteWebhookEnabled = config.features.noteWebhook
 
 const webhookDialogOpen = ref(false)
 const webhookDraft = ref('')
@@ -83,7 +87,7 @@ function handleWebhookCancel(): void {
       <Star :size="16" fill="none" />
     </button>
     <button
-      v-if="selectedNote"
+      v-if="selectedNote && pinnedEnabled"
       type="button"
       data-testid="note-pin"
       class="flex items-center justify-center hover:opacity-90"
@@ -95,7 +99,7 @@ function handleWebhookCancel(): void {
       <PinOff v-else :size="16" />
     </button>
     <button
-      v-if="selectedNote"
+      v-if="selectedNote && nonDistractionModeEnabled"
       type="button"
       data-testid="note-non-distraction"
       class="flex items-center justify-center hover:opacity-90"
@@ -110,7 +114,7 @@ function handleWebhookCancel(): void {
       <Maximize2 :size="16" />
     </button>
     <button
-      v-if="selectedNote"
+      v-if="selectedNote && noteWebhookEnabled"
       type="button"
       data-testid="note-webhook"
       :data-has-webhook="hasWebhook ? 'true' : undefined"
@@ -130,7 +134,7 @@ function handleWebhookCancel(): void {
       <Trash2 :size="16" />
     </button>
     <NoteWebhookDialog
-      v-if="selectedNote"
+      v-if="selectedNote && noteWebhookEnabled"
       v-model:open="webhookDialogOpen"
       v-model:webhook-url="webhookDraft"
       :save-error="saveError"

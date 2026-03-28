@@ -6,6 +6,9 @@ export type EditorjsBlock = {
   data: Record<string, unknown>
 }
 
+/** Path prefix for vault image API (use with a leading `/` before relative paths). */
+export const VAULT_ASSETS_API_PREFIX = '/api/vault-assets'
+
 type MdPoint = {
   line: number
   column: number
@@ -26,6 +29,8 @@ type MarkdownNode = {
   checked?: boolean | null
   lang?: string | null
   url?: string
+  alt?: string
+  title?: string
   align?: Array<'left' | 'center' | 'right' | null>
   children?: MarkdownNode[]
   position?: MdPosition
@@ -217,7 +222,7 @@ function wrapHashtagsForEditorHtml(text: string): string {
 }
 
 function blockRequiresBlankLineSeparator(type: string): boolean {
-  return type === 'list'
+  return type === 'list' || type === 'image'
 }
 
 function newlinesBetweenSubstantive(
@@ -316,8 +321,31 @@ function blocksFromRootWithBlankLines(
   return out
 }
 
+function editorDisplayUrlForMarkdownImage(url: string): string {
+  if (
+    url.startsWith('http://') ||
+    url.startsWith('https://') ||
+    url.startsWith('/')
+  ) {
+    return url
+  }
+
+  return `${VAULT_ASSETS_API_PREFIX}/${url}`
+}
+
+function markdownUrlFromEditorImageFileUrl(fileUrl: string): string {
+  const prefix = `${VAULT_ASSETS_API_PREFIX}/`
+  if (fileUrl.startsWith(prefix)) {
+    return fileUrl.slice(prefix.length)
+  }
+
+  return fileUrl
+}
+
 function parseInlineNodeToHtml(node: MarkdownNode): string {
   switch (node.type) {
+    case 'image':
+      return ''
     case 'text':
       return markdownNewlinesToEditorHtml(
         wrapHashtagsForEditorHtml(node.value ?? ''),
@@ -377,6 +405,27 @@ function createParagraphBlock(text: string): EditorjsBlock {
 }
 
 function parseParagraph(node: MarkdownNode): EditorjsBlock[] {
+  const children = node.children ?? []
+
+  if (children.length === 1 && children[0]!.type === 'image') {
+    const img = children[0]!
+    const rawUrl = String(img.url ?? '')
+    const caption = String(img.alt ?? '')
+
+    return [
+      {
+        type: 'image',
+        data: {
+          file: { url: editorDisplayUrlForMarkdownImage(rawUrl) },
+          caption,
+          withBorder: false,
+          withBackground: false,
+          stretched: false,
+        },
+      },
+    ]
+  }
+
   return parseInlineNodesToHtml(node.children)
     .split(/<br\b[^>]*\/?>/i)
     .map((line) => createParagraphBlock(line))
@@ -668,6 +717,17 @@ function renderMarkdownBlock(block: EditorjsBlock): string {
       return `\`\`\`\n${String(block.data.code ?? '')}\n\`\`\``
     case 'table':
       return renderTableMarkdown(block.data)
+    case 'image': {
+      const file = block.data.file
+      const fileUrl =
+        file && typeof file === 'object' && file !== null && 'url' in file
+          ? String((file as { url?: unknown }).url ?? '')
+          : ''
+      const url = markdownUrlFromEditorImageFileUrl(fileUrl)
+      const caption = String(block.data.caption ?? '')
+
+      return `![${caption}](${url})`
+    }
     default:
       return ''
   }

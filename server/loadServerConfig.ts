@@ -1,10 +1,12 @@
 import { readFile } from 'node:fs/promises'
 import yaml from 'yaml'
+import { parseEditorAssetsFolder } from '~/config/parseAppConfig'
 import type { StorageConfig } from '~/storage/router'
 import { getDefaultConfigPath, getUserConfigPath } from './appConfigPath'
 
 export type ServerLoadedConfig = StorageConfig & {
   trashRetentionDays: number
+  assetsFolder: string
 }
 
 function parseTrashRetentionDays(parsed: Record<string, unknown>): number {
@@ -63,9 +65,16 @@ export async function loadServerConfig(): Promise<ServerLoadedConfig> {
     throw new Error('Config vault must be a non-empty string')
   }
 
+  const editor = parsed.editor
+  const assetsFolder =
+    typeof editor === 'object' && editor !== null
+      ? parseEditorAssetsFolder(editor as Record<string, unknown>)
+      : 'assets'
+
   return {
     applicationType: parsed.applicationType,
     vault: parsed.vault,
     trashRetentionDays: parseTrashRetentionDays(parsed),
+    assetsFolder,
   }
 }

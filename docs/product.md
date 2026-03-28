@@ -48,16 +48,17 @@ selected folder creates it directly in that folder.
 
 ## Configuration
 
-| Key                         | Type    | Default       | Description                                                    |
-| --------------------------- | ------- | ------------- | -------------------------------------------------------------- |
-| `applicationType`           | string  | `"desktop"`   | Application mode: `browser`, `desktop`, `cloud`                |
-| `locale`                    | string  | `"en"`        | Active application locale                                      |
-| `vault`                     | string  | `"./vault"`   | Path to the vault directory for desktop storage                |
-| `editor.autosaveDelay`      | number  | `2000`        | Milliseconds of idle time before content autosaves             |
-| `layout.showInspectorPanel` | boolean | `true`        | Show the InspectorPanel                                        |
-| `layout.showSidebarPanel`   | boolean | `true`        | Show the SidebarPanel                                          |
-| `layout.showNotesListPanel` | boolean | `true`        | Show the NotesListPanel                                        |
-| `theme.accentColor`         | string  | `"#3f57dfff"` | Accent color for selected nav, pinned note icon, and list tint |
+| Key                         | Type    | Default       | Description                                                                     |
+| --------------------------- | ------- | ------------- | ------------------------------------------------------------------------------- |
+| `applicationType`           | string  | `"desktop"`   | Application mode: `browser`, `desktop`, `cloud`                                 |
+| `locale`                    | string  | `"en"`        | Active application locale                                                       |
+| `vault`                     | string  | `"./vault"`   | Path to the vault directory for desktop storage                                 |
+| `editor.autosaveDelay`      | number  | `2000`        | Milliseconds of idle time before content autosaves                              |
+| `editor.assetsFolder`       | string  | `"assets"`    | Top-level vault folder for uploaded note images (not shown as a sidebar folder) |
+| `layout.showInspectorPanel` | boolean | `true`        | Show the InspectorPanel                                                         |
+| `layout.showSidebarPanel`   | boolean | `true`        | Show the SidebarPanel                                                           |
+| `layout.showNotesListPanel` | boolean | `true`        | Show the NotesListPanel                                                         |
+| `theme.accentColor`         | string  | `"#3f57dfff"` | Accent color for selected nav, pinned note icon, and list tint                  |
 
 Workspace metadata (folder icons, etc.) is stored in `meta.yaml` (see Vault
 Folder Views), not in `app/config/default.yaml`.
@@ -91,6 +92,18 @@ running session, the UI may show stale content until reload, autosave may
 overwrite external changes, or errors may appear when paths no longer match the
 loaded catalog. Managing that risk is the user’s responsibility, not a feature
 of the app.
+
+#### Images in notes (desktop)
+
+- The note editor includes an **Image** block (`@editorjs/image`). Uploads are
+  stored as files under `{vault}/{editor.assetsFolder}/` (default folder name
+  `assets`).
+- Saved note Content stores standard Markdown image syntax with a vault-relative
+  path, for example `![](assets/<filename>.png)`.
+- The app serves those files at `GET /api/vault-assets/<path>` so the editor can
+  display them. Upload is available only when `applicationType` is `desktop`.
+- The configured `editor.assetsFolder` name is **not** listed as a Vault
+  folder row in the sidebar (even if the directory exists on disk).
 
 ### Inbox View
 

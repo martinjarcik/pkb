@@ -24,6 +24,9 @@ function createConfigRecord(): Record<string, unknown> {
     features: {
       favorites: true,
       tasks: true,
+      pinned: true,
+      nonDistractionMode: true,
+      noteWebhook: true,
     },
   }
 }

@@ -1,5 +1,7 @@
 import { createError, defineEventHandler, readBody } from 'h3'
 import { getNoteStorage } from '~/storage/router'
+import { extractLocalImageRefs } from '~/storage/imageRefs'
+import { deleteOrphanedAssetFiles } from '../deleteOrphanedAssetFiles'
 import { loadServerConfig } from '../loadServerConfig'
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -27,10 +29,22 @@ export function parseDeleteNoteInput(body: unknown): string {
 }
 
 export default defineEventHandler(async (event) => {
-  const storage = getNoteStorage(await loadServerConfig())
+  const config = await loadServerConfig()
+  const storage = getNoteStorage(config)
   const body = await readBody(event)
+  const id = parseDeleteNoteInput(body)
 
-  await storage.deleteNote(parseDeleteNoteInput(body))
+  const note = await storage.loadNoteById(id)
+
+  await storage.deleteNote(id)
+
+  if (config.applicationType === 'desktop' && note) {
+    const refs = [...extractLocalImageRefs(note.content)]
+
+    if (refs.length > 0) {
+      void deleteOrphanedAssetFiles(config.vault, refs)
+    }
+  }
 
   return { success: true }
 })
