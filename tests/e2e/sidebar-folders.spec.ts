@@ -130,12 +130,12 @@ test('opens create-folder modal and creates a folder', async ({ page }) => {
   await expect(createButton).toBeVisible()
   await createButton.click()
 
-  await expect(page.getByTestId('create-folder-name-input')).toBeVisible()
+  await expect(page.getByTestId('folder-dialog-name-input')).toBeVisible()
 
-  await page.getByTestId('create-folder-name-input').fill('Projects')
-  await page.getByTestId('create-folder-confirm').click()
+  await page.getByTestId('folder-dialog-name-input').fill('Projects')
+  await page.getByTestId('folder-dialog-confirm').click()
 
-  await expect(page.getByTestId('create-folder-name-input')).toHaveCount(0)
+  await expect(page.getByTestId('folder-dialog-name-input')).toHaveCount(0)
   expect(foldersApi.createdFolders).toContain('Projects')
 
   await expect(
@@ -162,10 +162,10 @@ test('cancels folder creation without creating', async ({ page }) => {
   await expect(createButton).toBeVisible()
   await createButton.click()
 
-  await expect(page.getByTestId('create-folder-name-input')).toBeVisible()
+  await expect(page.getByTestId('folder-dialog-name-input')).toBeVisible()
 
-  await page.getByTestId('create-folder-cancel').click()
+  await page.getByTestId('folder-dialog-cancel').click()
 
-  await expect(page.getByTestId('create-folder-name-input')).toHaveCount(0)
+  await expect(page.getByTestId('folder-dialog-name-input')).toHaveCount(0)
   expect(foldersApi.createdFolders).toHaveLength(0)
 })

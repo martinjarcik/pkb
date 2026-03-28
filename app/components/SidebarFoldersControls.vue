@@ -1,47 +1,14 @@
 <script setup lang="ts">
-import { ref } from 'vue'
 import { ChevronDown, Plus } from 'lucide-vue-next'
 
-const { foldersExpanded, toggleFoldersExpanded, createFolder } =
-  useSidebarNavigation()
+const emit = defineEmits<{
+  'open-create': []
+}>()
 
-const showCreateDialog = useState('createFolderDialog', () => false)
-const folderNameInput = ref('')
-const createError = ref<string | null>(null)
-const isCreating = ref(false)
+const { foldersExpanded, toggleFoldersExpanded } = useSidebarNavigation()
 
-function openCreateDialog(): void {
-  folderNameInput.value = ''
-  createError.value = null
-  showCreateDialog.value = true
-}
-
-function closeCreateDialog(): void {
-  showCreateDialog.value = false
-  folderNameInput.value = ''
-  createError.value = null
-}
-
-async function handleCreate(): Promise<void> {
-  createError.value = null
-  isCreating.value = true
-
-  const error = await createFolder(folderNameInput.value)
-
-  isCreating.value = false
-
-  if (error) {
-    createError.value = error
-    return
-  }
-
-  closeCreateDialog()
-}
-
-function handleInputKeydown(event: KeyboardEvent): void {
-  if (event.key === 'Enter' && !isCreating.value) {
-    handleCreate()
-  }
+function handleOpenCreate(): void {
+  emit('open-create')
 }
 </script>
 
@@ -60,7 +27,7 @@ function handleInputKeydown(event: KeyboardEvent): void {
           :title="$t('sidebarFolders.createFolder')"
           class="sidebar-section-control-button"
           data-testid="sidebar-folders-create"
-          @click="openCreateDialog"
+          @click="handleOpenCreate"
         >
           <Plus :size="14" aria-hidden="true" />
         </button>
@@ -81,15 +48,5 @@ function handleInputKeydown(event: KeyboardEvent): void {
         />
       </button>
     </div>
-
-    <CreateFolderDialog
-      v-model:open="showCreateDialog"
-      v-model:folder-name="folderNameInput"
-      :create-error="createError"
-      :is-creating="isCreating"
-      @cancel="closeCreateDialog"
-      @create="handleCreate"
-      @input-keydown="handleInputKeydown"
-    />
   </div>
 </template>

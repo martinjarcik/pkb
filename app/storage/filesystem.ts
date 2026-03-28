@@ -352,5 +352,12 @@ export function createFilesystemStorage(vaultPath: string): NoteStorage {
 
       await mkdir(folderPath, { recursive: true })
     },
+
+    async renameFolder(oldName: string, newName: string): Promise<void> {
+      const oldPath = assertSafeId(vaultPath, oldName)
+      const newPath = assertSafeId(vaultPath, newName)
+
+      await rename(oldPath, newPath)
+    },
   }
 }

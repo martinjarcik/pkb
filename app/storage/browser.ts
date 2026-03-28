@@ -336,4 +336,24 @@ export const browserStorage: NoteStorage = {
       writeStoredFolders([...stored, name])
     }
   },
+
+  async renameFolder(oldName: string, newName: string): Promise<void> {
+    const stored = readStoredFolders()
+    const updated = stored.map((f) => (f === oldName ? newName : f))
+
+    writeStoredFolders(updated)
+
+    const notes = readStoredNotes()
+    const prefix = `${oldName}/`
+    const rekeyed: BrowserStoredNotes = {}
+
+    for (const [id, note] of Object.entries(notes)) {
+      const key = id.startsWith(prefix)
+        ? `${newName}/${id.slice(prefix.length)}`
+        : id
+      rekeyed[key] = note
+    }
+
+    writeStoredNotes(rekeyed)
+  },
 }

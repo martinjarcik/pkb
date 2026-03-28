@@ -311,15 +311,19 @@ export function useSidebarNavigation() {
     tagsExpanded.value = !tagsExpanded.value
   }
 
-  async function createFolder(name: string): Promise<string | null> {
+  type FolderResult =
+    | { ok: true; folderName: string }
+    | { ok: false; error: string }
+
+  async function createFolder(name: string): Promise<FolderResult> {
     const sanitized = sanitizeNoteTitleForFilename(name)
 
     if (sanitized.length === 0) {
-      return t('sidebarFolders.errorEmpty')
+      return { ok: false, error: t('sidebarFolders.errorEmpty') }
     }
 
     if (topLevelFolders.value.includes(sanitized)) {
-      return t('sidebarFolders.errorDuplicate')
+      return { ok: false, error: t('sidebarFolders.errorDuplicate') }
     }
 
     try {
@@ -330,9 +334,50 @@ export function useSidebarNavigation() {
 
       explicitFolders.value = [...explicitFolders.value, sanitized]
 
-      return null
+      return { ok: true, folderName: sanitized }
     } catch {
-      return t('sidebarFolders.errorCreateFallback')
+      return { ok: false, error: t('sidebarFolders.errorCreateFallback') }
+    }
+  }
+
+  async function renameFolder(
+    oldName: string,
+    newName: string,
+  ): Promise<FolderResult> {
+    const sanitized = sanitizeNoteTitleForFilename(newName)
+
+    if (sanitized.length === 0) {
+      return { ok: false, error: t('sidebarFolders.errorEmpty') }
+    }
+
+    if (sanitized === oldName) {
+      return { ok: true, folderName: oldName }
+    }
+
+    if (topLevelFolders.value.includes(sanitized)) {
+      return { ok: false, error: t('sidebarFolders.errorDuplicate') }
+    }
+
+    try {
+      await globalThis.$fetch('/api/folders', {
+        method: 'PATCH',
+        body: { oldName, newName: sanitized },
+      })
+
+      explicitFolders.value = explicitFolders.value.map((f) =>
+        f === oldName ? sanitized : f,
+      )
+
+      if (
+        selectedView.value.kind === 'folder' &&
+        selectedView.value.folderName === oldName
+      ) {
+        selectedView.value = { kind: 'folder', folderName: sanitized }
+      }
+
+      return { ok: true, folderName: sanitized }
+    } catch {
+      return { ok: false, error: t('sidebarFolders.errorRenameFallback') }
     }
   }
 
@@ -354,6 +399,7 @@ export function useSidebarNavigation() {
     toggleFoldersExpanded,
     toggleTagsExpanded,
     createFolder,
+    renameFolder,
     cycleTag,
   }
 }

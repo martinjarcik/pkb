@@ -1,6 +1,18 @@
 <script setup lang="ts">
+defineProps<{
+  folderIcon: (name: string) => string | undefined
+}>()
+
+const emit = defineEmits<{
+  'edit-folder': [folderName: string]
+}>()
+
 const { accentColor, selectedView, selectFolder, topLevelFolders } =
   useSidebarNavigation()
+
+function handleEdit(folderName: string): void {
+  emit('edit-folder', folderName)
+}
 </script>
 
 <template>
@@ -13,11 +25,13 @@ const { accentColor, selectedView, selectFolder, topLevelFolders } =
       v-for="folderName in topLevelFolders"
       :key="folderName"
       :folder-name="folderName"
+      :custom-icon="folderIcon(folderName)"
       :selected="
         selectedView.kind === 'folder' && selectedView.folderName === folderName
       "
       :accent-color="accentColor"
       @click="selectFolder(folderName)"
+      @edit="handleEdit(folderName)"
     />
   </div>
 </template>

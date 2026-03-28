@@ -3,7 +3,7 @@ import { computed, type Component } from 'vue'
 
 const props = defineProps<{
   navigationId: string
-  icon: Component
+  icon: Component | string
   label: string
   selected: boolean
   accentColor: string
@@ -45,8 +45,15 @@ function handleClick(): void {
     @dragover="emit('dragover', $event)"
     @drop="emit('drop', $event)"
   >
+    <span
+      v-if="typeof icon === 'string'"
+      class="sidebar-navigation-item-icon inline-flex w-3 shrink-0 items-center justify-center text-[12px] leading-none"
+      aria-hidden="true"
+      >{{ icon }}</span
+    >
     <component
       :is="icon"
+      v-else
       :size="12"
       class="sidebar-navigation-item-icon"
       aria-hidden="true"

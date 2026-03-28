@@ -59,6 +59,9 @@ selected folder creates it directly in that folder.
 | `layout.showNotesListPanel` | boolean | `true`        | Show the NotesListPanel                                        |
 | `theme.accentColor`         | string  | `"#3f57dfff"` | Accent color for selected nav, pinned note icon, and list tint |
 
+Workspace metadata (folder icons, etc.) is stored in `meta.yaml` (see Vault
+Folder Views), not in `app/config/default.yaml`.
+
 ## Features
 
 ### Filesystem Storage (desktop)
@@ -120,6 +123,12 @@ Top-level Vault folders appear below `Inbox` in `SidebarPanel`.
 - Folder rows use the same selected styling as `Inbox`.
 - When a folder is selected, the first visible note in that folder becomes the
   active note automatically.
+- Optional **folder metadata** (currently an emoji icon) is stored in workspace
+  `meta.yaml` at the project root by default. Use the **+** control in the
+  Folders header to create a folder and pick an emoji, or hover a folder row and
+  click the pencil to edit the icon. The name field is read-only when editing;
+  clearing the icon restores the default folder glyph. Override the file
+  location with the `PKB_META_PATH` environment variable.
 
 ### Tag Views
 

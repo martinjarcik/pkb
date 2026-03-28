@@ -26,6 +26,7 @@ vault/*
 
 # Runtime user config
 data/
+meta.yaml
 
 # Coverage
 coverage/

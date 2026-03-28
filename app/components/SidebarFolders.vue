@@ -1,5 +1,98 @@
 <script setup lang="ts">
-const { topLevelFolders, foldersExpanded } = useSidebarNavigation()
+import { onMounted, ref } from 'vue'
+
+const { topLevelFolders, foldersExpanded, createFolder, renameFolder } =
+  useSidebarNavigation()
+const { loadMeta, setFolderIcon, folderIcon } = useFolderMeta()
+const { loadNotes } = useNotes()
+
+const showFolderDialog = ref(false)
+const folderDialogMode = ref<'create' | 'edit'>('create')
+const folderNameInput = ref('')
+const folderIconEmoji = ref('')
+const editTargetFolderName = ref('')
+const createError = ref<string | null>(null)
+const isFolderDialogBusy = ref(false)
+
+onMounted(() => {
+  void loadMeta()
+})
+
+function openCreateFolderDialog(): void {
+  folderDialogMode.value = 'create'
+  editTargetFolderName.value = ''
+  folderNameInput.value = ''
+  folderIconEmoji.value = ''
+  createError.value = null
+  showFolderDialog.value = true
+}
+
+function openEditFolderDialog(name: string): void {
+  folderDialogMode.value = 'edit'
+  editTargetFolderName.value = name
+  folderNameInput.value = name
+  folderIconEmoji.value = folderIcon(name) ?? ''
+  createError.value = null
+  showFolderDialog.value = true
+}
+
+function closeFolderDialog(): void {
+  showFolderDialog.value = false
+}
+
+async function handleFolderDialogConfirm(): Promise<void> {
+  createError.value = null
+  isFolderDialogBusy.value = true
+
+  try {
+    if (folderDialogMode.value === 'create') {
+      const result = await createFolder(folderNameInput.value)
+
+      if (!result.ok) {
+        createError.value = result.error
+        return
+      }
+
+      await setFolderIcon(result.folderName, folderIconEmoji.value || undefined)
+      closeFolderDialog()
+
+      return
+    }
+
+    const oldName = editTargetFolderName.value
+    const newName = folderNameInput.value
+    const nameChanged = newName !== oldName
+
+    if (nameChanged) {
+      const result = await renameFolder(oldName, newName)
+
+      if (!result.ok) {
+        createError.value = result.error
+        return
+      }
+
+      await setFolderIcon(result.folderName, folderIconEmoji.value || undefined)
+
+      if (folderIcon(oldName) !== undefined) {
+        await setFolderIcon(oldName, undefined)
+      }
+
+      await loadNotes()
+    } else {
+      await setFolderIcon(oldName, folderIconEmoji.value || undefined)
+    }
+
+    closeFolderDialog()
+  } finally {
+    isFolderDialogBusy.value = false
+  }
+}
+
+function handleInputKeydown(event: KeyboardEvent): void {
+  if (event.key === 'Enter' && !isFolderDialogBusy.value) {
+    void handleFolderDialogConfirm()
+  }
+}
 </script>
 
 <template>
@@ -7,9 +100,23 @@ const { topLevelFolders, foldersExpanded } = useSidebarNavigation()
     data-testid="sidebar-folders"
     class="sidebar-folders-shell flex flex-col"
   >
-    <SidebarFoldersControls />
+    <SidebarFoldersControls @open-create="openCreateFolderDialog" />
     <SidebarFoldersActions
       v-if="foldersExpanded && topLevelFolders.length > 0"
+      :folder-icon="folderIcon"
+      @edit-folder="openEditFolderDialog"
+    />
+
+    <FolderDialog
+      v-model:open="showFolderDialog"
+      v-model:folder-name="folderNameInput"
+      v-model:icon-emoji="folderIconEmoji"
+      :mode="folderDialogMode"
+      :create-error="createError"
+      :is-submitting="isFolderDialogBusy"
+      @confirm="handleFolderDialogConfirm"
+      @cancel="closeFolderDialog"
+      @input-keydown="handleInputKeydown"
     />
   </section>
 </template>

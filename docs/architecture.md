@@ -78,15 +78,16 @@ preview slice used by the notes list, capped at 1024 UTF-8 bytes.
       (`app/components/SidebarNavigationItem.vue`) — individual sidebar view item
       (for example `Inbox`).
   - `SidebarFolders` (`app/components/SidebarFolders.vue`) — folders section
-    wrapper with header and collapsible folder list.
+    wrapper with header, collapsible folder list, and the folder create/edit
+    dialog (`FolderDialog.client.vue`).
     - `SidebarFoldersControls`
       (`app/components/SidebarFoldersControls.vue`) — folders header with
-      hover-reveal "create folder" and "collapse/expand" controls, plus the
-      create-folder modal dialog.
+      hover-reveal "create folder" and "collapse/expand" controls.
     - `SidebarFoldersActions`
       (`app/components/SidebarFoldersActions.vue`) — top-level Vault folder list.
       - `SidebarFolderItem`
-        (`app/components/SidebarFolderItem.vue`) — individual folder view item.
+        (`app/components/SidebarFolderItem.vue`) — individual folder view item
+        (hover-reveal edit control, optional emoji icon from workspace meta).
   - `SidebarTags` (`app/components/SidebarTags.vue`) — tag filter section.
     - `SidebarTagsControls`
       (`app/components/SidebarTagsControls.vue`) — tag section header.
@@ -269,3 +270,8 @@ concurrent requests. Module-scope state leaks across requests.
 - `app/config/default.yaml` provides initial default values. Runtime
   configuration state (e.g. panel visibility toggles) lives in composables
   initialized from these defaults.
+- `WorkspaceMeta` (`app/config/parseMeta.ts`) — typed workspace metadata (for
+  example per-folder emoji icons), persisted in `meta.yaml` at the project root
+  by default (`PKB_META_PATH` overrides the path). Loaded and updated via
+  `GET /api/meta` and `PUT /api/meta`; `useFolderMeta()` holds reactive folder
+  metadata in `useState`.

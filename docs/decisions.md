@@ -56,4 +56,8 @@ Soft-delete notes by setting the `trashedAt` Application Property instead of rem
 
 ## D015 — 2026-03
 
+Store per-folder sidebar customization (emoji icons) in a dedicated workspace `meta.yaml` file with `GET`/`PUT` API handlers, separate from `AppConfig` and from hidden files inside vault folders, so metadata stays app-scoped and portable alongside the project.
+
+## D015 — 2026-03
+
 Deliver per-note webhooks from the Nitro server only: accept HTTPS URLs, POST JSON with `event` (`updated` after `PUT /api/notes`, `deleted` after `POST /api/notes/trash`) and a full note snapshot, use a short request timeout, and swallow errors so persistence never depends on webhook success.

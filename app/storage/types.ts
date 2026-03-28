@@ -27,4 +27,5 @@ export type NoteStorage = {
   purgeExpiredTrashedNotes(retentionDays: number, now?: Date): Promise<void>
   deleteNote(id: string): Promise<void>
   createFolder(name: string): Promise<void>
+  renameFolder(oldName: string, newName: string): Promise<void>
 }

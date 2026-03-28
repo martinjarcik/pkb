@@ -44,14 +44,19 @@
   "sidebarFolders": {
     "title": "Folders",
     "createFolder": "Create folder",
+    "editFolder": "Edit folder",
     "toggleFolders": "Toggle folders",
     "folderNameLabel": "Folder name",
     "folderNamePlaceholder": "Enter folder name",
     "create": "Create",
+    "saveFolder": "Save",
+    "pickIcon": "Choose folder icon",
+    "clearIcon": "Clear icon",
     "cancel": "Cancel",
     "errorEmpty": "Folder name cannot be empty",
     "errorDuplicate": "A folder with this name already exists",
-    "errorCreateFallback": "Failed to create folder"
+    "errorCreateFallback": "Failed to create folder",
+    "errorRenameFallback": "Failed to rename folder"
   },
   "sidebarTags": {
     "title": "Tags",
