@@ -1,2 +1,2 @@
 declare module '@editorjs/image'
-declare module '@editorjs/marker'
+declare module 'remark-highlight-mark'

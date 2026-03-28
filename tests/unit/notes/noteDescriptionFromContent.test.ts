@@ -31,6 +31,14 @@ describe('noteDescriptionFromContent', () => {
     )
   })
 
+  it('strips highlight markdown formatting symbols', () => {
+    const result = noteDescriptionFromContent(
+      'Use ==highlighted== and ==🔴urgent== text.',
+    )
+
+    expect(result).toBe('Use highlighted and urgent text.')
+  })
+
   it('omits markdown table separator rows', () => {
     const result = noteDescriptionFromContent(
       ['| Name | Value |', '| --- | --- |', '| Width | 120px |'].join('\n'),

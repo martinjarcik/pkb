@@ -30,6 +30,8 @@ export const editorMessages = {
     Delimiter: 'Delimiter',
     'Inline Code': 'Inline Code',
     InlineCode: 'Inline Code',
+    Highlight: 'Highlight',
+    InlineHighlight: 'Highlight',
     'Inline Hashtag': 'Inline Hashtag',
     InlineHashtag: 'Inline Hashtag',
     Table: 'Table',

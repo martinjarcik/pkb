@@ -49,6 +49,136 @@ test('renders the first loaded note in the Editor.js surface', async ({
   await waitForEditorReady(page)
 })
 
+test('loads the full note body after initial auto-selection', async ({
+  page,
+}) => {
+  const previewNote = createMockNote('first-note.md', 'Preview only.')
+  const fullNote = createMockNote(
+    'first-note.md',
+    'First paragraph.\n\nSecond paragraph.\n\nFull content from detail fetch.',
+  )
+
+  await page.route('**/api/folders', async (route) => {
+    if (route.request().method() !== 'GET') {
+      await route.fallback()
+      return
+    }
+
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify([]),
+    })
+  })
+
+  await page.route(
+    (url) => {
+      const pathname = new URL(url).pathname
+
+      return pathname === '/api/notes' || pathname.startsWith('/api/notes/')
+    },
+    async (route) => {
+      const pathname = new URL(route.request().url()).pathname
+
+      if (route.request().method() !== 'GET') {
+        await route.fallback()
+        return
+      }
+
+      if (pathname === '/api/notes' || pathname === '/api/notes/') {
+        await route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify([previewNote]),
+        })
+        return
+      }
+
+      await new Promise((resolve) => setTimeout(resolve, 250))
+
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify(fullNote),
+      })
+    },
+  )
+
+  await page.goto('/')
+  await waitForEditorReady(page)
+
+  await expect(page.locator('.ce-paragraph')).toContainText([
+    'First paragraph.',
+    'Second paragraph.',
+    'Full content from detail fetch.',
+  ])
+})
+
+test('renders delayed note content after selecting a different list row', async ({
+  page,
+}) => {
+  const notes = buildAppLayoutNotes()
+
+  await page.route('**/api/folders', async (route) => {
+    if (route.request().method() !== 'GET') {
+      await route.fallback()
+      return
+    }
+
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify([]),
+    })
+  })
+
+  await page.route(
+    (url) => {
+      const pathname = new URL(url).pathname
+
+      return pathname === '/api/notes' || pathname.startsWith('/api/notes/')
+    },
+    async (route) => {
+      const pathname = new URL(route.request().url()).pathname
+
+      if (route.request().method() !== 'GET') {
+        await route.fallback()
+        return
+      }
+
+      if (pathname === '/api/notes' || pathname === '/api/notes/') {
+        await route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify(notes),
+        })
+        return
+      }
+
+      if (pathname.endsWith('/second-note.md')) {
+        await new Promise((resolve) => setTimeout(resolve, 250))
+      }
+
+      const noteId = decodeURIComponent(pathname.replace('/api/notes/', ''))
+      const note = notes.find((entry) => entry.id === noteId)
+
+      await route.fulfill({
+        status: note ? 200 : 404,
+        contentType: 'application/json',
+        body: JSON.stringify(note ?? { statusMessage: 'Note not found' }),
+      })
+    },
+  )
+
+  await page.goto('/')
+  await waitForEditorReady(page)
+  await page.getByTestId('notes-list-item').nth(1).click()
+
+  await expect(page.locator('.ce-paragraph')).toContainText([
+    'Second note body.',
+  ])
+})
+
 test('shows the note title block in the editor', async ({ page }) => {
   await page.goto('/')
   await waitForEditorReady(page)

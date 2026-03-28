@@ -78,6 +78,7 @@
       "code": "Code",
       "delimiter": "Delimiter",
       "inlineCode": "Inline Code",
+      "highlight": "Highlight",
       "simpleQuote": "Simple Quote",
       "table": "Table",
       "image": "Image",

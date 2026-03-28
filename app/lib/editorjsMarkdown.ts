@@ -1,5 +1,12 @@
 import { remark } from 'remark'
 import remarkGfm from 'remark-gfm'
+import { remarkHighlightMark } from 'remark-highlight-mark'
+import {
+  inlineHighlightMarkdownPrefix,
+  normalizeInlineHighlightColor,
+  parseInlineHighlightMarkdownPrefix,
+  renderInlineHighlightHtml,
+} from './inlineHighlight'
 
 export type EditorjsBlock = {
   type: string
@@ -134,7 +141,10 @@ function transformProseOutsideFencedCodeBlocks(
 }
 
 function parseMarkdown(markdown: string): MarkdownNode {
-  return remark().use(remarkGfm).parse(markdown) as MarkdownNode
+  return remark()
+    .use(remarkGfm)
+    .use(remarkHighlightMark)
+    .parse(markdown) as MarkdownNode
 }
 
 function normalizeMarkdownProse(markdown: string): string {
@@ -171,6 +181,17 @@ function inlineHtmlToMarkdown(text: string): string {
     .replace(/\u00a0/g, ' ')
 
   const replacements: Array<[RegExp, (...args: string[]) => string]> = [
+    [
+      /<mark\b([^>]*)class=(["'])[^"']*\binline-highlight\b[^"']*\2([^>]*)>([\s\S]*?)<\/mark>/gi,
+      (_match, beforeClass, _quote, afterClass, content) => {
+        const attrs = `${beforeClass}${afterClass}`
+        const colorMatch = attrs.match(/\bdata-color=(["'])(.*?)\1/i)
+        const color = normalizeInlineHighlightColor(colorMatch?.[2])
+        const prefix = inlineHighlightMarkdownPrefix(color)
+
+        return `==${prefix}${content}==`
+      },
+    ],
     [
       /<span\b[^>]*class=(["'])[^"']*\binline-hashtag\b[^"']*\1[^>]*>([\s\S]*?)<\/span>/gi,
       (_match, _quote, content) => content,
@@ -358,6 +379,14 @@ function parseInlineNodeToHtml(node: MarkdownNode): string {
       return `<s>${parseInlineNodesToHtml(node.children)}</s>`
     case 'inlineCode':
       return `<code class="inline-code">${node.value ?? ''}</code>`
+    case 'mark':
+    case 'highlight': {
+      const renderedContent = parseInlineNodesToHtml(node.children)
+      const { color, content } =
+        parseInlineHighlightMarkdownPrefix(renderedContent)
+
+      return renderInlineHighlightHtml(content, color)
+    }
     case 'link':
       return `<a href="${node.url ?? ''}">${parseInlineNodesToHtml(node.children)}</a>`
     case 'break':

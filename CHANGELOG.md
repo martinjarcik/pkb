@@ -4,6 +4,9 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+- Add an Editor.js inline highlight tool with eight color options, default
+  yellow highlight on selection, and Markdown round-trip as `==text==` or
+  `==<emoji>text==` for colored highlights.
 - Add Editor.js image blocks: `@editorjs/image` with multipart upload to
   `POST /api/vault-assets/upload`, serving files from `GET /api/vault-assets/*`,
   Markdown round-trip as `![caption](<vault-relative path>)`, configurable

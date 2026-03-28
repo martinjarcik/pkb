@@ -475,6 +475,70 @@ describe('editorjsMarkdown', () => {
     ])
   })
 
+  it('parses default highlight markdown to editor HTML', () => {
+    expect(markdownToEditorjsBlocks('Use ==important== text.')).toEqual([
+      {
+        type: 'paragraph',
+        data: {
+          text: 'Use <mark class="inline-highlight" data-color="yellow">important</mark> text.',
+        },
+      },
+    ])
+  })
+
+  it('parses colored highlight markdown to editor HTML', () => {
+    expect(markdownToEditorjsBlocks('Use ==🔴urgent== text.')).toEqual([
+      {
+        type: 'paragraph',
+        data: {
+          text: 'Use <mark class="inline-highlight" data-color="red">urgent</mark> text.',
+        },
+      },
+    ])
+  })
+
+  it('serializes default highlight to markdown', () => {
+    expect(
+      editorjsBlocksToMarkdown([
+        {
+          type: 'paragraph',
+          data: {
+            text: 'Use <mark class="inline-highlight" data-color="yellow">important</mark> text.',
+          },
+        },
+      ]),
+    ).toBe('Use ==important== text.')
+  })
+
+  it('serializes colored highlight to markdown', () => {
+    expect(
+      editorjsBlocksToMarkdown([
+        {
+          type: 'paragraph',
+          data: {
+            text: 'Use <mark class="inline-highlight" data-color="red">urgent</mark> text.',
+          },
+        },
+      ]),
+    ).toBe('Use ==🔴urgent== text.')
+  })
+
+  it('round-trips default highlight markdown', () => {
+    const markdown = 'Use ==important== text.'
+
+    expect(editorjsBlocksToMarkdown(markdownToEditorjsBlocks(markdown))).toBe(
+      markdown,
+    )
+  })
+
+  it('round-trips colored highlight markdown', () => {
+    const markdown = 'Use ==🔴urgent== text.'
+
+    expect(editorjsBlocksToMarkdown(markdownToEditorjsBlocks(markdown))).toBe(
+      markdown,
+    )
+  })
+
   it('treats attributed br tags as paragraph separators', () => {
     expect(
       editorjsBlocksToMarkdown([

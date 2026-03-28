@@ -11,6 +11,7 @@ import {
   extractNoteTitleText,
   renderNoteTitleBlocks,
 } from '~/lib/editorjsTitleBlock'
+import InlineHighlightTool from '~/lib/inlineHighlightTool'
 import InlineHashtagTool from '~/lib/inlineHashtagTool'
 import NoteTitleTool from '~/lib/noteTitleTool'
 import { t as translate } from '~/composables/useTranslations'
@@ -37,7 +38,13 @@ type EditorjsConstructor = new (
 
 type EditorjsTool = new (...args: never[]) => unknown
 
-const inlineToolbarTools = ['link', 'bold', 'italic', 'inlineCode']
+const inlineToolbarTools = [
+  'link',
+  'bold',
+  'italic',
+  'inlineCode',
+  'inlineHighlight',
+]
 const hashtagCompletionPattern = /(^|\s)#[^\s#]+\s$/u
 
 const props = withDefaults(
@@ -68,6 +75,7 @@ let isRepairingTitleBlock = false
 let lastRenderedContent = ''
 let lastRenderedTitle = ''
 let contentSyncTimeout: ReturnType<typeof setTimeout> | null = null
+let pendingExternalRender: { content: string; title: string } | null = null
 
 function getDefaultExport(module: unknown): unknown {
   if (typeof module === 'object' && module !== null && 'default' in module) {
@@ -242,8 +250,16 @@ function handleHolderKeyup(event: KeyboardEvent): void {
   highlightHashtagsInEditable(editable)
 }
 
-async function renderMarkdownContent(markdown: string): Promise<void> {
-  if (!editor || isApplyingExternalContent) {
+async function renderMarkdownContent(
+  markdown: string,
+  title: string = props.title,
+): Promise<void> {
+  if (!editor) {
+    return
+  }
+
+  if (isApplyingExternalContent) {
+    pendingExternalRender = { content: markdown, title }
     return
   }
 
@@ -253,15 +269,35 @@ async function renderMarkdownContent(markdown: string): Promise<void> {
   try {
     const blocks = renderNoteTitleBlocks(
       markdownToEditorjsBlocks(markdown),
-      props.title,
+      title,
     )
 
     await editor.blocks.render({ blocks })
     lastRenderedContent = markdown
-    lastRenderedTitle = props.title
+    lastRenderedTitle = title
   } finally {
     await nextTick()
     isApplyingExternalContent = false
+  }
+
+  const queuedRender = pendingExternalRender
+
+  pendingExternalRender = null
+
+  if (
+    queuedRender &&
+    (queuedRender.content !== lastRenderedContent ||
+      queuedRender.title !== lastRenderedTitle)
+  ) {
+    await renderMarkdownContent(queuedRender.content, queuedRender.title)
+    return
+  }
+
+  if (
+    props.content !== lastRenderedContent ||
+    props.title !== lastRenderedTitle
+  ) {
+    await renderMarkdownContent(props.content, props.title)
   }
 }
 
@@ -459,6 +495,8 @@ onMounted(async () => {
   isApplyingExternalContent = true
 
   try {
+    const initialContent = props.content
+    const initialTitle = props.title
     const [
       editorModule,
       headerModule,
@@ -490,8 +528,8 @@ onMounted(async () => {
     const Table = getDefaultExport(tableModule) as EditorjsTool
     const ImageTool = getDefaultExport(imageModule) as EditorjsTool
     const blocks = renderNoteTitleBlocks(
-      markdownToEditorjsBlocks(props.content),
-      props.title,
+      markdownToEditorjsBlocks(initialContent),
+      initialTitle,
     )
 
     editor = new Editorjs({
@@ -567,6 +605,9 @@ onMounted(async () => {
         inlineCode: {
           class: InlineCode,
         },
+        inlineHighlight: {
+          class: InlineHighlightTool,
+        },
         inlineHashtag: {
           class: InlineHashtagTool,
         },
@@ -603,6 +644,14 @@ onMounted(async () => {
 
     await editor.isReady
     await nextTick()
+
+    const latestBlocks = renderNoteTitleBlocks(
+      markdownToEditorjsBlocks(props.content),
+      props.title,
+    )
+
+    await editor.blocks.render({ blocks: latestBlocks })
+
     isApplyingExternalContent = false
     holder.value?.addEventListener('focusout', handleHolderFocusout)
     holder.value?.addEventListener('keyup', handleHolderKeyup)
@@ -635,7 +684,7 @@ watch(
       return
     }
 
-    void renderMarkdownContent(nextContent)
+    void renderMarkdownContent(nextContent, nextTitle)
   },
 )
 
@@ -649,6 +698,8 @@ onBeforeUnmount(() => {
     clearTimeout(contentSyncTimeout)
     contentSyncTimeout = null
   }
+
+  pendingExternalRender = null
 
   holder.value?.removeEventListener('focusout', handleHolderFocusout)
   holder.value?.removeEventListener('keyup', handleHolderKeyup)

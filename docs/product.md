@@ -204,6 +204,13 @@ The note content area uses Editor.js as the editing surface.
   top-level `tags` frontmatter property and remain visible in the note content.
 - On save, unchecked markdown checklist items cause the `hasTasks` Application
   Property to be stored under the `app` frontmatter namespace.
+- The inline toolbar includes a `Highlight` tool for marked text. Clicking it
+  wraps the current selection in a yellow highlight by default. Hovering the
+  highlight item opens color choices: red, green, yellow, blue, orange,
+  purple, grey, and brown.
+- Highlighted text is stored in Markdown as `==text==` for the default yellow
+  highlight, or `==<emoji>text==` for non-default colors such as
+  `==🔴important==`.
 - The inline toolbar includes an `Inline Hashtag` tool for visually highlighting
   selected hashtag text inside the editor.
 
