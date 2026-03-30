@@ -24,35 +24,35 @@ editorColors:
     background: '#F9EAE7'
     text: '#C0594E'
     label: 'Red'
-  pink:
+  pink: # Apple Notes Color
     emoji: '🩷'
-    background: '#F7EAF1'
-    text: '#B35489'
+    background: '#FCE3E6'
+    text: '#EB445A'
     label: 'Pink'
-  green:
+  mint: # Apple Notes Color
     emoji: '🟢'
-    background: '#EAF1EC'
-    text: '#629271'
-    label: 'Green'
+    background: '#E6F6F4'
+    text: '#5AC5B3'
+    label: 'Mint'
   yellow:
     emoji: '🟡'
     background: '#F8F3DE'
     text: '#C39647'
     label: 'Yellow'
-  blue:
+  blue: # Apple Notes Color
     emoji: '🔵'
-    background: '#E7F2FB'
-    text: '#4C7CC3'
+    background: '#E2EDFE'
+    text: '#3B86F7'
     label: 'Blue'
-  orange:
+  orange: # Apple Notes Color
     emoji: '🟠'
-    background: '#F8ECDF'
-    text: '#C67F3F'
+    background: '#FDEFE3'
+    text: '#F09343'
     label: 'Orange'
-  purple:
+  purple: # Apple Notes Color
     emoji: '🟣'
-    background: '#F2EBF8'
-    text: '#946FB1'
+    background: '#F5E2F9'
+    text: '#BB3ED9'
     label: 'Purple'
   grey:
     emoji: '⚪️'

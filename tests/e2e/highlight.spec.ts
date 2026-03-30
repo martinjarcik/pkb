@@ -253,3 +253,23 @@ test('toggles an active highlight off and removes markdown syntax on save', asyn
     })
     .toBe('Alpha beta gamma.')
 })
+
+test('clears an active highlight from the None picker option', async ({
+  page,
+}) => {
+  const api = await mockHighlightNotesApi(page, [
+    createMockNote('first-note.md', 'Alpha ==🔴beta== gamma.'),
+  ])
+
+  await page.goto('/')
+  await waitForEditorReady(page)
+  await selectTextInFirstParagraph(page, 'beta')
+  await pickHighlightColor(page, 'None')
+
+  await expect(firstParagraph(page).locator('.inline-highlight')).toHaveCount(0)
+  await expect
+    .poll(() => api.getLastSaveBody()?.content, {
+      timeout: 10000,
+    })
+    .toBe('Alpha beta gamma.')
+})

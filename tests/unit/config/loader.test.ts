@@ -91,6 +91,19 @@ describe('parseAppConfig', () => {
     })
   })
 
+  it('accepts custom editor color names', () => {
+    const config = createConfig()
+    config.editorColors = {
+      mint: { emoji: '🌿', background: '#E6F6F4', label: 'Mint' },
+      coral: { emoji: '🪸', background: '#FDE7E1', label: 'Coral' },
+    }
+
+    expect(parseAppConfig(config).editorColors).toEqual({
+      mint: { emoji: '🌿', background: '#E6F6F4', label: 'Mint' },
+      coral: { emoji: '🪸', background: '#FDE7E1', label: 'Coral' },
+    })
+  })
+
   it('accepts legacy editorBackgroundColors and hex keys', () => {
     const config = createConfig() as Record<string, unknown>
     config.editorBackgroundColors = {

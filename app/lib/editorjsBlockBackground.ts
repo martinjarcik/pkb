@@ -1,12 +1,11 @@
 import { loadConfig } from '~/config/loader'
-import type { EditorColorName } from '~/config/parseAppConfig'
 import type { EditorjsBlock } from './editorjsMarkdown'
 
 export const BLOCK_BACKGROUND_COLORS = loadConfig().editorColors
 export const BLOCK_BACKGROUND_TUNE_NAME = 'backgroundColor'
 export const BLOCK_BACKGROUND_CLASS_PREFIX = 'editor-background-'
 
-export type BlockBackgroundColor = EditorColorName
+export type BlockBackgroundColor = keyof typeof BLOCK_BACKGROUND_COLORS
 
 function isBlockBackgroundClass(value: string): boolean {
   return value.startsWith(BLOCK_BACKGROUND_CLASS_PREFIX)

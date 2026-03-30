@@ -467,42 +467,9 @@
   }
 
   .note-editor-surface .inline-highlight {
-    background: #fef9a5;
     border-radius: 3px;
     color: inherit;
     padding: 1px 0;
-  }
-
-  .note-editor-surface .inline-highlight[data-color='red'] {
-    background: #f8d7f7;
-  }
-
-  .note-editor-surface .inline-highlight[data-color='green'] {
-    background: #dcfeb8;
-  }
-
-  .note-editor-surface .inline-highlight[data-color='yellow'] {
-    background: #fef9a5;
-  }
-
-  .note-editor-surface .inline-highlight[data-color='blue'] {
-    background: #c2fdfd;
-  }
-
-  .note-editor-surface .inline-highlight[data-color='orange'] {
-    background: #f9d8d7;
-  }
-
-  .note-editor-surface .inline-highlight[data-color='purple'] {
-    background: #e4d8fc;
-  }
-
-  .note-editor-surface .inline-highlight[data-color='grey'] {
-    background: #e4e6e8;
-  }
-
-  .note-editor-surface .inline-highlight[data-color='brown'] {
-    background: #c89f4e;
   }
 
   .note-editor-surface .inline-highlight-actions {
@@ -515,16 +482,17 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    border: 1px solid transparent;
-    border-radius: 9999px;
+    width: 20px;
+    height: 20px;
+    border: 0;
+    border-radius: 2px;
     background: transparent;
     cursor: pointer;
-    padding: 2px;
+    padding: 0;
   }
 
   .note-editor-surface .inline-highlight-action[data-state='active'] {
-    border-color: hsl(var(--foreground) / 0.35);
-    background: hsl(var(--muted));
+    box-shadow: 0 0 0 2px hsl(var(--foreground) / 0.16);
   }
 
   .note-editor-surface .ce-block-background {

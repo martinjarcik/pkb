@@ -1,23 +1,12 @@
 export type ApplicationType = 'desktop' | 'browser'
 
-export type EditorColorName =
-  | 'red'
-  | 'pink'
-  | 'green'
-  | 'yellow'
-  | 'blue'
-  | 'orange'
-  | 'purple'
-  | 'grey'
-  | 'brown'
-
 export type EditorColor = {
   emoji: string
   background: string
   label: string
 }
 
-export type EditorColors = Record<EditorColorName, EditorColor>
+export type EditorColors = Record<string, EditorColor>
 
 export type AppConfig = {
   applicationType: ApplicationType
@@ -49,17 +38,7 @@ export type AppConfig = {
 }
 
 const VALID_APPLICATION_TYPES: ApplicationType[] = ['desktop', 'browser']
-const EDITOR_COLOR_NAMES: EditorColorName[] = [
-  'red',
-  'pink',
-  'green',
-  'yellow',
-  'blue',
-  'orange',
-  'purple',
-  'grey',
-  'brown',
-]
+const EDITOR_COLOR_KEY_PATTERN = /^[A-Za-z0-9_-]+$/
 const DEFAULT_EDITOR_COLORS: EditorColors = {
   red: {
     emoji: '🔴',
@@ -148,10 +127,23 @@ function parseEditorColors(value: unknown): EditorColors {
   }
 
   const colors = value as Record<string, unknown>
-  const parsed = {} as EditorColors
+  const parsed: EditorColors = {}
+  const entries = Object.entries(colors)
 
-  for (const colorName of EDITOR_COLOR_NAMES) {
-    const rawColor = colors[colorName]
+  if (entries.length === 0) {
+    throw new Error('Config editorColors must define at least one color')
+  }
+
+  for (const [colorName, rawColor] of entries) {
+    if (colorName.trim().length === 0) {
+      throw new Error('Config editorColors keys must be non-empty strings')
+    }
+
+    if (!EDITOR_COLOR_KEY_PATTERN.test(colorName)) {
+      throw new Error(
+        `Config editorColors.${colorName} uses an unsupported key; use letters, numbers, "-" or "_"`,
+      )
+    }
 
     if (typeof rawColor !== 'object' || rawColor === null) {
       throw new Error(`Config editorColors.${colorName} must be an object`)

@@ -1,9 +1,14 @@
 import { describe, expect, it } from 'vitest'
 import type { EditorjsBlock } from '~/lib/editorjsMarkdown'
 import {
+  BLOCK_BACKGROUND_COLORS,
   normalizeSavedEditorjsBlocks,
   prepareEditorjsBlocksForEditor,
 } from '~/lib/editorjsBlockBackground'
+
+const [primaryColor, secondaryColor = primaryColor] = Object.keys(
+  BLOCK_BACKGROUND_COLORS,
+)
 
 describe('editorjsBlockBackground', () => {
   it('adds tune data from background css classes before rendering', () => {
@@ -11,7 +16,7 @@ describe('editorjsBlockBackground', () => {
       {
         type: 'paragraph',
         data: { text: 'Hello world' },
-        cssClasses: ['note-box', 'editor-background-blue'],
+        cssClasses: ['note-box', `editor-background-${primaryColor}`],
       },
     ]
 
@@ -19,10 +24,10 @@ describe('editorjsBlockBackground', () => {
       {
         type: 'paragraph',
         data: { text: 'Hello world' },
-        cssClasses: ['note-box', 'editor-background-blue'],
+        cssClasses: ['note-box', `editor-background-${primaryColor}`],
         tunes: {
           backgroundColor: {
-            color: 'blue',
+            color: primaryColor,
           },
         },
       },
@@ -37,7 +42,7 @@ describe('editorjsBlockBackground', () => {
         cssClasses: ['note-box'],
         tunes: {
           backgroundColor: {
-            color: 'green',
+            color: secondaryColor,
           },
         },
       },
@@ -47,7 +52,7 @@ describe('editorjsBlockBackground', () => {
       {
         type: 'paragraph',
         data: { text: 'Hello world' },
-        cssClasses: ['note-box', 'editor-background-green'],
+        cssClasses: ['note-box', `editor-background-${secondaryColor}`],
       },
     ])
   })
@@ -57,7 +62,7 @@ describe('editorjsBlockBackground', () => {
       {
         type: 'paragraph',
         data: { text: 'Hello world' },
-        cssClasses: ['editor-background-red', 'note-box'],
+        cssClasses: [`editor-background-${primaryColor}`, 'note-box'],
         tunes: {
           backgroundColor: {},
         },

@@ -4,6 +4,19 @@ import {
   markdownToEditorjsBlocks,
   VAULT_ASSETS_API_PREFIX,
 } from '~/lib/editorjsMarkdown'
+import {
+  INLINE_HIGHLIGHT_COLORS,
+  INLINE_HIGHLIGHT_DEFAULT_COLOR,
+  inlineHighlightMarkdownPrefix,
+} from '~/lib/inlineHighlight'
+
+const alternateHighlightColor =
+  Object.keys(INLINE_HIGHLIGHT_COLORS).find(
+    (color) => color !== INLINE_HIGHLIGHT_DEFAULT_COLOR,
+  ) ?? INLINE_HIGHLIGHT_DEFAULT_COLOR
+const alternateHighlightPrefix = inlineHighlightMarkdownPrefix(
+  alternateHighlightColor,
+)
 
 describe('editorjsMarkdown', () => {
   it('converts the first markdown H1 into a note title block', () => {
@@ -480,18 +493,22 @@ describe('editorjsMarkdown', () => {
       {
         type: 'paragraph',
         data: {
-          text: 'Use <mark class="inline-highlight" data-color="yellow">important</mark> text.',
+          text: `Use <mark class="inline-highlight" data-color="${INLINE_HIGHLIGHT_DEFAULT_COLOR}" style="background-color: ${INLINE_HIGHLIGHT_COLORS[INLINE_HIGHLIGHT_DEFAULT_COLOR].background}">important</mark> text.`,
         },
       },
     ])
   })
 
   it('parses colored highlight markdown to editor HTML', () => {
-    expect(markdownToEditorjsBlocks('Use ==🔴urgent== text.')).toEqual([
+    expect(
+      markdownToEditorjsBlocks(
+        `Use ==${alternateHighlightPrefix}urgent== text.`,
+      ),
+    ).toEqual([
       {
         type: 'paragraph',
         data: {
-          text: 'Use <mark class="inline-highlight" data-color="red">urgent</mark> text.',
+          text: `Use <mark class="inline-highlight" data-color="${alternateHighlightColor}" style="background-color: ${INLINE_HIGHLIGHT_COLORS[alternateHighlightColor].background}">urgent</mark> text.`,
         },
       },
     ])
@@ -525,7 +542,7 @@ describe('editorjsMarkdown', () => {
         {
           type: 'paragraph',
           data: {
-            text: 'Use <mark class="inline-highlight" data-color="yellow">important</mark> text.',
+            text: `Use <mark class="inline-highlight" data-color="${INLINE_HIGHLIGHT_DEFAULT_COLOR}" style="background-color: ${INLINE_HIGHLIGHT_COLORS[INLINE_HIGHLIGHT_DEFAULT_COLOR].background}">important</mark> text.`,
           },
         },
       ]),
@@ -538,11 +555,11 @@ describe('editorjsMarkdown', () => {
         {
           type: 'paragraph',
           data: {
-            text: 'Use <mark class="inline-highlight" data-color="red">urgent</mark> text.',
+            text: `Use <mark class="inline-highlight" data-color="${alternateHighlightColor}" style="background-color: ${INLINE_HIGHLIGHT_COLORS[alternateHighlightColor].background}">urgent</mark> text.`,
           },
         },
       ]),
-    ).toBe('Use ==🔴urgent== text.')
+    ).toBe(`Use ==${alternateHighlightPrefix}urgent== text.`)
   })
 
   it('serializes big emoji html to bold emoji markdown', () => {
@@ -580,7 +597,7 @@ describe('editorjsMarkdown', () => {
   })
 
   it('round-trips colored highlight markdown', () => {
-    const markdown = 'Use ==🔴urgent== text.'
+    const markdown = `Use ==${alternateHighlightPrefix}urgent== text.`
 
     expect(editorjsBlocksToMarkdown(markdownToEditorjsBlocks(markdown))).toBe(
       markdown,
