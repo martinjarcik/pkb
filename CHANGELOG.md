@@ -4,6 +4,9 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+- Add an Editor.js `Big Emoji` inline tool backed by `vue3-emoji-picker`,
+  rendering selected emoji at `2em` in the editor while preserving Markdown
+  storage as bold emoji such as `**🤖**`.
 - Add an Editor.js inline highlight tool with eight color options, default
   yellow highlight on selection, and Markdown round-trip as `==text==` or
   `==<emoji>text==` for colored highlights.

@@ -1,6 +1,7 @@
 import { remark } from 'remark'
 import remarkGfm from 'remark-gfm'
 import { remarkHighlightMark } from 'remark-highlight-mark'
+import { isBigEmojiContent, renderBigEmojiHtml } from './bigEmoji'
 import {
   inlineHighlightMarkdownPrefix,
   normalizeInlineHighlightColor,
@@ -182,7 +183,7 @@ function emptyParagraphsForBlockGap(
 }
 
 function editorHtmlLineBreaksToMarkdownNewlines(text: string): string {
-  return text.replace(/<br\b[^>]*\/?>/gi, '\n')
+  return text.replace(/\u200B/g, '').replace(/<br\b[^>]*\/?>/gi, '\n')
 }
 
 function inlineHtmlToMarkdown(text: string): string {
@@ -399,8 +400,13 @@ function parseInlineNodeToHtml(node: MarkdownNode): string {
       )
     case 'emphasis':
       return `<i>${parseInlineNodesToHtml(node.children)}</i>`
-    case 'strong':
-      return `<b>${parseInlineNodesToHtml(node.children)}</b>`
+    case 'strong': {
+      const content = parseInlineNodesToHtml(node.children)
+
+      return isBigEmojiContent(content)
+        ? renderBigEmojiHtml(content)
+        : `<b>${content}</b>`
+    }
     case 'delete':
       return `<s>${parseInlineNodesToHtml(node.children)}</s>`
     case 'inlineCode':

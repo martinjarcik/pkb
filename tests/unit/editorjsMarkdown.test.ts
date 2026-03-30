@@ -497,6 +497,28 @@ describe('editorjsMarkdown', () => {
     ])
   })
 
+  it('parses bold emoji markdown to big emoji editor HTML', () => {
+    expect(markdownToEditorjsBlocks('Status **🤖** updated.')).toEqual([
+      {
+        type: 'paragraph',
+        data: {
+          text: 'Status <strong class="inline-big-emoji">🤖</strong> updated.',
+        },
+      },
+    ])
+  })
+
+  it('keeps mixed bold emoji text as regular bold markup', () => {
+    expect(markdownToEditorjsBlocks('Use **🤖 bot** label.')).toEqual([
+      {
+        type: 'paragraph',
+        data: {
+          text: 'Use <b>🤖 bot</b> label.',
+        },
+      },
+    ])
+  })
+
   it('serializes default highlight to markdown', () => {
     expect(
       editorjsBlocksToMarkdown([
@@ -523,6 +545,32 @@ describe('editorjsMarkdown', () => {
     ).toBe('Use ==🔴urgent== text.')
   })
 
+  it('serializes big emoji html to bold emoji markdown', () => {
+    expect(
+      editorjsBlocksToMarkdown([
+        {
+          type: 'paragraph',
+          data: {
+            text: 'Status <strong class="inline-big-emoji">🤖</strong> updated.',
+          },
+        },
+      ]),
+    ).toBe('Status **🤖** updated.')
+  })
+
+  it('removes big emoji caret anchors from markdown output', () => {
+    expect(
+      editorjsBlocksToMarkdown([
+        {
+          type: 'paragraph',
+          data: {
+            text: 'Status <strong class="inline-big-emoji">🤖</strong>\u200B updated.',
+          },
+        },
+      ]),
+    ).toBe('Status **🤖** updated.')
+  })
+
   it('round-trips default highlight markdown', () => {
     const markdown = 'Use ==important== text.'
 
@@ -533,6 +581,14 @@ describe('editorjsMarkdown', () => {
 
   it('round-trips colored highlight markdown', () => {
     const markdown = 'Use ==🔴urgent== text.'
+
+    expect(editorjsBlocksToMarkdown(markdownToEditorjsBlocks(markdown))).toBe(
+      markdown,
+    )
+  })
+
+  it('round-trips bold emoji markdown as big emoji', () => {
+    const markdown = 'Status **🤖** updated.'
 
     expect(editorjsBlocksToMarkdown(markdownToEditorjsBlocks(markdown))).toBe(
       markdown,

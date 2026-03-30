@@ -17,6 +17,7 @@ import {
   extractNoteTitleText,
   renderNoteTitleBlocks,
 } from '~/lib/editorjsTitleBlock'
+import BigEmojiTool from '~/lib/bigEmojiTool'
 import InlineHighlightTool from '~/lib/inlineHighlightTool'
 import InlineHashtagTool from '~/lib/inlineHashtagTool'
 import NoteTitleTool from '~/lib/noteTitleTool'
@@ -49,6 +50,7 @@ const inlineToolbarTools = [
   'bold',
   'italic',
   'inlineCode',
+  'bigEmoji',
   'inlineHighlight',
 ]
 const blockTuneTools = [BLOCK_BACKGROUND_TUNE_NAME]
@@ -627,6 +629,9 @@ onMounted(async () => {
         },
         inlineCode: {
           class: InlineCode,
+        },
+        bigEmoji: {
+          class: BigEmojiTool,
         },
         inlineHighlight: {
           class: InlineHighlightTool,

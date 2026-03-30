@@ -208,6 +208,11 @@ The note content area uses Editor.js as the editing surface.
   wraps the current selection in a yellow highlight by default. Hovering the
   highlight item opens color choices: red, green, yellow, blue, orange,
   purple, grey, and brown.
+- The inline toolbar includes a `Big Emoji` tool that opens the same emoji
+  picker used for folder icons and inserts the selected emoji inline at `2em`.
+- Big Emoji content is stored in Markdown as bold emoji such as `**🤖**` and is
+  reloaded back into the editor as a Big Emoji block when the bold text contains
+  only a single emoji sequence.
 - Highlighted text is stored in Markdown as `==text==` for the default yellow
   highlight, or `==<emoji>text==` for non-default colors such as
   `==🔴important==`.
