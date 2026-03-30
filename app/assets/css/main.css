@@ -516,6 +516,16 @@
     background: hsl(var(--muted));
   }
 
+  .note-editor-surface .ce-block-background {
+    border-radius: 0.75rem;
+    transition: background-color 0.15s ease;
+  }
+
+  .note-editor-surface .ce-block-background[data-block-background-color] {
+    background-color: var(--editor-block-background-color);
+    padding: 0.75rem 0.875rem;
+  }
+
   .note-editor-surface h1.ce-header,
   .note-editor-surface h2.ce-header,
   .note-editor-surface h3.ce-header,

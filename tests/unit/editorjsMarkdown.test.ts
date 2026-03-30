@@ -606,6 +606,102 @@ describe('editorjsMarkdown', () => {
     expect(editorjsBlocksToMarkdown(blocks)).toBe(input)
   })
 
+  it('parses block comment classes onto the following block', () => {
+    const blocks = markdownToEditorjsBlocks(
+      '<!-- block: highlight-box wide -->\nHello world',
+    )
+
+    expect(blocks).toEqual([
+      {
+        type: 'paragraph',
+        data: { text: 'Hello world' },
+        cssClasses: ['highlight-box', 'wide'],
+      },
+    ])
+  })
+
+  it('parses block comment with extra whitespace between <!-- and block:', () => {
+    const blocks = markdownToEditorjsBlocks(
+      '<!--   block:   foo   bar   -->\nSome text',
+    )
+
+    expect(blocks).toEqual([
+      {
+        type: 'paragraph',
+        data: { text: 'Some text' },
+        cssClasses: ['foo', 'bar'],
+      },
+    ])
+  })
+
+  it('attaches block comment classes to a heading block', () => {
+    const blocks = markdownToEditorjsBlocks(
+      '<!-- block: accent -->\n## Styled heading',
+    )
+
+    expect(blocks).toEqual([
+      {
+        type: 'header',
+        data: { text: 'Styled heading', level: 2 },
+        cssClasses: ['accent'],
+      },
+    ])
+  })
+
+  it('does not attach block comment to a preceding block', () => {
+    const blocks = markdownToEditorjsBlocks(
+      'Before\n\n<!-- block: test -->\nAfter',
+    )
+
+    const beforeBlock = blocks.find(
+      (b) => b.type === 'paragraph' && b.data.text === 'Before',
+    )
+    const afterBlock = blocks.find(
+      (b) => b.type === 'paragraph' && b.data.text === 'After',
+    )
+
+    expect(beforeBlock?.cssClasses).toBeUndefined()
+    expect(afterBlock?.cssClasses).toEqual(['test'])
+  })
+
+  it('round-trips block comment classes through markdown', () => {
+    const md = '<!-- block: highlight-box wide -->\nHello world'
+
+    expect(editorjsBlocksToMarkdown(markdownToEditorjsBlocks(md))).toBe(md)
+  })
+
+  it('serializes cssClasses as a block comment in markdown output', () => {
+    const markdown = editorjsBlocksToMarkdown([
+      {
+        type: 'paragraph',
+        data: { text: 'Styled paragraph' },
+        cssClasses: ['note-box', 'accent'],
+      },
+    ])
+
+    expect(markdown).toBe('<!-- block: note-box accent -->\nStyled paragraph')
+  })
+
+  it('ignores regular HTML comments that do not start with block:', () => {
+    const blocks = markdownToEditorjsBlocks('<!-- just a comment -->\nHello')
+
+    expect(
+      blocks.find((b) => b.data.text === 'Hello')?.cssClasses,
+    ).toBeUndefined()
+  })
+
+  it('handles block comment with a single class', () => {
+    const blocks = markdownToEditorjsBlocks('<!-- block: solo -->\nText')
+
+    expect(blocks).toEqual([
+      {
+        type: 'paragraph',
+        data: { text: 'Text' },
+        cssClasses: ['solo'],
+      },
+    ])
+  })
+
   it('parses headings between checklists without blank lines', () => {
     const md = '## Section A\n- [ ] task 1\n## Section B\n- [ ] task 2'
 

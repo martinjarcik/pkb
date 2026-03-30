@@ -20,8 +20,8 @@ type InlineHighlightApi = API & {
   }
 }
 
-function swatchIcon(hex: string): string {
-  return `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="6" fill="${hex}" stroke="currentColor" stroke-width="1.25"/></svg>`
+function swatchIcon(background: string): string {
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="6" fill="${background}" stroke="currentColor" stroke-width="1.25"/></svg>`
 }
 
 export default class InlineHighlightTool {
@@ -115,7 +115,7 @@ export default class InlineHighlightTool {
 
       button.type = 'button'
       button.className = 'inline-highlight-action'
-      button.innerHTML = swatchIcon(meta.hex)
+      button.innerHTML = swatchIcon(meta.background)
       button.setAttribute('aria-label', meta.label)
       button.title = meta.label
       button.dataset.color = color

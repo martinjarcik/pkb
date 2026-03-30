@@ -2,6 +2,20 @@ import { describe, expect, it } from 'vitest'
 import { parseAppConfig } from '~/config/loader'
 import { deepMergeAppConfig } from '~/config/mergeAppConfigPatch'
 
+function createEditorColors() {
+  return {
+    red: { emoji: '🔴', background: '#F9EAE7', label: 'Red' },
+    pink: { emoji: '🩷', background: '#F7EAF1', label: 'Pink' },
+    green: { emoji: '🟢', background: '#EAF1EC', label: 'Green' },
+    yellow: { emoji: '🟡', background: '#F8F3DE', label: 'Yellow' },
+    blue: { emoji: '🔵', background: '#E7F2FB', label: 'Blue' },
+    orange: { emoji: '🟠', background: '#F8ECDF', label: 'Orange' },
+    purple: { emoji: '🟣', background: '#F2EBF8', label: 'Purple' },
+    grey: { emoji: '⚪️', background: '#F0EFED', label: 'Grey' },
+    brown: { emoji: '🟤', background: '#F4EDE9', label: 'Brown' },
+  }
+}
+
 function createConfigRecord(): Record<string, unknown> {
   return {
     applicationType: 'desktop',
@@ -21,6 +35,7 @@ function createConfigRecord(): Record<string, unknown> {
     theme: {
       accentColor: '#3f57dfff',
     },
+    editorColors: createEditorColors(),
     features: {
       favorites: true,
       tasks: true,

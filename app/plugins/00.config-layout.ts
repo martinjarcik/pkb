@@ -1,13 +1,9 @@
-import { loadConfig, type AppConfig } from '~/config/loader'
+import { loadConfig } from '~/config/loader'
 
 export default defineNuxtPlugin(async () => {
   const defaultLayout = loadConfig().layout
 
-  const { data } = await useAsyncData<AppConfig>(
-    'app-config-disk',
-    () => $fetch<AppConfig>('/api/app-config'),
-    { default: () => loadConfig() },
-  )
+  const { data } = await useAppConfigDisk()
 
   const layout = data.value?.layout ?? defaultLayout
 

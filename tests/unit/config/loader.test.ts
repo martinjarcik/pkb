@@ -1,6 +1,20 @@
 import { describe, expect, it } from 'vitest'
 import { parseAppConfig } from '~/config/loader'
 
+function createEditorColors() {
+  return {
+    red: { emoji: '🔴', background: '#F9EAE7', label: 'Red' },
+    pink: { emoji: '🩷', background: '#F7EAF1', label: 'Pink' },
+    green: { emoji: '🟢', background: '#EAF1EC', label: 'Green' },
+    yellow: { emoji: '🟡', background: '#F8F3DE', label: 'Yellow' },
+    blue: { emoji: '🔵', background: '#E7F2FB', label: 'Blue' },
+    orange: { emoji: '🟠', background: '#F8ECDF', label: 'Orange' },
+    purple: { emoji: '🟣', background: '#F2EBF8', label: 'Purple' },
+    grey: { emoji: '⚪️', background: '#F0EFED', label: 'Grey' },
+    brown: { emoji: '🟤', background: '#F4EDE9', label: 'Brown' },
+  }
+}
+
 function createConfig() {
   return {
     applicationType: 'desktop',
@@ -21,6 +35,7 @@ function createConfig() {
     theme: {
       accentColor: '#3f57dfff',
     },
+    editorColors: createEditorColors(),
     features: {
       favorites: true,
       tasks: true,
@@ -54,6 +69,50 @@ describe('parseAppConfig', () => {
     expect(config.theme.accentColor).toBe('#3f57dfff')
   })
 
+  it('returns configured editor colors when the config is valid', () => {
+    const config = parseAppConfig(createConfig())
+
+    expect(config.editorColors.red).toEqual({
+      emoji: '🔴',
+      background: '#F9EAE7',
+      label: 'Red',
+    })
+  })
+
+  it('defaults editor colors when omitted', () => {
+    const config = createConfig()
+    delete (config as { editorColors?: ReturnType<typeof createEditorColors> })
+      .editorColors
+
+    expect(parseAppConfig(config).editorColors.red).toEqual({
+      emoji: '🔴',
+      background: '#F9EAE7',
+      label: 'Red',
+    })
+  })
+
+  it('accepts legacy editorBackgroundColors and hex keys', () => {
+    const config = createConfig() as Record<string, unknown>
+    config.editorBackgroundColors = {
+      red: { emoji: '🔴', hex: '#111111', label: 'Red' },
+      pink: { emoji: '🩷', hex: '#222222', label: 'Pink' },
+      green: { emoji: '🟢', hex: '#333333', label: 'Green' },
+      yellow: { emoji: '🟡', hex: '#444444', label: 'Yellow' },
+      blue: { emoji: '🔵', hex: '#555555', label: 'Blue' },
+      orange: { emoji: '🟠', hex: '#666666', label: 'Orange' },
+      purple: { emoji: '🟣', hex: '#777777', label: 'Purple' },
+      grey: { emoji: '⚪️', hex: '#888888', label: 'Grey' },
+      brown: { emoji: '🟤', hex: '#999999', label: 'Brown' },
+    }
+    delete config.editorColors
+
+    expect(parseAppConfig(config).editorColors.pink).toEqual({
+      emoji: '🩷',
+      background: '#222222',
+      label: 'Pink',
+    })
+  })
+
   it('throws when theme is missing', () => {
     const config = createConfig()
     delete (config as { theme?: { accentColor: string } }).theme
@@ -69,6 +128,15 @@ describe('parseAppConfig', () => {
 
     expect(() => parseAppConfig(config)).toThrow(
       'Config theme.accentColor must be a non-empty string',
+    )
+  })
+
+  it('throws when an editor color background is empty', () => {
+    const config = createConfig()
+    config.editorColors.red.background = ' '
+
+    expect(() => parseAppConfig(config)).toThrow(
+      'Config editorColors.red.background must be a non-empty string',
     )
   })
 

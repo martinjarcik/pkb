@@ -11,6 +11,8 @@ import {
 export type EditorjsBlock = {
   type: string
   data: Record<string, unknown>
+  cssClasses?: string[]
+  tunes?: Record<string, unknown>
 }
 
 /** Path prefix for vault image API (use with a leading `/` before relative paths). */
@@ -41,6 +43,14 @@ type MarkdownNode = {
   align?: Array<'left' | 'center' | 'right' | null>
   children?: MarkdownNode[]
   position?: MdPosition
+}
+
+const BLOCK_COMMENT_PATTERN = /^<!--\s*block:\s*(.*?)\s*-->$/s
+
+function parseBlockCommentClasses(value: string): string[] | null {
+  const match = value.trim().match(BLOCK_COMMENT_PATTERN)
+  if (!match) return null
+  return match[1]!.split(/\s+/).filter((token) => token.length > 0)
 }
 
 const LIST_ITEM_LINE = /^(\s*)([*+-]|\d+\.)(\s)/
@@ -296,12 +306,21 @@ function blocksFromRootWithBlankLines(
   const parseContext = {
     didParseNoteTitle: false,
   }
+  let pendingCssClasses: string[] | null = null
 
   for (let i = 0; i < children.length; i++) {
     const node = children[i]!
     const pos = node.position
     const startOffset = pos?.start.offset
     const endOffset = pos?.end.offset
+
+    if (node.type === 'html') {
+      const classes = parseBlockCommentClasses(node.value ?? '')
+      if (classes) {
+        pendingCssClasses = classes
+        continue
+      }
+    }
 
     if (startOffset !== undefined && endOffset !== undefined) {
       if (i === 0) {
@@ -326,7 +345,14 @@ function blocksFromRootWithBlankLines(
       }
     }
 
-    out.push(...parseMarkdownNode(node, parseContext))
+    const blocks = parseMarkdownNode(node, parseContext)
+
+    if (pendingCssClasses && blocks.length > 0) {
+      blocks[0]!.cssClasses = pendingCssClasses
+      pendingCssClasses = null
+    }
+
+    out.push(...blocks)
   }
 
   const last = children[children.length - 1]
@@ -699,6 +725,11 @@ function renderTableMarkdown(data: Record<string, unknown>): string {
   ].join('\n')
 }
 
+function renderBlockComment(block: EditorjsBlock): string {
+  if (!block.cssClasses || block.cssClasses.length === 0) return ''
+  return `<!-- block: ${block.cssClasses.join(' ')} -->\n`
+}
+
 function renderMarkdownBlock(block: EditorjsBlock): string {
   switch (block.type) {
     case 'header': {
@@ -835,10 +866,12 @@ export function editorjsBlocksToMarkdown(blocks: EditorjsBlock[]): string {
 
   let result = ''
   for (let j = 0; j < substantive.length; j++) {
-    const md = renderMarkdownBlock(substantive[j]!)
+    const block = substantive[j]!
+    const md = renderMarkdownBlock(block)
+    const comment = renderBlockComment(block)
     const blanksBefore = blanksBeforeEach[j]!
     if (j === 0) {
-      result += '\n'.repeat(blanksBefore) + md
+      result += '\n'.repeat(blanksBefore) + comment + md
     } else {
       result +=
         '\n'.repeat(
@@ -847,7 +880,9 @@ export function editorjsBlocksToMarkdown(blocks: EditorjsBlock[]): string {
             substantive[j]!.type,
             blanksBefore,
           ),
-        ) + md
+        ) +
+        comment +
+        md
     }
   }
 

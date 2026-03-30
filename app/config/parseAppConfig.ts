@@ -1,5 +1,24 @@
 export type ApplicationType = 'desktop' | 'browser'
 
+export type EditorColorName =
+  | 'red'
+  | 'pink'
+  | 'green'
+  | 'yellow'
+  | 'blue'
+  | 'orange'
+  | 'purple'
+  | 'grey'
+  | 'brown'
+
+export type EditorColor = {
+  emoji: string
+  background: string
+  label: string
+}
+
+export type EditorColors = Record<EditorColorName, EditorColor>
+
 export type AppConfig = {
   applicationType: ApplicationType
   locale: string
@@ -19,6 +38,7 @@ export type AppConfig = {
   theme: {
     accentColor: string
   }
+  editorColors: EditorColors
   features: {
     favorites: boolean
     tasks: boolean
@@ -29,6 +49,64 @@ export type AppConfig = {
 }
 
 const VALID_APPLICATION_TYPES: ApplicationType[] = ['desktop', 'browser']
+const EDITOR_COLOR_NAMES: EditorColorName[] = [
+  'red',
+  'pink',
+  'green',
+  'yellow',
+  'blue',
+  'orange',
+  'purple',
+  'grey',
+  'brown',
+]
+const DEFAULT_EDITOR_COLORS: EditorColors = {
+  red: {
+    emoji: '🔴',
+    background: '#F9EAE7',
+    label: 'Red',
+  },
+  pink: {
+    emoji: '🩷',
+    background: '#F7EAF1',
+    label: 'Pink',
+  },
+  green: {
+    emoji: '🟢',
+    background: '#EAF1EC',
+    label: 'Green',
+  },
+  yellow: {
+    emoji: '🟡',
+    background: '#F8F3DE',
+    label: 'Yellow',
+  },
+  blue: {
+    emoji: '🔵',
+    background: '#E7F2FB',
+    label: 'Blue',
+  },
+  orange: {
+    emoji: '🟠',
+    background: '#F8ECDF',
+    label: 'Orange',
+  },
+  purple: {
+    emoji: '🟣',
+    background: '#F2EBF8',
+    label: 'Purple',
+  },
+  grey: {
+    emoji: '⚪️',
+    background: '#F0EFED',
+    label: 'Grey',
+  },
+  brown: {
+    emoji: '🟤',
+    background: '#F4EDE9',
+    label: 'Brown',
+  },
+}
 
 export function parseEditorAssetsFolder(
   editor: Record<string, unknown>,
@@ -58,6 +136,62 @@ export function parseEditorAssetsFolder(
   }
 
   return name
+}
+
+function parseEditorColors(value: unknown): EditorColors {
+  if (value === undefined) {
+    return DEFAULT_EDITOR_COLORS
+  }
+
+  if (typeof value !== 'object' || value === null) {
+    throw new Error('Config editorColors must be an object')
+  }
+
+  const colors = value as Record<string, unknown>
+  const parsed = {} as EditorColors
+
+  for (const colorName of EDITOR_COLOR_NAMES) {
+    const rawColor = colors[colorName]
+
+    if (typeof rawColor !== 'object' || rawColor === null) {
+      throw new Error(`Config editorColors.${colorName} must be an object`)
+    }
+
+    const color = rawColor as Record<string, unknown>
+
+    for (const key of ['emoji', 'label'] as const) {
+      if (typeof color[key] === 'string' && color[key].trim().length > 0) {
+        continue
+      }
+
+      throw new Error(
+        `Config editorColors.${colorName}.${key} must be a non-empty string`,
+      )
+    }
+
+    const emoji = color.emoji as string
+    const background =
+      typeof color.background === 'string' && color.background.trim().length > 0
+        ? color.background
+        : typeof color.hex === 'string' && color.hex.trim().length > 0
+          ? color.hex
+          : null
+    const label = color.label as string
+
+    if (!background) {
+      throw new Error(
+        `Config editorColors.${colorName}.background must be a non-empty string`,
+      )
+    }
+
+    parsed[colorName] = {
+      emoji,
+      background,
+      label,
+    }
+  }
+
+  return parsed
 }
 
 export function parseAppConfig(value: unknown): AppConfig {
@@ -211,6 +345,9 @@ export function parseAppConfig(value: unknown): AppConfig {
     theme: {
       accentColor: theme.accentColor as string,
     },
+    editorColors: parseEditorColors(
+      obj.editorColors ?? obj.editorBackgroundColors,
+    ),
     features: {
       favorites,
       tasks,

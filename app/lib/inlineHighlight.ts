@@ -1,48 +1,9 @@
+import { loadConfig } from '~/config/loader'
+
 export const INLINE_HIGHLIGHT_CLASS = 'inline-highlight'
 export const INLINE_HIGHLIGHT_DEFAULT_COLOR = 'yellow'
 
-export const INLINE_HIGHLIGHT_COLORS = {
-  red: {
-    emoji: '🔴',
-    hex: '#F8D7F7',
-    label: 'Red',
-  },
-  green: {
-    emoji: '🟢',
-    hex: '#DCFEB8',
-    label: 'Green',
-  },
-  yellow: {
-    emoji: '🟡',
-    hex: '#FEF9A5',
-    label: 'Yellow',
-  },
-  blue: {
-    emoji: '🔵',
-    hex: '#C2FDFD',
-    label: 'Blue',
-  },
-  orange: {
-    emoji: '🟠',
-    hex: '#F9D8D7',
-    label: 'Orange',
-  },
-  purple: {
-    emoji: '🟣',
-    hex: '#E4D8FC',
-    label: 'Purple',
-  },
-  grey: {
-    emoji: '⚪️',
-    hex: '#E4E6E8',
-    label: 'Grey',
-  },
-  brown: {
-    emoji: '🟤',
-    hex: '#C89F4E',
-    label: 'Brown',
-  },
-} as const
+export const INLINE_HIGHLIGHT_COLORS = loadConfig().editorColors
 
 export type InlineHighlightColor = keyof typeof INLINE_HIGHLIGHT_COLORS
 

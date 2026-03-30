@@ -1,6 +1,5 @@
-import { useAsyncData } from '#app'
 import { computed } from 'vue'
-import { loadConfig, type AppConfig } from '~/config/loader'
+import { loadConfig } from '~/config/loader'
 import { t } from '~/composables/useTranslations'
 import type { NoteCatalogRow } from '~/notes/types'
 import { sanitizeNoteTitleForFilename } from '~/notes/renameNoteTitle'
@@ -234,11 +233,7 @@ export function useSidebarNavigation() {
     'sidebarNavigation.explicitFolders',
     () => [],
   )
-  const { data: appConfigDisk } = useAsyncData<AppConfig>(
-    'app-config-disk',
-    () => $fetch<AppConfig>('/api/app-config'),
-    { default: () => loadConfig() },
-  )
+  const { data: appConfigDisk } = useAppConfigDisk()
   const accentColor = computed(() => defaultTheme.accentColor)
   const catalogDerivedFolders = computed(() =>
     vaultTopLevelFolderNames(catalog.value.map((row) => row.id)),

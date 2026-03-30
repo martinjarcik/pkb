@@ -1,6 +1,12 @@
 <script setup lang="ts">
 import type { EditorjsBlock } from '~/lib/editorjsMarkdown'
 import {
+  BLOCK_BACKGROUND_TUNE_NAME,
+  normalizeSavedEditorjsBlocks,
+  prepareEditorjsBlocksForEditor,
+} from '~/lib/editorjsBlockBackground'
+import EditorjsBlockBackgroundTune from '~/lib/editorjsBlockBackgroundTune'
+import {
   editorjsBlocksToMarkdown,
   markdownToEditorjsBlocks,
 } from '~/lib/editorjsMarkdown'
@@ -45,6 +51,7 @@ const inlineToolbarTools = [
   'inlineCode',
   'inlineHighlight',
 ]
+const blockTuneTools = [BLOCK_BACKGROUND_TUNE_NAME]
 const hashtagCompletionPattern = /(^|\s)#[^\s#]+\s$/u
 
 const props = withDefaults(
@@ -272,7 +279,9 @@ async function renderMarkdownContent(
       title,
     )
 
-    await editor.blocks.render({ blocks })
+    await editor.blocks.render({
+      blocks: prepareEditorjsBlocksForEditor(blocks),
+    })
     lastRenderedContent = markdown
     lastRenderedTitle = title
   } finally {
@@ -308,7 +317,8 @@ async function emitContentChange(): Promise<void> {
 
   await editor.isReady
   const output = await editor.save()
-  const markdown = editorjsBlocksToMarkdown(output.blocks)
+  const blocks = normalizeSavedEditorjsBlocks(output.blocks)
+  const markdown = editorjsBlocksToMarkdown(blocks)
 
   lastRenderedContent = markdown
   emit('content-change', markdown)
@@ -342,7 +352,8 @@ async function commitTitleChange(): Promise<void> {
 
   await editor.isReady
   const output = await editor.save()
-  const titleText = extractNoteTitleText(output.blocks)
+  const blocks = normalizeSavedEditorjsBlocks(output.blocks)
+  const titleText = extractNoteTitleText(blocks)
 
   if (titleText.length === 0 || titleText === props.title) {
     return
@@ -433,13 +444,16 @@ async function handleEditorChange(): Promise<void> {
     return
   }
 
-  const normalizedBlocks = ensureNoteTitleBlock(output.blocks, props.title)
+  const savedBlocks = normalizeSavedEditorjsBlocks(output.blocks)
+  const normalizedBlocks = ensureNoteTitleBlock(savedBlocks, props.title)
 
-  if (!blocksMatch(output.blocks, normalizedBlocks)) {
+  if (!blocksMatch(savedBlocks, normalizedBlocks)) {
     isRepairingTitleBlock = true
 
     try {
-      await editor!.blocks.render({ blocks: normalizedBlocks })
+      await editor!.blocks.render({
+        blocks: prepareEditorjsBlocksForEditor(normalizedBlocks),
+      })
     } finally {
       isRepairingTitleBlock = false
     }
@@ -545,7 +559,11 @@ onMounted(async () => {
       onChange: () => {
         void handleEditorChange()
       },
+      tunes: blockTuneTools,
       tools: {
+        [BLOCK_BACKGROUND_TUNE_NAME]: {
+          class: EditorjsBlockBackgroundTune,
+        },
         noteTitle: {
           class: NoteTitleTool,
           inlineToolbar: false,
@@ -556,6 +574,7 @@ onMounted(async () => {
         },
         paragraph: {
           inlineToolbar: inlineToolbarTools,
+          tunes: blockTuneTools,
           config: {
             preserveBlank: true,
           },
@@ -563,6 +582,7 @@ onMounted(async () => {
         header: {
           class: Header,
           inlineToolbar: inlineToolbarTools,
+          tunes: blockTuneTools,
           toolbox: [
             {
               icon: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24" rtrvr-ls="0~hs"><path stroke="currentColor" stroke-linecap="round" stroke-width="2" d="M6 7L6 12M6 17L6 12M6 12L12 12M12 7V12M12 17L12 12"></path><path stroke="currentColor" stroke-linecap="round" stroke-width="2" d="M19 17V10.2135C19 10.1287 18.9011 10.0824 18.836 10.1367L16 12.5"></path></svg>',
@@ -595,12 +615,15 @@ onMounted(async () => {
         list: {
           class: List,
           inlineToolbar: inlineToolbarTools,
+          tunes: blockTuneTools,
         },
         code: {
           class: Code,
+          tunes: blockTuneTools,
         },
         delimiter: {
           class: Delimiter,
+          tunes: blockTuneTools,
         },
         inlineCode: {
           class: InlineCode,
@@ -614,13 +637,16 @@ onMounted(async () => {
         simpleQuote: {
           class: SimpleQuoteTool,
           inlineToolbar: inlineToolbarTools,
+          tunes: blockTuneTools,
         },
         table: {
           class: Table,
           inlineToolbar: inlineToolbarTools,
+          tunes: blockTuneTools,
         },
         image: {
           class: ImageTool,
+          tunes: blockTuneTools,
           config: {
             uploader: {
               uploadByFile(file: File) {
@@ -650,7 +676,9 @@ onMounted(async () => {
       props.title,
     )
 
-    await editor.blocks.render({ blocks: latestBlocks })
+    await editor.blocks.render({
+      blocks: prepareEditorjsBlocksForEditor(latestBlocks),
+    })
 
     isApplyingExternalContent = false
     holder.value?.addEventListener('focusout', handleHolderFocusout)
