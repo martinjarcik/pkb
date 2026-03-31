@@ -18,6 +18,7 @@ layout:
   showNotesListPanel: true
 theme:
   accentColor: '#3f57dfff'
+  defaultEditorColor: yellow
 editorColors:
   red:
     emoji: '🔴'

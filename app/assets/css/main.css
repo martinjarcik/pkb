@@ -474,8 +474,32 @@
 
   .note-editor-surface .inline-highlight-actions {
     display: flex;
+    flex-direction: column;
+    gap: 0;
+    padding: 6px 8px 4px;
+  }
+
+  .note-editor-surface .inline-highlight-actions-section {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .note-editor-surface .inline-highlight-actions-label {
+    font-size: 10px;
+    font-weight: 600;
+    color: hsl(var(--muted-foreground));
+    letter-spacing: 0.02em;
+    padding-left: 1px;
+  }
+
+  .note-editor-surface .inline-highlight-actions-row {
+    display: flex;
     gap: 6px;
-    padding: 6px 8px 0;
+  }
+
+  .note-editor-surface .inline-highlight-actions-spacer {
+    height: 6px;
   }
 
   .note-editor-surface .inline-highlight-action {

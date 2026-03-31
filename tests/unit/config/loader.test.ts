@@ -3,15 +3,55 @@ import { parseAppConfig } from '~/config/loader'
 
 function createEditorColors() {
   return {
-    red: { emoji: '🔴', background: '#F9EAE7', label: 'Red' },
-    pink: { emoji: '🩷', background: '#F7EAF1', label: 'Pink' },
-    green: { emoji: '🟢', background: '#EAF1EC', label: 'Green' },
-    yellow: { emoji: '🟡', background: '#F8F3DE', label: 'Yellow' },
-    blue: { emoji: '🔵', background: '#E7F2FB', label: 'Blue' },
-    orange: { emoji: '🟠', background: '#F8ECDF', label: 'Orange' },
-    purple: { emoji: '🟣', background: '#F2EBF8', label: 'Purple' },
-    grey: { emoji: '⚪️', background: '#F0EFED', label: 'Grey' },
-    brown: { emoji: '🟤', background: '#F4EDE9', label: 'Brown' },
+    red: { emoji: '🔴', background: '#F9EAE7', text: '#C0594E', label: 'Red' },
+    pink: {
+      emoji: '🩷',
+      background: '#F7EAF1',
+      text: '#EB445A',
+      label: 'Pink',
+    },
+    green: {
+      emoji: '🟢',
+      background: '#EAF1EC',
+      text: '#5AC5B3',
+      label: 'Green',
+    },
+    yellow: {
+      emoji: '🟡',
+      background: '#F8F3DE',
+      text: '#C39647',
+      label: 'Yellow',
+    },
+    blue: {
+      emoji: '🔵',
+      background: '#E7F2FB',
+      text: '#3B86F7',
+      label: 'Blue',
+    },
+    orange: {
+      emoji: '🟠',
+      background: '#F8ECDF',
+      text: '#F09343',
+      label: 'Orange',
+    },
+    purple: {
+      emoji: '🟣',
+      background: '#F2EBF8',
+      text: '#BB3ED9',
+      label: 'Purple',
+    },
+    grey: {
+      emoji: '⚪️',
+      background: '#F0EFED',
+      text: '#7C7A76',
+      label: 'Grey',
+    },
+    brown: {
+      emoji: '🟤',
+      background: '#F4EDE9',
+      text: '#99785E',
+      label: 'Brown',
+    },
   }
 }
 
@@ -75,6 +115,7 @@ describe('parseAppConfig', () => {
     expect(config.editorColors.red).toEqual({
       emoji: '🔴',
       background: '#F9EAE7',
+      text: '#C0594E',
       label: 'Red',
     })
   })
@@ -87,6 +128,7 @@ describe('parseAppConfig', () => {
     expect(parseAppConfig(config).editorColors.red).toEqual({
       emoji: '🔴',
       background: '#F9EAE7',
+      text: '#C0594E',
       label: 'Red',
     })
   })
@@ -94,34 +136,55 @@ describe('parseAppConfig', () => {
   it('accepts custom editor color names', () => {
     const config = createConfig()
     config.editorColors = {
-      mint: { emoji: '🌿', background: '#E6F6F4', label: 'Mint' },
-      coral: { emoji: '🪸', background: '#FDE7E1', label: 'Coral' },
+      mint: {
+        emoji: '🌿',
+        background: '#E6F6F4',
+        text: '#5AC5B3',
+        label: 'Mint',
+      },
+      coral: {
+        emoji: '🪸',
+        background: '#FDE7E1',
+        text: '#E06050',
+        label: 'Coral',
+      },
     }
 
     expect(parseAppConfig(config).editorColors).toEqual({
-      mint: { emoji: '🌿', background: '#E6F6F4', label: 'Mint' },
-      coral: { emoji: '🪸', background: '#FDE7E1', label: 'Coral' },
+      mint: {
+        emoji: '🌿',
+        background: '#E6F6F4',
+        text: '#5AC5B3',
+        label: 'Mint',
+      },
+      coral: {
+        emoji: '🪸',
+        background: '#FDE7E1',
+        text: '#E06050',
+        label: 'Coral',
+      },
     })
   })
 
   it('accepts legacy editorBackgroundColors and hex keys', () => {
     const config = createConfig() as Record<string, unknown>
     config.editorBackgroundColors = {
-      red: { emoji: '🔴', hex: '#111111', label: 'Red' },
-      pink: { emoji: '🩷', hex: '#222222', label: 'Pink' },
-      green: { emoji: '🟢', hex: '#333333', label: 'Green' },
-      yellow: { emoji: '🟡', hex: '#444444', label: 'Yellow' },
-      blue: { emoji: '🔵', hex: '#555555', label: 'Blue' },
-      orange: { emoji: '🟠', hex: '#666666', label: 'Orange' },
-      purple: { emoji: '🟣', hex: '#777777', label: 'Purple' },
-      grey: { emoji: '⚪️', hex: '#888888', label: 'Grey' },
-      brown: { emoji: '🟤', hex: '#999999', label: 'Brown' },
+      red: { emoji: '🔴', hex: '#111111', text: '#C0594E', label: 'Red' },
+      pink: { emoji: '🩷', hex: '#222222', text: '#EB445A', label: 'Pink' },
+      green: { emoji: '🟢', hex: '#333333', text: '#5AC5B3', label: 'Green' },
+      yellow: { emoji: '🟡', hex: '#444444', text: '#C39647', label: 'Yellow' },
+      blue: { emoji: '🔵', hex: '#555555', text: '#3B86F7', label: 'Blue' },
+      orange: { emoji: '🟠', hex: '#666666', text: '#F09343', label: 'Orange' },
+      purple: { emoji: '🟣', hex: '#777777', text: '#BB3ED9', label: 'Purple' },
+      grey: { emoji: '⚪️', hex: '#888888', text: '#7C7A76', label: 'Grey' },
+      brown: { emoji: '🟤', hex: '#999999', text: '#99785E', label: 'Brown' },
     }
     delete config.editorColors
 
     expect(parseAppConfig(config).editorColors.pink).toEqual({
       emoji: '🩷',
       background: '#222222',
+      text: '#EB445A',
       label: 'Pink',
     })
   })

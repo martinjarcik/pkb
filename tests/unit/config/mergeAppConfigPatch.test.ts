@@ -4,15 +4,55 @@ import { deepMergeAppConfig } from '~/config/mergeAppConfigPatch'
 
 function createEditorColors() {
   return {
-    red: { emoji: '🔴', background: '#F9EAE7', label: 'Red' },
-    pink: { emoji: '🩷', background: '#F7EAF1', label: 'Pink' },
-    green: { emoji: '🟢', background: '#EAF1EC', label: 'Green' },
-    yellow: { emoji: '🟡', background: '#F8F3DE', label: 'Yellow' },
-    blue: { emoji: '🔵', background: '#E7F2FB', label: 'Blue' },
-    orange: { emoji: '🟠', background: '#F8ECDF', label: 'Orange' },
-    purple: { emoji: '🟣', background: '#F2EBF8', label: 'Purple' },
-    grey: { emoji: '⚪️', background: '#F0EFED', label: 'Grey' },
-    brown: { emoji: '🟤', background: '#F4EDE9', label: 'Brown' },
+    red: { emoji: '🔴', background: '#F9EAE7', text: '#C0594E', label: 'Red' },
+    pink: {
+      emoji: '🩷',
+      background: '#F7EAF1',
+      text: '#EB445A',
+      label: 'Pink',
+    },
+    green: {
+      emoji: '🟢',
+      background: '#EAF1EC',
+      text: '#5AC5B3',
+      label: 'Green',
+    },
+    yellow: {
+      emoji: '🟡',
+      background: '#F8F3DE',
+      text: '#C39647',
+      label: 'Yellow',
+    },
+    blue: {
+      emoji: '🔵',
+      background: '#E7F2FB',
+      text: '#3B86F7',
+      label: 'Blue',
+    },
+    orange: {
+      emoji: '🟠',
+      background: '#F8ECDF',
+      text: '#F09343',
+      label: 'Orange',
+    },
+    purple: {
+      emoji: '🟣',
+      background: '#F2EBF8',
+      text: '#BB3ED9',
+      label: 'Purple',
+    },
+    grey: {
+      emoji: '⚪️',
+      background: '#F0EFED',
+      text: '#7C7A76',
+      label: 'Grey',
+    },
+    brown: {
+      emoji: '🟤',
+      background: '#F4EDE9',
+      text: '#99785E',
+      label: 'Brown',
+    },
   }
 }
 

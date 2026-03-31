@@ -39,6 +39,20 @@ describe('noteDescriptionFromContent', () => {
     expect(result).toBe('Use highlighted and urgent text.')
   })
 
+  it('strips highlight with double and triple emoji prefixes', () => {
+    const result = noteDescriptionFromContent(
+      'Use ==🟢🟢bg== and ==🟢🟢🟣both== text.',
+    )
+
+    expect(result).toBe('Use bg and both text.')
+  })
+
+  it('strips standalone emoji characters from description', () => {
+    const result = noteDescriptionFromContent('Travel 🚀 plans for 2026.')
+
+    expect(result).toBe('Travel plans for 2026.')
+  })
+
   it('omits markdown table separator rows', () => {
     const result = noteDescriptionFromContent(
       ['| Name | Value |', '| --- | --- |', '| Width | 120px |'].join('\n'),

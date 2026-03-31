@@ -3,10 +3,12 @@ import remarkGfm from 'remark-gfm'
 import { remarkHighlightMark } from 'remark-highlight-mark'
 import { isBigEmojiContent, renderBigEmojiHtml } from './bigEmoji'
 import {
+  INLINE_HIGHLIGHT_DEFAULT_COLOR,
   inlineHighlightMarkdownPrefix,
-  normalizeInlineHighlightColor,
+  isInlineHighlightColor,
   parseInlineHighlightMarkdownPrefix,
   renderInlineHighlightHtml,
+  type InlineHighlightStyle,
 } from './inlineHighlight'
 
 export type EditorjsBlock = {
@@ -196,10 +198,35 @@ function inlineHtmlToMarkdown(text: string): string {
       /<mark\b([^>]*)class=(["'])[^"']*\binline-highlight\b[^"']*\2([^>]*)>([\s\S]*?)<\/mark>/gi,
       (_match, beforeClass, _quote, afterClass, content) => {
         const attrs = `${beforeClass}${afterClass}`
+        const bgMatch = attrs.match(/\bdata-bg=(["'])(.*?)\1/i)
+        const textMatch = attrs.match(/\bdata-text=(["'])(.*?)\1/i)
         const colorMatch = attrs.match(/\bdata-color=(["'])(.*?)\1/i)
-        const color = normalizeInlineHighlightColor(colorMatch?.[2])
-        const prefix = inlineHighlightMarkdownPrefix(color)
 
+        let style: InlineHighlightStyle
+
+        if (bgMatch || textMatch) {
+          const bgRaw = bgMatch?.[2]
+          const textRaw = textMatch?.[2]
+          style = {
+            bgColor: bgRaw && isInlineHighlightColor(bgRaw) ? bgRaw : null,
+            textColor:
+              textRaw && isInlineHighlightColor(textRaw) ? textRaw : null,
+          }
+        } else if (colorMatch) {
+          const raw = colorMatch[2]
+          const bgColor =
+            raw && isInlineHighlightColor(raw)
+              ? raw
+              : INLINE_HIGHLIGHT_DEFAULT_COLOR
+          style = { bgColor, textColor: null }
+        } else {
+          style = {
+            bgColor: INLINE_HIGHLIGHT_DEFAULT_COLOR,
+            textColor: null,
+          }
+        }
+
+        const prefix = inlineHighlightMarkdownPrefix(style)
         return `==${prefix}${content}==`
       },
     ],
@@ -414,10 +441,10 @@ function parseInlineNodeToHtml(node: MarkdownNode): string {
     case 'mark':
     case 'highlight': {
       const renderedContent = parseInlineNodesToHtml(node.children)
-      const { color, content } =
+      const { style, content } =
         parseInlineHighlightMarkdownPrefix(renderedContent)
 
-      return renderInlineHighlightHtml(content, color)
+      return renderInlineHighlightHtml(content, style)
     }
     case 'link':
       return `<a href="${node.url ?? ''}">${parseInlineNodesToHtml(node.children)}</a>`

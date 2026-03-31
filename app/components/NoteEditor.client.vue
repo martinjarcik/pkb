@@ -245,6 +245,131 @@ function resolveEditableTarget(target: EventTarget | null): HTMLElement | null {
   return editable
 }
 
+function findAncestorHighlightMark(node: Node | null): HTMLElement | null {
+  if (!node) {
+    return null
+  }
+
+  const element = node instanceof HTMLElement ? node : node.parentElement
+  return (
+    element?.closest<HTMLElement>(`mark.${InlineHighlightTool.CSS}`) ?? null
+  )
+}
+
+function selectionIsInsideHighlight(): HTMLElement | null {
+  const selection = window.getSelection()
+
+  if (!selection || selection.rangeCount === 0) {
+    return null
+  }
+
+  const range = selection.getRangeAt(0)
+  const startMark = findAncestorHighlightMark(range.startContainer)
+  const endMark = findAncestorHighlightMark(range.endContainer)
+
+  if (!startMark || startMark !== endMark) {
+    return null
+  }
+
+  return startMark
+}
+
+function toggleInlineTagInsideHighlight(tagName: 'B' | 'I'): void {
+  const selection = window.getSelection()
+
+  if (!selection || selection.rangeCount === 0 || selection.isCollapsed) {
+    return
+  }
+
+  const range = selection.getRangeAt(0)
+  const parentTag =
+    range.commonAncestorContainer instanceof HTMLElement
+      ? range.commonAncestorContainer.closest(tagName)
+      : range.commonAncestorContainer.parentElement?.closest(tagName)
+
+  if (parentTag && findAncestorHighlightMark(parentTag)) {
+    const fragment = document.createDocumentFragment()
+
+    while (parentTag.firstChild) {
+      fragment.appendChild(parentTag.firstChild)
+    }
+
+    parentTag.parentNode?.replaceChild(fragment, parentTag)
+    return
+  }
+
+  const wrapper = document.createElement(tagName)
+
+  wrapper.appendChild(range.extractContents())
+  range.insertNode(wrapper)
+  selection.removeAllRanges()
+
+  const restored = document.createRange()
+
+  restored.selectNodeContents(wrapper)
+  selection.addRange(restored)
+}
+
+function handleHolderKeydown(event: KeyboardEvent): void {
+  const modKey = event.metaKey || event.ctrlKey
+
+  if (!modKey) {
+    return
+  }
+
+  const lowerKey = event.key.toLowerCase()
+
+  if (lowerKey !== 'b' && lowerKey !== 'i') {
+    return
+  }
+
+  if (!selectionIsInsideHighlight()) {
+    return
+  }
+
+  event.preventDefault()
+  event.stopPropagation()
+  toggleInlineTagInsideHighlight(lowerKey === 'b' ? 'B' : 'I')
+  scheduleContentSync()
+}
+
+let originalExecCommand: typeof document.execCommand | null = null
+
+function patchExecCommand(): void {
+  if (originalExecCommand) {
+    return
+  }
+
+  originalExecCommand = document.execCommand.bind(document)
+  document.execCommand = (
+    command: string,
+    showUI?: boolean,
+    value?: string,
+  ): boolean => {
+    const lowerCommand = command.toLowerCase()
+
+    if (
+      (lowerCommand === 'bold' || lowerCommand === 'italic') &&
+      selectionIsInsideHighlight()
+    ) {
+      toggleInlineTagInsideHighlight(lowerCommand === 'bold' ? 'B' : 'I')
+      scheduleContentSync()
+      return true
+    }
+
+    return originalExecCommand!(command, showUI, value)
+  }
+}
+
+function restoreExecCommand(): void {
+  if (!originalExecCommand) {
+    return
+  }
+
+  document.execCommand = originalExecCommand
+  originalExecCommand = null
+}
+
 function handleHolderKeyup(event: KeyboardEvent): void {
   if (event.key !== ' ' && event.code !== 'Space') {
     return
@@ -686,7 +811,9 @@ onMounted(async () => {
     })
 
     isApplyingExternalContent = false
+    patchExecCommand()
     holder.value?.addEventListener('focusout', handleHolderFocusout)
+    holder.value?.addEventListener('keydown', handleHolderKeydown, true)
     holder.value?.addEventListener('keyup', handleHolderKeyup)
 
     lastRenderedContent = props.content
@@ -735,7 +862,9 @@ onBeforeUnmount(() => {
   pendingExternalRender = null
 
   holder.value?.removeEventListener('focusout', handleHolderFocusout)
+  holder.value?.removeEventListener('keydown', handleHolderKeydown, true)
   holder.value?.removeEventListener('keyup', handleHolderKeyup)
+  restoreExecCommand()
   isApplyingExternalContent = true
   editor?.destroy()
   editor = null

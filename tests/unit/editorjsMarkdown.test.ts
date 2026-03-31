@@ -10,13 +10,13 @@ import {
   inlineHighlightMarkdownPrefix,
 } from '~/lib/inlineHighlight'
 
-const alternateHighlightColor =
+const altColor =
   Object.keys(INLINE_HIGHLIGHT_COLORS).find(
     (color) => color !== INLINE_HIGHLIGHT_DEFAULT_COLOR,
   ) ?? INLINE_HIGHLIGHT_DEFAULT_COLOR
-const alternateHighlightPrefix = inlineHighlightMarkdownPrefix(
-  alternateHighlightColor,
-)
+
+const defaultBg = INLINE_HIGHLIGHT_COLORS[INLINE_HIGHLIGHT_DEFAULT_COLOR]!
+const altMeta = INLINE_HIGHLIGHT_COLORS[altColor]!
 
 describe('editorjsMarkdown', () => {
   it('converts the first markdown H1 into a note title block', () => {
@@ -488,27 +488,62 @@ describe('editorjsMarkdown', () => {
     ])
   })
 
-  it('parses default highlight markdown to editor HTML', () => {
+  it('parses default highlight markdown to editor HTML with background only', () => {
     expect(markdownToEditorjsBlocks('Use ==important== text.')).toEqual([
       {
         type: 'paragraph',
         data: {
-          text: `Use <mark class="inline-highlight" data-color="${INLINE_HIGHLIGHT_DEFAULT_COLOR}" style="background-color: ${INLINE_HIGHLIGHT_COLORS[INLINE_HIGHLIGHT_DEFAULT_COLOR].background}">important</mark> text.`,
+          text: `Use <mark class="inline-highlight" data-bg="${INLINE_HIGHLIGHT_DEFAULT_COLOR}" style="background-color: ${defaultBg.background}">important</mark> text.`,
         },
       },
     ])
   })
 
-  it('parses colored highlight markdown to editor HTML', () => {
-    expect(
-      markdownToEditorjsBlocks(
-        `Use ==${alternateHighlightPrefix}urgent== text.`,
-      ),
-    ).toEqual([
+  it('parses background-only colored highlight (double emoji) to editor HTML', () => {
+    const prefix = inlineHighlightMarkdownPrefix({
+      bgColor: altColor,
+      textColor: null,
+    })
+
+    expect(markdownToEditorjsBlocks(`Use ==${prefix}urgent== text.`)).toEqual([
       {
         type: 'paragraph',
         data: {
-          text: `Use <mark class="inline-highlight" data-color="${alternateHighlightColor}" style="background-color: ${INLINE_HIGHLIGHT_COLORS[alternateHighlightColor].background}">urgent</mark> text.`,
+          text: `Use <mark class="inline-highlight" data-bg="${altColor}" style="background-color: ${altMeta.background}">urgent</mark> text.`,
+        },
+      },
+    ])
+  })
+
+  it('parses text-only colored highlight (single emoji) to editor HTML', () => {
+    const prefix = inlineHighlightMarkdownPrefix({
+      bgColor: null,
+      textColor: altColor,
+    })
+
+    expect(markdownToEditorjsBlocks(`Use ==${prefix}urgent== text.`)).toEqual([
+      {
+        type: 'paragraph',
+        data: {
+          text: `Use <mark class="inline-highlight" data-text="${altColor}" style="color: ${altMeta.text}">urgent</mark> text.`,
+        },
+      },
+    ])
+  })
+
+  it('parses combined bg+text highlight (three emojis) to editor HTML', () => {
+    const bgColor = INLINE_HIGHLIGHT_DEFAULT_COLOR
+    const textColor = altColor
+    const prefix = inlineHighlightMarkdownPrefix({
+      bgColor,
+      textColor,
+    })
+
+    expect(markdownToEditorjsBlocks(`Use ==${prefix}styled== text.`)).toEqual([
+      {
+        type: 'paragraph',
+        data: {
+          text: `Use <mark class="inline-highlight" data-bg="${bgColor}" data-text="${textColor}" style="background-color: ${defaultBg.background}; color: ${altMeta.text}">styled</mark> text.`,
         },
       },
     ])
@@ -542,24 +577,65 @@ describe('editorjsMarkdown', () => {
         {
           type: 'paragraph',
           data: {
-            text: `Use <mark class="inline-highlight" data-color="${INLINE_HIGHLIGHT_DEFAULT_COLOR}" style="background-color: ${INLINE_HIGHLIGHT_COLORS[INLINE_HIGHLIGHT_DEFAULT_COLOR].background}">important</mark> text.`,
+            text: `Use <mark class="inline-highlight" data-bg="${INLINE_HIGHLIGHT_DEFAULT_COLOR}" style="background-color: ${defaultBg.background}">important</mark> text.`,
           },
         },
       ]),
     ).toBe('Use ==important== text.')
   })
 
-  it('serializes colored highlight to markdown', () => {
+  it('serializes background-only colored highlight to markdown', () => {
     expect(
       editorjsBlocksToMarkdown([
         {
           type: 'paragraph',
           data: {
-            text: `Use <mark class="inline-highlight" data-color="${alternateHighlightColor}" style="background-color: ${INLINE_HIGHLIGHT_COLORS[alternateHighlightColor].background}">urgent</mark> text.`,
+            text: `Use <mark class="inline-highlight" data-bg="${altColor}" style="background-color: ${altMeta.background}">urgent</mark> text.`,
           },
         },
       ]),
-    ).toBe(`Use ==${alternateHighlightPrefix}urgent== text.`)
+    ).toBe(`Use ==${altMeta.emoji}${altMeta.emoji}urgent== text.`)
+  })
+
+  it('serializes text-only colored highlight to markdown', () => {
+    expect(
+      editorjsBlocksToMarkdown([
+        {
+          type: 'paragraph',
+          data: {
+            text: `Use <mark class="inline-highlight" data-text="${altColor}" style="color: ${altMeta.text}">urgent</mark> text.`,
+          },
+        },
+      ]),
+    ).toBe(`Use ==${altMeta.emoji}urgent== text.`)
+  })
+
+  it('serializes combined bg+text highlight to markdown', () => {
+    expect(
+      editorjsBlocksToMarkdown([
+        {
+          type: 'paragraph',
+          data: {
+            text: `Use <mark class="inline-highlight" data-bg="${INLINE_HIGHLIGHT_DEFAULT_COLOR}" data-text="${altColor}" style="background-color: ${defaultBg.background}; color: ${altMeta.text}">styled</mark> text.`,
+          },
+        },
+      ]),
+    ).toBe(
+      `Use ==${defaultBg.emoji}${defaultBg.emoji}${altMeta.emoji}styled== text.`,
+    )
+  })
+
+  it('serializes legacy data-color attribute to markdown', () => {
+    expect(
+      editorjsBlocksToMarkdown([
+        {
+          type: 'paragraph',
+          data: {
+            text: `Use <mark class="inline-highlight" data-color="${altColor}" style="background-color: ${altMeta.background}">legacy</mark> text.`,
+          },
+        },
+      ]),
+    ).toBe(`Use ==${altMeta.emoji}${altMeta.emoji}legacy== text.`)
   })
 
   it('serializes big emoji html to bold emoji markdown', () => {
@@ -596,8 +672,36 @@ describe('editorjsMarkdown', () => {
     )
   })
 
-  it('round-trips colored highlight markdown', () => {
-    const markdown = `Use ==${alternateHighlightPrefix}urgent== text.`
+  it('round-trips background-only colored highlight markdown', () => {
+    const prefix = inlineHighlightMarkdownPrefix({
+      bgColor: altColor,
+      textColor: null,
+    })
+    const markdown = `Use ==${prefix}urgent== text.`
+
+    expect(editorjsBlocksToMarkdown(markdownToEditorjsBlocks(markdown))).toBe(
+      markdown,
+    )
+  })
+
+  it('round-trips text-only colored highlight markdown', () => {
+    const prefix = inlineHighlightMarkdownPrefix({
+      bgColor: null,
+      textColor: altColor,
+    })
+    const markdown = `Use ==${prefix}urgent== text.`
+
+    expect(editorjsBlocksToMarkdown(markdownToEditorjsBlocks(markdown))).toBe(
+      markdown,
+    )
+  })
+
+  it('round-trips combined bg+text highlight markdown', () => {
+    const prefix = inlineHighlightMarkdownPrefix({
+      bgColor: INLINE_HIGHLIGHT_DEFAULT_COLOR,
+      textColor: altColor,
+    })
+    const markdown = `Use ==${prefix}styled== text.`
 
     expect(editorjsBlocksToMarkdown(markdownToEditorjsBlocks(markdown))).toBe(
       markdown,
@@ -903,5 +1007,66 @@ describe('editorjsMarkdown', () => {
     expect(imageBlock!.data.file).toEqual({
       url: `${VAULT_ASSETS_API_PREFIX}/assets/photo.png`,
     })
+  })
+
+  it('serializes bold wrapping highlight to markdown preserving both', () => {
+    expect(
+      editorjsBlocksToMarkdown([
+        {
+          type: 'paragraph',
+          data: {
+            text: `Use <b><mark class="inline-highlight" data-bg="${INLINE_HIGHLIGHT_DEFAULT_COLOR}" style="background-color: ${defaultBg.background}">important</mark></b> text.`,
+          },
+        },
+      ]),
+    ).toBe('Use **==important==** text.')
+  })
+
+  it('serializes italic wrapping highlight to markdown preserving both', () => {
+    expect(
+      editorjsBlocksToMarkdown([
+        {
+          type: 'paragraph',
+          data: {
+            text: `Use <i><mark class="inline-highlight" data-bg="${INLINE_HIGHLIGHT_DEFAULT_COLOR}" style="background-color: ${defaultBg.background}">important</mark></i> text.`,
+          },
+        },
+      ]),
+    ).toBe('Use *==important==* text.')
+  })
+
+  it('serializes highlight wrapping bold to markdown preserving both', () => {
+    expect(
+      editorjsBlocksToMarkdown([
+        {
+          type: 'paragraph',
+          data: {
+            text: `Use <mark class="inline-highlight" data-bg="${INLINE_HIGHLIGHT_DEFAULT_COLOR}" style="background-color: ${defaultBg.background}"><b>important</b></mark> text.`,
+          },
+        },
+      ]),
+    ).toBe('Use ==**important**== text.')
+  })
+
+  it('round-trips bold wrapping default highlight', () => {
+    const md = 'Use **==important==** text.'
+
+    expect(editorjsBlocksToMarkdown(markdownToEditorjsBlocks(md))).toBe(md)
+  })
+
+  it('round-trips italic wrapping default highlight', () => {
+    const md = 'Use *==important==* text.'
+
+    expect(editorjsBlocksToMarkdown(markdownToEditorjsBlocks(md))).toBe(md)
+  })
+
+  it('round-trips bold wrapping colored highlight', () => {
+    const prefix = inlineHighlightMarkdownPrefix({
+      bgColor: altColor,
+      textColor: null,
+    })
+    const md = `Use **==${prefix}important==** text.`
+
+    expect(editorjsBlocksToMarkdown(markdownToEditorjsBlocks(md))).toBe(md)
   })
 })

@@ -1,3 +1,6 @@
+const EMOJI_PATTERN =
+  /[\p{Emoji_Presentation}\p{Extended_Pictographic}]\uFE0F?/gu
+
 function stripMarkdownSyntax(line: string): string {
   return line
     .replace(/^>\s?/, '')
@@ -7,13 +10,17 @@ function stripMarkdownSyntax(line: string): string {
     .replace(/!\[([^\]]*)\]\([^)]+\)/g, '$1')
     .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
     .replace(/`([^`]+)`/g, '$1')
-    .replace(/==(?:🔴|🟢|🟡|🔵|🟠|🟣|⚪️|🟤)?(.*?)==/gu, '$1')
+    .replace(
+      /==(?:[\p{Emoji_Presentation}\p{Extended_Pictographic}]\uFE0F?){0,3}(.*?)==/gu,
+      '$1',
+    )
     .replace(/(\*\*|__)(.*?)\1/g, '$2')
     .replace(/(\*|_)(.*?)\1/g, '$2')
     .replace(/~~(.*?)~~/g, '$1')
     .replace(/<[^>]+>/g, '')
     .replace(/\\([[\]`*_{}()#+\-.!|>])/g, '$1')
     .replace(/\|/g, ' ')
+    .replace(EMOJI_PATTERN, '')
     .replace(/\s+/g, ' ')
     .trim()
 }

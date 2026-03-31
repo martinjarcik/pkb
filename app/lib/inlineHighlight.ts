@@ -6,15 +6,16 @@ export const INLINE_HIGHLIGHT_COLORS = loadConfig().editorColors
 const INLINE_HIGHLIGHT_COLOR_NAMES = Object.keys(INLINE_HIGHLIGHT_COLORS)
 
 export const INLINE_HIGHLIGHT_DEFAULT_COLOR = (
-  INLINE_HIGHLIGHT_COLOR_NAMES.includes('yellow')
-    ? 'yellow'
+  INLINE_HIGHLIGHT_COLOR_NAMES.includes(loadConfig().theme.defaultEditorColor)
+    ? loadConfig().theme.defaultEditorColor
     : INLINE_HIGHLIGHT_COLOR_NAMES[0]
-) as keyof typeof INLINE_HIGHLIGHT_COLORS
+) as InlineHighlightColor
 
 export type InlineHighlightColor = keyof typeof INLINE_HIGHLIGHT_COLORS
 
-function inlineHighlightBackground(color: InlineHighlightColor): string {
-  return INLINE_HIGHLIGHT_COLORS[color]!.background
+export type InlineHighlightStyle = {
+  textColor: InlineHighlightColor | null
+  bgColor: InlineHighlightColor | null
 }
 
 function escapeHtmlAttribute(value: string): string {
@@ -37,40 +38,134 @@ export function normalizeInlineHighlightColor(
   return INLINE_HIGHLIGHT_DEFAULT_COLOR
 }
 
+/**
+ * Markdown prefix encoding:
+ * - no prefix     -> default background color only
+ * - 1 emoji       -> text color only
+ * - 2 same emojis -> background color only
+ * - 3 emojis      -> first two = background, third = text (can differ)
+ */
 export function inlineHighlightMarkdownPrefix(
-  color: InlineHighlightColor,
+  style: InlineHighlightStyle,
 ): string {
-  if (color === INLINE_HIGHLIGHT_DEFAULT_COLOR) {
+  const { textColor, bgColor } = style
+
+  if (!textColor && !bgColor) {
     return ''
   }
 
-  return INLINE_HIGHLIGHT_COLORS[color]!.emoji
+  if (!textColor && bgColor) {
+    if (bgColor === INLINE_HIGHLIGHT_DEFAULT_COLOR) {
+      return ''
+    }
+
+    const emoji = INLINE_HIGHLIGHT_COLORS[bgColor]!.emoji
+    return `${emoji}${emoji}`
+  }
+
+  if (textColor && !bgColor) {
+    return INLINE_HIGHLIGHT_COLORS[textColor]!.emoji
+  }
+
+  const bgEmoji = INLINE_HIGHLIGHT_COLORS[bgColor!]!.emoji
+  const textEmoji = INLINE_HIGHLIGHT_COLORS[textColor!]!.emoji
+  return `${bgEmoji}${bgEmoji}${textEmoji}`
 }
 
 export function parseInlineHighlightMarkdownPrefix(text: string): {
-  color: InlineHighlightColor
+  style: InlineHighlightStyle
   content: string
 } {
   for (const [color, meta] of Object.entries(INLINE_HIGHLIGHT_COLORS)) {
+    const triplePrefix = `${meta.emoji}${meta.emoji}${meta.emoji}`
+    if (text.startsWith(triplePrefix)) {
+      return {
+        style: {
+          bgColor: color as InlineHighlightColor,
+          textColor: color as InlineHighlightColor,
+        },
+        content: text.slice(triplePrefix.length),
+      }
+    }
+  }
+
+  for (const [bgColor, bgMeta] of Object.entries(INLINE_HIGHLIGHT_COLORS)) {
+    const doublePrefix = `${bgMeta.emoji}${bgMeta.emoji}`
+    if (!text.startsWith(doublePrefix)) {
+      continue
+    }
+
+    const afterDouble = text.slice(doublePrefix.length)
+
+    for (const [textColor, textMeta] of Object.entries(
+      INLINE_HIGHLIGHT_COLORS,
+    )) {
+      if (afterDouble.startsWith(textMeta.emoji)) {
+        return {
+          style: {
+            bgColor: bgColor as InlineHighlightColor,
+            textColor: textColor as InlineHighlightColor,
+          },
+          content: afterDouble.slice(textMeta.emoji.length),
+        }
+      }
+    }
+
+    return {
+      style: {
+        bgColor: bgColor as InlineHighlightColor,
+        textColor: null,
+      },
+      content: afterDouble,
+    }
+  }
+
+  for (const [color, meta] of Object.entries(INLINE_HIGHLIGHT_COLORS)) {
     if (text.startsWith(meta.emoji)) {
       return {
-        color: color as InlineHighlightColor,
+        style: {
+          textColor: color as InlineHighlightColor,
+          bgColor: null,
+        },
         content: text.slice(meta.emoji.length),
       }
     }
   }
 
   return {
-    color: INLINE_HIGHLIGHT_DEFAULT_COLOR,
+    style: {
+      bgColor: INLINE_HIGHLIGHT_DEFAULT_COLOR,
+      textColor: null,
+    },
     content: text,
   }
 }
 
 export function renderInlineHighlightHtml(
   content: string,
-  color: InlineHighlightColor,
+  style: InlineHighlightStyle,
 ): string {
-  const background = escapeHtmlAttribute(inlineHighlightBackground(color))
+  const bgColor = style.bgColor
+  const textColor = style.textColor
 
-  return `<mark class="${INLINE_HIGHLIGHT_CLASS}" data-color="${color}" style="background-color: ${background}">${content}</mark>`
+  const styleParts: string[] = []
+
+  if (bgColor) {
+    styleParts.push(
+      `background-color: ${escapeHtmlAttribute(INLINE_HIGHLIGHT_COLORS[bgColor]!.background)}`,
+    )
+  }
+
+  if (textColor) {
+    styleParts.push(
+      `color: ${escapeHtmlAttribute(INLINE_HIGHLIGHT_COLORS[textColor]!.text)}`,
+    )
+  }
+
+  const dataBg = bgColor ? ` data-bg="${bgColor}"` : ''
+  const dataText = textColor ? ` data-text="${textColor}"` : ''
+  const styleAttr =
+    styleParts.length > 0 ? ` style="${styleParts.join('; ')}"` : ''
+
+  return `<mark class="${INLINE_HIGHLIGHT_CLASS}"${dataBg}${dataText}${styleAttr}>${content}</mark>`
 }
