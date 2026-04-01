@@ -1,8 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { Smile } from 'lucide-vue-next'
-import EmojiPicker from 'vue3-emoji-picker'
-import 'vue3-emoji-picker/css'
+import 'emoji-picker-element'
 
 const open = defineModel<boolean>('open', { required: true })
 const folderName = defineModel<string>('folderName', { required: true })
@@ -22,9 +21,17 @@ const emit = defineEmits<{
 
 const pickerOpen = ref(false)
 
-function handleSelectEmoji(emoji: { i: string }): void {
-  iconEmoji.value = emoji.i
+function handleEmojiClick(event: Event): void {
+  const detail = (event as CustomEvent<{ unicode: string }>).detail
+
+  iconEmoji.value = detail.unicode
   pickerOpen.value = false
+}
+
+function bindPicker(el: HTMLElement | null): void {
+  const picker = el?.querySelector('emoji-picker')
+
+  picker?.addEventListener('emoji-click', handleEmojiClick)
 }
 
 function clearIcon(): void {
@@ -68,8 +75,10 @@ function handleConfirm(): void {
                 <Smile v-else :size="18" aria-hidden="true" />
               </Button>
             </PopoverTrigger>
-            <PopoverContent class="w-auto max-w-[min(100vw-2rem,22rem)] p-2">
-              <EmojiPicker :native="true" @select="handleSelectEmoji" />
+            <PopoverContent class="w-auto max-w-[min(100vw-2rem,22rem)] p-0">
+              <div :ref="(el: any) => bindPicker(el as HTMLElement)">
+                <emoji-picker class="folder-emoji-picker" />
+              </div>
             </PopoverContent>
           </Popover>
 

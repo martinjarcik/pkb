@@ -14,6 +14,12 @@ export default defineNuxtConfig({
     cssPath: '~/assets/css/main.css',
   },
 
+  vue: {
+    compilerOptions: {
+      isCustomElement: (tag: string) => tag === 'emoji-picker',
+    },
+  },
+
   vite: {
     optimizeDeps: {
       include: [

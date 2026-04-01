@@ -65,3 +65,7 @@ Deliver per-note webhooks from the Nitro server only: accept HTTPS URLs, POST JS
 ## D016 — 2026-03
 
 Store note images as files under a configurable top-level vault folder (`editor.assetsFolder`, default `assets`), expose Nitro `POST /api/vault-assets/upload` and `GET /api/vault-assets/*`, persist Markdown as `![caption](<relative path>)`, and hide the configured folder name from sidebar folder lists so asset storage does not appear as a navigable folder view.
+
+## D017 — 2026-03
+
+Replace `vue3-emoji-picker` with `emoji-picker-element` (web component, ~12.5 KB min+gz, zero dependencies, IndexedDB-backed) to fix browser freezes caused by synchronous rendering of ~1,800 emoji DOM nodes on mount. The web component approach also eliminates the need to spin up a separate Vue app instance inside the Editor.js inline tool.

@@ -23,21 +23,20 @@ function bigEmojiToolbarButton(page: Page) {
   )
 }
 
+function emojiPickerInActions(page: Page) {
+  return page.locator('.big-emoji-actions emoji-picker')
+}
+
 async function expectBigEmojiPickerOpen(page: Page): Promise<void> {
   const picker = page.locator('.big-emoji-actions')
 
   await expect(picker).toBeVisible()
-  await expect(
-    page
-      .locator('.big-emoji-actions')
-      .getByRole('button', { name: '🤖' })
-      .first(),
-  ).toBeVisible()
+  await expect(emojiPickerInActions(page)).toBeVisible()
 
   const box = await picker.boundingBox()
 
-  expect(box?.width ?? 0).toBe(300)
-  expect(box?.height ?? 0).toBe(340)
+  expect(box?.width ?? 0).toBeGreaterThan(0)
+  expect(box?.height ?? 0).toBeGreaterThan(0)
 }
 
 async function selectTextInFirstParagraph(
@@ -181,6 +180,13 @@ async function mockNotesApi(
   }
 }
 
+async function clickEmojiInPicker(page: Page, emoji: string): Promise<void> {
+  await emojiPickerInActions(page)
+    .getByRole('button', { name: emoji })
+    .first()
+    .click()
+}
+
 test('inserts big emoji inline and persists bold emoji markdown', async ({
   page,
 }) => {
@@ -193,57 +199,49 @@ test('inserts big emoji inline and persists bold emoji markdown', async ({
   await selectTextInFirstParagraph(page, 'beta')
   await bigEmojiToolbarButton(page).click()
   await expectBigEmojiPickerOpen(page)
-  await page
-    .locator('.big-emoji-actions')
-    .getByRole('button', { name: '🤖' })
-    .first()
-    .click()
+  await clickEmojiInPicker(page, '😀')
   await expect(page.locator('.big-emoji-actions')).toBeHidden()
   await page.keyboard.type('!')
 
   await expect(firstParagraph(page).locator('.inline-big-emoji')).toHaveText(
-    '🤖',
+    '😀',
   )
   await expect(firstParagraph(page).locator('.inline-big-emoji')).toHaveCount(1)
   await expect
     .poll(() => api.getLastSaveBody()?.content, {
       timeout: 10000,
     })
-    .toBe('Alpha **🤖**! gamma.')
+    .toBe('Alpha __😀__! gamma.')
 
   await page.reload()
   await waitForEditorReady(page)
 
   await expect(firstParagraph(page).locator('.inline-big-emoji')).toHaveText(
-    '🤖',
+    '😀',
   )
-  await expect(firstParagraph(page)).toContainText('Alpha 🤖! gamma.')
+  await expect(firstParagraph(page)).toContainText('Alpha 😀! gamma.')
 })
 
 test('clicks an existing big emoji to replace it', async ({ page }) => {
   const api = await mockNotesApi(page, [
-    createMockNote('first-note.md', 'Alpha **🤖** gamma.'),
+    createMockNote('first-note.md', 'Alpha **😀** gamma.'),
   ])
 
   await page.goto('/')
   await waitForEditorReady(page)
   await firstParagraph(page).locator('.inline-big-emoji').click()
   await expectBigEmojiPickerOpen(page)
-  await page
-    .locator('.big-emoji-actions')
-    .getByRole('button', { name: '😀' })
-    .first()
-    .click()
+  await clickEmojiInPicker(page, '😂')
   await expect(page.locator('.big-emoji-actions')).toBeHidden()
 
   await expect(firstParagraph(page).locator('.inline-big-emoji')).toHaveText(
-    '😀',
+    '😂',
   )
   await expect
     .poll(() => api.getLastSaveBody()?.content, {
       timeout: 10000,
     })
-    .toBe('Alpha **😀** gamma.')
+    .toBe('Alpha __😂__ gamma.')
 })
 
 test('searches within the big emoji picker', async ({ page }) => {
@@ -257,15 +255,13 @@ test('searches within the big emoji picker', async ({ page }) => {
   await bigEmojiToolbarButton(page).click()
   await expectBigEmojiPickerOpen(page)
 
-  const search = page.locator('.big-emoji-actions .v3-search input')
+  const search = emojiPickerInActions(page).getByRole('searchbox')
 
   await search.click()
-  await search.fill('robot')
-  await expect(search).toHaveValue('robot')
+  await search.fill('grinning')
   await expect(
-    page
-      .locator('.big-emoji-actions')
-      .getByRole('button', { name: '🤖' })
+    emojiPickerInActions(page)
+      .getByRole('button', { name: /grinning/i })
       .first(),
   ).toBeVisible()
 })

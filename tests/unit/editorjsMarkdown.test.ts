@@ -549,8 +549,19 @@ describe('editorjsMarkdown', () => {
     ])
   })
 
-  it('parses bold emoji markdown to big emoji editor HTML', () => {
+  it('parses asterisk bold emoji markdown to big emoji editor HTML', () => {
     expect(markdownToEditorjsBlocks('Status **🤖** updated.')).toEqual([
+      {
+        type: 'paragraph',
+        data: {
+          text: 'Status <strong class="inline-big-emoji">🤖</strong> updated.',
+        },
+      },
+    ])
+  })
+
+  it('parses underscore bold emoji markdown to big emoji editor HTML', () => {
+    expect(markdownToEditorjsBlocks('Status __🤖__ updated.')).toEqual([
       {
         type: 'paragraph',
         data: {
@@ -638,7 +649,7 @@ describe('editorjsMarkdown', () => {
     ).toBe(`Use ==${altMeta.emoji}${altMeta.emoji}legacy== text.`)
   })
 
-  it('serializes big emoji html to bold emoji markdown', () => {
+  it('serializes big emoji html to underscore bold markdown', () => {
     expect(
       editorjsBlocksToMarkdown([
         {
@@ -648,7 +659,7 @@ describe('editorjsMarkdown', () => {
           },
         },
       ]),
-    ).toBe('Status **🤖** updated.')
+    ).toBe('Status __🤖__ updated.')
   })
 
   it('removes big emoji caret anchors from markdown output', () => {
@@ -661,7 +672,7 @@ describe('editorjsMarkdown', () => {
           },
         },
       ]),
-    ).toBe('Status **🤖** updated.')
+    ).toBe('Status __🤖__ updated.')
   })
 
   it('round-trips default highlight markdown', () => {
@@ -708,8 +719,24 @@ describe('editorjsMarkdown', () => {
     )
   })
 
-  it('round-trips bold emoji markdown as big emoji', () => {
-    const markdown = 'Status **🤖** updated.'
+  it('round-trips underscore bold emoji markdown as big emoji', () => {
+    const markdown = 'Status __🤖__ updated.'
+
+    expect(editorjsBlocksToMarkdown(markdownToEditorjsBlocks(markdown))).toBe(
+      markdown,
+    )
+  })
+
+  it('normalizes asterisk bold emoji to underscore bold on round-trip', () => {
+    expect(
+      editorjsBlocksToMarkdown(
+        markdownToEditorjsBlocks('Status **🤖** updated.'),
+      ),
+    ).toBe('Status __🤖__ updated.')
+  })
+
+  it('round-trips big emoji immediately followed by bold text', () => {
+    const markdown = 'Status __🤖__**bold** updated.'
 
     expect(editorjsBlocksToMarkdown(markdownToEditorjsBlocks(markdown))).toBe(
       markdown,

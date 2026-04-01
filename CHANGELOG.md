@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
-- Add an Editor.js `Big Emoji` inline tool backed by `vue3-emoji-picker`,
+- Add an Editor.js `Big Emoji` inline tool backed by `emoji-picker-element`,
   rendering selected emoji at `2em` in the editor while preserving Markdown
   storage as bold emoji such as `**🤖**`.
 - Add an Editor.js inline highlight tool with eight color options, default
@@ -17,9 +17,9 @@ All notable changes to this project will be documented in this file.
   folder name from the sidebar folder list (`GET /api/folders` and merged
   catalog view).
 - Add folder emoji icons for the sidebar: optional icon per top-level folder
-  via `FolderDialog` (create or edit), `vue3-emoji-picker` in a popover, hover
-  pencil on folder rows, and persistence in workspace `meta.yaml` (`GET`/`PUT`
-  `/api/meta`, default path overridable with `PKB_META_PATH`).
+  via `FolderDialog` (create or edit), `emoji-picker-element` in a popover,
+  hover pencil on folder rows, and persistence in workspace `meta.yaml`
+  (`GET`/`PUT` `/api/meta`, default path overridable with `PKB_META_PATH`).
 - Add non-distraction mode: `NoteControls` toggle (accent `Maximize2` icon) hides
   SidebarPanel, NotesListPanel, and InspectorPanel for the session; a second
   click restores the previous panel visibility without persisting to app config.

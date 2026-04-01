@@ -239,6 +239,10 @@ function inlineHtmlToMarkdown(text: string): string {
       (_match, content) => `\`${content}\``,
     ],
     [
+      /<strong\b[^>]*\binline-big-emoji\b[^>]*>([\s\S]*?)<\/strong>/gi,
+      (_match, content) => `__${content}__`,
+    ],
+    [
       /<(i|em)\b[^>]*>([\s\S]*?)<\/\1>/gi,
       (_match, _tag, content) => `*${content}*`,
     ],

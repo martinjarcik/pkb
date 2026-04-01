@@ -1,15 +1,12 @@
 import type { API, SanitizerConfig } from '@editorjs/editorjs'
-import { createApp, h } from 'vue'
-import type { App as VueApp } from 'vue'
-import EmojiPicker from 'vue3-emoji-picker'
-import 'vue3-emoji-picker/css'
+import 'emoji-picker-element'
 import { BIG_EMOJI_CLASS } from './bigEmoji'
 
 const ICON_MARKER = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 14s1.5 2 4 2 4-2 4-2"/><circle cx="9" cy="10" r="1" fill="currentColor"/><circle cx="15" cy="10" r="1" fill="currentColor"/><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2"/></svg>`
 const CARET_ANCHOR = '\u200B'
 
-type BigEmojiPickerSelection = {
-  i: string
+type EmojiClickDetail = {
+  unicode: string
 }
 
 type BigEmojiApi = API & {
@@ -47,7 +44,6 @@ export default class BigEmojiTool {
   private actions: HTMLDivElement | null
   private button: HTMLButtonElement | null
   private floatingPicker: HTMLDivElement | null
-  private pickerApp: VueApp | null
   private savedRange: Range | null
   private tagName: string
   private targetBigEmoji: HTMLElement | null
@@ -58,7 +54,6 @@ export default class BigEmojiTool {
     this.actions = null
     this.button = null
     this.floatingPicker = null
-    this.pickerApp = null
     this.savedRange = null
     this.tagName = 'STRONG'
     this.targetBigEmoji = null
@@ -80,7 +75,6 @@ export default class BigEmojiTool {
     this.actions = document.createElement('div')
     this.actions.className = 'big-emoji-actions-anchor'
     this.actions.hidden = true
-    this.ensureFloatingPicker()
 
     return this.actions
   }
@@ -124,10 +118,8 @@ export default class BigEmojiTool {
       this.handleDocumentMouseDown,
       true,
     )
-    this.pickerApp?.unmount()
     this.floatingPicker?.remove()
     this.floatingPicker = null
-    this.pickerApp = null
   }
 
   private currentRange(): Range | null {
@@ -285,19 +277,14 @@ export default class BigEmojiTool {
     this.floatingPicker.className = 'big-emoji-actions'
     this.floatingPicker.hidden = true
 
-    const mountPoint = document.createElement('div')
+    const picker = document.createElement('emoji-picker')
 
-    this.floatingPicker.append(mountPoint)
-    this.pickerApp = createApp({
-      render: () =>
-        h(EmojiPicker, {
-          native: true,
-          onSelect: (emoji: BigEmojiPickerSelection) => {
-            this.insertEmoji(emoji.i)
-          },
-        }),
+    picker.addEventListener('emoji-click', (event: Event) => {
+      const detail = (event as CustomEvent<EmojiClickDetail>).detail
+
+      this.insertEmoji(detail.unicode)
     })
-    this.pickerApp.mount(mountPoint)
+    this.floatingPicker.append(picker)
     document.body.append(this.floatingPicker)
   }
 
