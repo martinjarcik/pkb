@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { editorjsBlocksToMarkdown } from '~/lib/blocksToMarkdown'
-import { VAULT_ASSETS_API_PREFIX } from '~/lib/editorjsMarkdownTypes'
+import { VAULT_ASSETS_API_PREFIX } from '~/lib/editorjsImageUrl'
 import { markdownToEditorjsBlocks } from '~/lib/markdownToBlocks'
 import {
   INLINE_HIGHLIGHT_COLORS,

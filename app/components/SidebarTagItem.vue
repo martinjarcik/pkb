@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import type { TagFilterState } from '~/notes/sidebarFilters'
+import type { TagFilterState } from '~/composables/useSidebarNavigation'
 
 const props = defineProps<{
   tag: string

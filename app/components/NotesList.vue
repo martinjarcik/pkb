@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import type { NoteCatalogRow } from '~/notes/types'
 
 type NotesListItem = {
   id: string
@@ -10,9 +9,17 @@ type NotesListItem = {
   pinned: boolean
 }
 
+type NotesListRow = {
+  id: string
+  title: string
+  description: string
+  modifiedAt: string
+  pinned?: boolean
+}
+
 const DRAG_PREVIEW_SCALE = 0.5
 
-function toListItem(row: NoteCatalogRow): NotesListItem {
+function toListItem(row: NotesListRow): NotesListItem {
   return {
     id: row.id,
     title: row.title,

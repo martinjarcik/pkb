@@ -139,6 +139,10 @@ Context-to-folder mapping:
 | Configuration                     | `app/config/`  | `app/composables/` |
 
 New contexts may be introduced when corresponding features are specified.
+`app/notes/sidebarFilters.ts` stays in domain logic intentionally: it models
+workspace-view filtering and ordering as pure TypeScript, while
+`app/composables/useSidebarNavigation.ts` owns the reactive UI state that uses
+those rules.
 
 ## Editor architecture
 
@@ -184,6 +188,9 @@ New contexts may be introduced when corresponding features are specified.
 - Actions are scoped to their parent context: `NoteControls` operates on the
   active note, while `NotesListActions` operates on the list as a whole.
   Creating a note uses the active sidebar view to choose the parent path.
+- `NotesListActions` currently owns both note creation and layout visibility
+  toggles. Keep that pairing explicit unless the toolbar grows enough to need a
+  dedicated split.
 - Filtering happens in two levels: `SidebarNavigation` selects the view (the
   broad note set), then `NotesListControls` refines that view. `NotesList`
   renders the resulting set.

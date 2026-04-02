@@ -1,3 +1,4 @@
+import { useState } from '#app'
 import { loadConfig } from '~/config/loader'
 
 const defaultLayout = loadConfig().layout
@@ -8,16 +9,16 @@ type LayoutVisibilitySnapshot = {
   showSidebarPanel: boolean
 }
 
-export function persistAppConfigPatch(patch: Record<string, unknown>): void {
-  $fetch('/api/app-config', {
-    method: 'PUT',
-    body: patch,
-  }).catch((error: unknown) => {
-    console.error('Failed to persist app config:', error)
-  })
-}
-
 export function useLayout() {
+  function persistAppConfigPatch(patch: Record<string, unknown>): void {
+    $fetch('/api/app-config', {
+      method: 'PUT',
+      body: patch,
+    }).catch((error: unknown) => {
+      console.error('Failed to persist app config:', error)
+    })
+  }
+
   const showInspectorPanel = useState(
     'layout.showInspectorPanel',
     () => defaultLayout.showInspectorPanel,

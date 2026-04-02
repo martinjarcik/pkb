@@ -1,3 +1,4 @@
+import { useState } from '#app'
 import { computed } from 'vue'
 import { loadConfig } from '~/config/loader'
 import { t } from '~/composables/useTranslations'
@@ -8,6 +9,8 @@ import {
   mergeTopLevelFolders,
   orderedCatalogRowsForSidebarView,
   selectedTagsFromView,
+  tagFilterState as resolveTagFilterState,
+  type TagFilterState,
   type SidebarWorkspaceView,
   vaultTopLevelFolderNames,
 } from '~/notes/sidebarFilters'
@@ -47,6 +50,8 @@ export function useSidebarNavigation() {
   })
   const allTags = computed(() => allTagsFromCatalog(catalog.value))
   const selectedTags = computed(() => selectedTagsFromView(selectedView.value))
+  const tagFilterState = (tag: string): TagFilterState =>
+    resolveTagFilterState(selectedView.value, tag)
 
   const visibleCatalogRows = computed(() =>
     orderedCatalogRowsForSidebarView(catalog.value, selectedView.value),
@@ -100,7 +105,7 @@ export function useSidebarNavigation() {
 
   async function loadFolders(): Promise<void> {
     try {
-      const folders = await globalThis.$fetch<string[]>('/api/folders')
+      const folders = await $fetch<string[]>('/api/folders')
 
       explicitFolders.value = folders
     } catch {
@@ -132,7 +137,7 @@ export function useSidebarNavigation() {
     }
 
     try {
-      await globalThis.$fetch('/api/folders', {
+      await $fetch('/api/folders', {
         method: 'POST',
         body: { name: sanitized },
       })
@@ -164,7 +169,7 @@ export function useSidebarNavigation() {
     }
 
     try {
-      await globalThis.$fetch('/api/folders', {
+      await $fetch('/api/folders', {
         method: 'PATCH',
         body: { oldName, newName: sanitized },
       })
@@ -194,6 +199,7 @@ export function useSidebarNavigation() {
     tagsExpanded,
     allTags,
     selectedTags,
+    tagFilterState,
     visibleCatalogRows,
     loadFolders,
     selectInbox,
@@ -208,3 +214,5 @@ export function useSidebarNavigation() {
     cycleTag,
   }
 }
+
+export type { TagFilterState }

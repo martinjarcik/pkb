@@ -1,8 +1,8 @@
-import { createError, defineEventHandler, readBody } from 'h3'
+import { createError, defineEventHandler } from 'h3'
 import { getNoteStorage } from '~/storage/router'
 import type { MoveNoteInput } from '~/storage/types'
 import { loadServerConfig } from '../../loadServerConfig'
-import { isRecord } from '../../validation'
+import { isRecord, readJsonBody } from '../../validation'
 
 function parseMoveNoteInput(body: unknown): MoveNoteInput {
   if (!isRecord(body)) {
@@ -35,7 +35,5 @@ function parseMoveNoteInput(body: unknown): MoveNoteInput {
 
 export default defineEventHandler(async (event) => {
   const storage = getNoteStorage(await loadServerConfig())
-  const body = await readBody(event)
-
-  return storage.moveNote(parseMoveNoteInput(body))
+  return storage.moveNote(parseMoveNoteInput(await readJsonBody(event)))
 })

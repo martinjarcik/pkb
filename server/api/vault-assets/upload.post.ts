@@ -2,33 +2,8 @@ import { randomUUID } from 'node:crypto'
 import { mkdir, writeFile } from 'node:fs/promises'
 import { extname, relative, resolve } from 'node:path'
 import { createError, defineEventHandler, readMultipartFormData } from 'h3'
+import { extensionFromMime, SUPPORTED_IMAGE_EXTENSIONS } from '../../imageTypes'
 import { loadServerConfig } from '../../loadServerConfig'
-
-const ALLOWED_IMAGE_EXTENSIONS = new Set([
-  '.png',
-  '.jpg',
-  '.jpeg',
-  '.gif',
-  '.webp',
-  '.svg',
-])
-
-function extensionFromMime(mime: string): string | null {
-  switch (mime) {
-    case 'image/png':
-      return '.png'
-    case 'image/jpeg':
-      return '.jpg'
-    case 'image/gif':
-      return '.gif'
-    case 'image/webp':
-      return '.webp'
-    case 'image/svg+xml':
-      return '.svg'
-    default:
-      return null
-  }
-}
 
 function pickSafeExtension(
   filename: string | undefined,
@@ -36,7 +11,7 @@ function pickSafeExtension(
 ): string {
   if (filename) {
     const ext = extname(filename).toLowerCase()
-    if (ALLOWED_IMAGE_EXTENSIONS.has(ext)) {
+    if (SUPPORTED_IMAGE_EXTENSIONS.has(ext)) {
       return ext
     }
   }

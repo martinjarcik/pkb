@@ -1,4 +1,4 @@
-import { VAULT_ASSETS_API_PREFIX } from './editorjsMarkdownTypes'
+export const VAULT_ASSETS_API_PREFIX = '/api/vault-assets'
 
 export function markdownUrlFromEditorImageFileUrl(fileUrl: string): string {
   const prefix = `${VAULT_ASSETS_API_PREFIX}/`

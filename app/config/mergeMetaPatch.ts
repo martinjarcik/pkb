@@ -1,4 +1,8 @@
-import { isPlainObject, type JsonObject } from './isPlainObject'
+import {
+  deepMergePlainObjects,
+  isPlainObject,
+  type JsonObject,
+} from './isPlainObject'
 
 function mergeFoldersRecord(base: JsonObject, patch: JsonObject): JsonObject {
   let result: JsonObject = { ...base }
@@ -43,7 +47,7 @@ export function deepMergeMeta(base: JsonObject, patch: JsonObject): JsonObject {
     }
 
     if (isPlainObject(patchValue) && isPlainObject(baseValue)) {
-      result[key] = deepMergeMeta(baseValue, patchValue)
+      result[key] = deepMergePlainObjects(baseValue, patchValue)
     } else {
       result[key] = patchValue
     }

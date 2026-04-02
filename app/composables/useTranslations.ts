@@ -31,6 +31,8 @@ function resolvedLocale(): string {
   return activeLocale in localeMessages ? activeLocale : FALLBACK_LOCALE
 }
 
+// Keep a standalone translator for composables and editor helpers that only need
+// synchronous string lookup, not reactive locale state.
 export function t(key: string): string {
   const messages =
     localeMessages[resolvedLocale()] ?? localeMessages[FALLBACK_LOCALE]

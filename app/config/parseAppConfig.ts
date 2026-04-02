@@ -295,69 +295,42 @@ function parseThemeConfig(obj: Record<string, unknown>): AppConfig['theme'] {
   }
 }
 
+function parseBooleanFlag(
+  flags: Record<string, unknown>,
+  key: keyof AppConfig['features'],
+  defaultValue: boolean,
+): boolean {
+  const value = flags[key]
+
+  if (value === undefined) {
+    return defaultValue
+  }
+
+  if (typeof value !== 'boolean') {
+    throw new Error(`Config features.${key} must be a boolean`)
+  }
+
+  return value
+}
+
 function parseFeaturesConfig(
   obj: Record<string, unknown>,
 ): AppConfig['features'] {
-  let favorites = true
-  let tasks = true
-  let pinned = true
-  let nonDistractionMode = true
-  let noteWebhook = true
-
   if (obj.features !== undefined) {
     if (typeof obj.features !== 'object' || obj.features === null) {
       throw new Error('Config features must be an object')
     }
-
-    const features = obj.features as Record<string, unknown>
-
-    if (features.favorites !== undefined) {
-      if (typeof features.favorites !== 'boolean') {
-        throw new Error('Config features.favorites must be a boolean')
-      }
-
-      favorites = features.favorites
-    }
-
-    if (features.tasks !== undefined) {
-      if (typeof features.tasks !== 'boolean') {
-        throw new Error('Config features.tasks must be a boolean')
-      }
-
-      tasks = features.tasks
-    }
-
-    if (features.pinned !== undefined) {
-      if (typeof features.pinned !== 'boolean') {
-        throw new Error('Config features.pinned must be a boolean')
-      }
-
-      pinned = features.pinned
-    }
-
-    if (features.nonDistractionMode !== undefined) {
-      if (typeof features.nonDistractionMode !== 'boolean') {
-        throw new Error('Config features.nonDistractionMode must be a boolean')
-      }
-
-      nonDistractionMode = features.nonDistractionMode
-    }
-
-    if (features.noteWebhook !== undefined) {
-      if (typeof features.noteWebhook !== 'boolean') {
-        throw new Error('Config features.noteWebhook must be a boolean')
-      }
-
-      noteWebhook = features.noteWebhook
-    }
   }
 
+  const features =
+    obj.features === undefined ? {} : (obj.features as Record<string, unknown>)
+
   return {
-    favorites,
-    tasks,
-    pinned,
-    nonDistractionMode,
-    noteWebhook,
+    favorites: parseBooleanFlag(features, 'favorites', true),
+    tasks: parseBooleanFlag(features, 'tasks', true),
+    pinned: parseBooleanFlag(features, 'pinned', true),
+    nonDistractionMode: parseBooleanFlag(features, 'nonDistractionMode', true),
+    noteWebhook: parseBooleanFlag(features, 'noteWebhook', true),
   }
 }
 

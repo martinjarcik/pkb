@@ -1,20 +1,24 @@
 <script setup lang="ts">
 import type { EditorjsBlock } from '~/lib/editorjsMarkdownTypes'
+import { prepareEditorjsBlocksForEditor } from '~/lib/editorjsBlockBackground'
 import {
-  BLOCK_BACKGROUND_TUNE_NAME,
-  prepareEditorjsBlocksForEditor,
-} from '~/lib/editorjsBlockBackground'
-import EditorjsBlockBackgroundTune from '~/lib/editorjsBlockBackgroundTune'
-import { editorMessages } from '~/lib/editorjsMessages'
+  blockTuneTools,
+  createEditorToolsConfig,
+  editorI18n,
+  inlineToolbarTools,
+} from '~/lib/editorjsToolsConfig'
 import { handleHashtagCompletionKeyup } from '~/lib/editorjsHashtagHighlight'
+import {
+  patchExecCommandForInlineHighlight,
+  restoreExecCommand,
+  selectionIsInsideHighlight,
+  toggleInlineTagInsideHighlight,
+} from '~/lib/editorjsHighlightExecPatch'
 import { renderNoteTitleBlocks } from '~/lib/editorjsTitleBlock'
-import BigEmojiTool from '~/lib/bigEmojiTool'
 import InlineHighlightTool from '~/lib/inlineHighlightTool'
 import InlineHashtagTool from '~/lib/inlineHashtagTool'
 import { markdownToEditorjsBlocks } from '~/lib/markdownToBlocks'
-import NoteTitleTool from '~/lib/noteTitleTool'
 import { t as translate } from '~/composables/useTranslations'
-import SimpleQuoteTool from '~/lib/simpleQuoteTool'
 
 type EditorjsInstance = {
   blocks: {
@@ -35,17 +39,6 @@ type EditorjsConstructor = new (
   configuration: Record<string, unknown>,
 ) => EditorjsInstance
 
-type EditorjsTool = new (...args: never[]) => unknown
-
-const inlineToolbarTools = [
-  'link',
-  'bold',
-  'italic',
-  'inlineCode',
-  'bigEmoji',
-  'inlineHighlight',
-]
-const blockTuneTools = [BLOCK_BACKGROUND_TUNE_NAME]
 const hashtagCompletionPattern = /(^|\s)#[^\s#]+\s$/u
 
 const props = withDefaults(
@@ -106,71 +99,6 @@ const { commitTitleChange, handleEditorChange } = useEditorTitleRepair({
   emitTitleChange: (value) => emit('title-change', value),
 })
 
-function findAncestorHighlightMark(node: Node | null): HTMLElement | null {
-  if (!node) {
-    return null
-  }
-
-  const element = node instanceof HTMLElement ? node : node.parentElement
-  return (
-    element?.closest<HTMLElement>(`mark.${InlineHighlightTool.CSS}`) ?? null
-  )
-}
-
-function selectionIsInsideHighlight(): HTMLElement | null {
-  const selection = window.getSelection()
-
-  if (!selection || selection.rangeCount === 0) {
-    return null
-  }
-
-  const range = selection.getRangeAt(0)
-  const startMark = findAncestorHighlightMark(range.startContainer)
-  const endMark = findAncestorHighlightMark(range.endContainer)
-
-  if (!startMark || startMark !== endMark) {
-    return null
-  }
-
-  return startMark
-}
-
-function toggleInlineTagInsideHighlight(tagName: 'B' | 'I'): void {
-  const selection = window.getSelection()
-
-  if (!selection || selection.rangeCount === 0 || selection.isCollapsed) {
-    return
-  }
-
-  const range = selection.getRangeAt(0)
-  const parentTag =
-    range.commonAncestorContainer instanceof HTMLElement
-      ? range.commonAncestorContainer.closest(tagName)
-      : range.commonAncestorContainer.parentElement?.closest(tagName)
-
-  if (parentTag && findAncestorHighlightMark(parentTag)) {
-    const fragment = document.createDocumentFragment()
-
-    while (parentTag.firstChild) {
-      fragment.appendChild(parentTag.firstChild)
-    }
-
-    parentTag.parentNode?.replaceChild(fragment, parentTag)
-    return
-  }
-
-  const wrapper = document.createElement(tagName)
-
-  wrapper.appendChild(range.extractContents())
-  range.insertNode(wrapper)
-  selection.removeAllRanges()
-
-  const restored = document.createRange()
-
-  restored.selectNodeContents(wrapper)
-  selection.addRange(restored)
-}
-
 function handleHolderKeydown(event: KeyboardEvent): void {
   const modKey = event.metaKey || event.ctrlKey
 
@@ -184,51 +112,17 @@ function handleHolderKeydown(event: KeyboardEvent): void {
     return
   }
 
-  if (!selectionIsInsideHighlight()) {
+  if (!selectionIsInsideHighlight(InlineHighlightTool.CSS)) {
     return
   }
 
   event.preventDefault()
   event.stopPropagation()
-  toggleInlineTagInsideHighlight(lowerKey === 'b' ? 'B' : 'I')
+  toggleInlineTagInsideHighlight(
+    InlineHighlightTool.CSS,
+    lowerKey === 'b' ? 'B' : 'I',
+  )
   scheduleContentSync()
-}
-
-let originalExecCommand: typeof document.execCommand | null = null
-
-function patchExecCommand(): void {
-  if (originalExecCommand) {
-    return
-  }
-
-  originalExecCommand = document.execCommand.bind(document)
-  document.execCommand = (
-    command: string,
-    showUI?: boolean,
-    value?: string,
-  ): boolean => {
-    const lowerCommand = command.toLowerCase()
-
-    if (
-      (lowerCommand === 'bold' || lowerCommand === 'italic') &&
-      selectionIsInsideHighlight()
-    ) {
-      toggleInlineTagInsideHighlight(lowerCommand === 'bold' ? 'B' : 'I')
-      scheduleContentSync()
-      return true
-    }
-
-    return originalExecCommand!(command, showUI, value)
-  }
-}
-
-function restoreExecCommand(): void {
-  if (!originalExecCommand) {
-    return
-  }
-
-  document.execCommand = originalExecCommand
-  originalExecCommand = null
 }
 
 function handleHolderKeyup(event: KeyboardEvent): void {
@@ -322,13 +216,13 @@ onMounted(async () => {
     const Editorjs = getDefaultExport(
       editorModule,
     ) as unknown as EditorjsConstructor
-    const Header = getDefaultExport(headerModule) as EditorjsTool
-    const List = getDefaultExport(listModule) as EditorjsTool
-    const Code = getDefaultExport(codeModule) as EditorjsTool
-    const Delimiter = getDefaultExport(delimiterModule) as EditorjsTool
-    const InlineCode = getDefaultExport(inlineCodeModule) as EditorjsTool
-    const Table = getDefaultExport(tableModule) as EditorjsTool
-    const ImageTool = getDefaultExport(imageModule) as EditorjsTool
+    const Header = getDefaultExport(headerModule)
+    const List = getDefaultExport(listModule)
+    const Code = getDefaultExport(codeModule)
+    const Delimiter = getDefaultExport(delimiterModule)
+    const InlineCode = getDefaultExport(inlineCodeModule)
+    const Table = getDefaultExport(tableModule)
+    const ImageTool = getDefaultExport(imageModule)
     const blocks = renderNoteTitleBlocks(
       markdownToEditorjsBlocks(initialContent),
       initialTitle,
@@ -338,9 +232,7 @@ onMounted(async () => {
       holder: holder.value,
       autofocus: false,
       inlineToolbar: inlineToolbarTools,
-      i18n: {
-        messages: editorMessages,
-      },
+      i18n: editorI18n,
       data: {
         blocks,
       },
@@ -348,115 +240,29 @@ onMounted(async () => {
         void handleEditorChange()
       },
       tunes: blockTuneTools,
-      tools: {
-        [BLOCK_BACKGROUND_TUNE_NAME]: {
-          class: EditorjsBlockBackgroundTune,
-        },
-        noteTitle: {
-          class: NoteTitleTool,
-          inlineToolbar: false,
-          config: {
-            ariaLabel: translate('noteTitle.ariaLabel'),
-            placeholder: translate('noteTitle.placeholder'),
-          },
-        },
-        paragraph: {
-          inlineToolbar: inlineToolbarTools,
-          tunes: blockTuneTools,
-          config: {
-            preserveBlank: true,
-          },
-        },
-        header: {
-          class: Header,
-          inlineToolbar: inlineToolbarTools,
-          tunes: blockTuneTools,
-          toolbox: [
-            {
-              icon: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24" rtrvr-ls="0~hs"><path stroke="currentColor" stroke-linecap="round" stroke-width="2" d="M6 7L6 12M6 17L6 12M6 12L12 12M12 7V12M12 17L12 12"></path><path stroke="currentColor" stroke-linecap="round" stroke-width="2" d="M19 17V10.2135C19 10.1287 18.9011 10.0824 18.836 10.1367L16 12.5"></path></svg>',
-              title: 'Heading 1',
-              data: {
-                level: 1,
-              },
-            },
-            {
-              icon: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-linecap="round" stroke-width="2" d="M6 7L6 12M6 17L6 12M6 12L12 12M12 7V12M12 17L12 12"></path><path stroke="currentColor" stroke-linecap="round" stroke-width="2" d="M16 11C16 10 19 9.5 19 12C19 13.9771 16.0684 13.9997 16.0012 16.8981C15.9999 16.9533 16.0448 17 16.1 17L19.3 17"></path></svg>',
-              title: 'Heading 2',
-              data: {
-                level: 2,
-              },
-            },
-            {
-              icon: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-linecap="round" stroke-width="2" d="M6 7L6 12M6 17L6 12M6 12L12 12M12 7V12M12 17L12 12"></path><path stroke="currentColor" stroke-linecap="round" stroke-width="2" d="M16 11C16 10.5 16.8323 10 17.6 10C18.3677 10 19.5 10.311 19.5 11.5C19.5 12.5315 18.7474 12.9022 18.548 12.9823C18.5378 12.9864 18.5395 13.0047 18.5503 13.0063C18.8115 13.0456 20 13.3065 20 14.8C20 16 19.5 17 17.8 17C17.8 17 16 17 16 16.3"></path></svg>',
-              title: 'Heading 3',
-              data: {
-                level: 3,
-              },
-            },
-          ],
-          config: {
-            placeholder: 'Heading',
-            levels: [1, 2, 3],
-            defaultLevel: 2,
-          },
-        },
-        list: {
-          class: List,
-          inlineToolbar: inlineToolbarTools,
-          tunes: blockTuneTools,
-        },
-        code: {
-          class: Code,
-          tunes: blockTuneTools,
-        },
-        delimiter: {
-          class: Delimiter,
-          tunes: blockTuneTools,
-        },
-        inlineCode: {
-          class: InlineCode,
-        },
-        bigEmoji: {
-          class: BigEmojiTool,
-        },
-        inlineHighlight: {
-          class: InlineHighlightTool,
-        },
-        inlineHashtag: {
-          class: InlineHashtagTool,
-        },
-        simpleQuote: {
-          class: SimpleQuoteTool,
-          inlineToolbar: inlineToolbarTools,
-          tunes: blockTuneTools,
-        },
-        table: {
-          class: Table,
-          inlineToolbar: inlineToolbarTools,
-          tunes: blockTuneTools,
-        },
-        image: {
-          class: ImageTool,
-          tunes: blockTuneTools,
-          config: {
-            uploader: {
-              uploadByFile(file: File) {
-                const form = new FormData()
+      tools: createEditorToolsConfig({
+        Header: Header as new (...args: never[]) => unknown,
+        List: List as new (...args: never[]) => unknown,
+        Code: Code as new (...args: never[]) => unknown,
+        Delimiter: Delimiter as new (...args: never[]) => unknown,
+        InlineCode: InlineCode as new (...args: never[]) => unknown,
+        Table: Table as new (...args: never[]) => unknown,
+        ImageTool: ImageTool as new (...args: never[]) => unknown,
+        translate,
+        uploadByFile(file: File) {
+          const form = new FormData()
 
-                form.append('image', file)
+          form.append('image', file)
 
-                return globalThis.$fetch<{
-                  success: number
-                  file: { url: string }
-                }>('/api/vault-assets/upload', {
-                  method: 'POST',
-                  body: form,
-                })
-              },
-            },
-          },
+          return $fetch<{
+            success: number
+            file: { url: string }
+          }>('/api/vault-assets/upload', {
+            method: 'POST',
+            body: form,
+          })
         },
-      },
+      }),
     })
 
     await editor.value.isReady
@@ -472,7 +278,10 @@ onMounted(async () => {
     })
 
     isApplyingExternalContent.value = false
-    patchExecCommand()
+    patchExecCommandForInlineHighlight({
+      highlightCssClass: InlineHighlightTool.CSS,
+      onChange: scheduleContentSync,
+    })
     holder.value?.addEventListener('focusout', handleHolderFocusout)
     holder.value?.addEventListener('keydown', handleHolderKeydown, true)
     holder.value?.addEventListener('keyup', handleHolderKeyup)

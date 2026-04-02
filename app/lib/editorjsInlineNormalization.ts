@@ -5,6 +5,8 @@ import {
   type InlineHighlightStyle,
 } from './inlineHighlight'
 
+// This file is a conversion hotspot for Editor.js inline HTML. Prefer small,
+// local extractions when changing one replacement rule.
 export function editorHtmlLineBreaksToMarkdownNewlines(text: string): string {
   return text.replace(/\u200B/g, '').replace(/<br\b[^>]*\/?>/gi, '\n')
 }

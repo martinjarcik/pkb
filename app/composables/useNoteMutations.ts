@@ -1,5 +1,7 @@
+import { useState } from '#app'
 import type { Ref } from 'vue'
 import { t } from '~/composables/useTranslations'
+import type { EditorFlush } from '~/composables/useNoteSelection'
 import { createNoteCatalogRow } from '~/notes/catalogRow'
 import { resolveUniqueNoteIdForParentPath } from '~/notes/noteId'
 import { noteWithToggledFavorite } from '~/notes/noteWithToggledFavorite'
@@ -8,17 +10,8 @@ import { noteWithWebhookUrl } from '~/notes/noteWithWebhookUrl'
 import { buildSaveNoteInput } from '~/notes/saveNoteInput'
 import type { Note, NoteCatalogRow } from '~/notes/types'
 
-type EditorFlush = () => Promise<void>
-
 type UseNoteMutationsArgs = {
-  notes: Ref<NoteCatalogRow[]>
   selectedNote: Ref<Note | null>
-  selectedNoteId: Ref<string | null>
-  selectedNoteFull: Ref<Note | null>
-  saveError: Ref<string | null>
-  shouldFocusTitle: Ref<boolean>
-  isRenamingNoteTitle: Ref<boolean>
-  editorFlush: Ref<EditorFlush | null>
   replaceNote: (note: Note) => void
   replaceRenamedNote: (previousId: string, note: Note) => void
   prependNote: (note: Note) => void
@@ -28,14 +21,7 @@ type UseNoteMutationsArgs = {
 }
 
 export function useNoteMutations({
-  notes,
   selectedNote,
-  selectedNoteId,
-  selectedNoteFull,
-  saveError,
-  shouldFocusTitle,
-  isRenamingNoteTitle,
-  editorFlush,
   replaceNote,
   replaceRenamedNote,
   prependNote,
@@ -43,6 +29,23 @@ export function useNoteMutations({
   updateSelectedNoteContent,
   selectNoteById,
 }: UseNoteMutationsArgs) {
+  const notes = useState<NoteCatalogRow[]>('notes.items', () => [])
+  const selectedNoteId = useState<string | null>(
+    'notes.selectedNoteId',
+    () => null,
+  )
+  const selectedNoteFull = useState<Note | null>(
+    'notes.selectedNoteFull',
+    () => null,
+  )
+  const saveError = useState<string | null>('notes.saveError', () => null)
+  const shouldFocusTitle = useState('notes.shouldFocusTitle', () => false)
+  const isRenamingNoteTitle = useState('notes.isRenamingNoteTitle', () => false)
+  const editorFlush = useState<EditorFlush | null>(
+    'notes.editorFlush',
+    () => null,
+  )
+
   async function saveSelectedNoteContent(content: string): Promise<void> {
     if (!selectedNote.value) {
       return
@@ -53,7 +56,7 @@ export function useNoteMutations({
     updateSelectedNoteContent(content)
 
     try {
-      const savedNote = await globalThis.$fetch<Note>('/api/notes', {
+      const savedNote = await $fetch<Note>('/api/notes', {
         method: 'PUT',
         body: saveInput,
       })
@@ -87,7 +90,7 @@ export function useNoteMutations({
     try {
       await editorFlush.value?.()
 
-      const createdNote = await globalThis.$fetch<Note>('/api/notes', {
+      const createdNote = await $fetch<Note>('/api/notes', {
         method: 'PUT',
         body: {
           id: resolveUniqueNoteIdForParentPath(
@@ -134,7 +137,7 @@ export function useNoteMutations({
     try {
       await editorFlush.value?.()
 
-      const renamedNote = await globalThis.$fetch<Note>('/api/notes', {
+      const renamedNote = await $fetch<Note>('/api/notes', {
         method: 'PATCH',
         body: {
           id: currentId,
@@ -173,7 +176,7 @@ export function useNoteMutations({
     try {
       await editorFlush.value?.()
 
-      const movedNote = await globalThis.$fetch<Note>('/api/notes/move', {
+      const movedNote = await $fetch<Note>('/api/notes/move', {
         method: 'POST',
         body: {
           id,
@@ -214,7 +217,7 @@ export function useNoteMutations({
       const nextNote = transform(current)
       const saveInput = buildSaveNoteInput(nextNote, nextNote.content)
 
-      const savedNote = await globalThis.$fetch<Note>('/api/notes', {
+      const savedNote = await $fetch<Note>('/api/notes', {
         method: 'PUT',
         body: saveInput,
       })
@@ -255,7 +258,7 @@ export function useNoteMutations({
     try {
       await editorFlush.value?.()
 
-      const trashedNote = await globalThis.$fetch<Note>('/api/notes/trash', {
+      const trashedNote = await $fetch<Note>('/api/notes/trash', {
         method: 'POST',
         body: { id: noteToDelete.id },
       })

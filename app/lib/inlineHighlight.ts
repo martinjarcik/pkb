@@ -1,5 +1,7 @@
 import { DEFAULT_EDITOR_COLOR, EDITOR_COLORS } from './editorColors'
 
+// This file is a conversion hotspot for inline highlight syntax shared by the
+// markdown parser, serializer, and Editor.js tool.
 export const INLINE_HIGHLIGHT_CLASS = 'inline-highlight'
 
 export const INLINE_HIGHLIGHT_COLORS = EDITOR_COLORS

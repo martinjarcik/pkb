@@ -1,3 +1,4 @@
+import { useState } from '#app'
 import type { FolderMeta, WorkspaceMeta } from '~/config/parseMeta'
 
 export function useFolderMeta() {
@@ -7,7 +8,7 @@ export function useFolderMeta() {
 
   async function loadMeta(): Promise<void> {
     try {
-      const data = await globalThis.$fetch<WorkspaceMeta>('/api/meta')
+      const data = await $fetch<WorkspaceMeta>('/api/meta')
 
       meta.value = data
     } catch {
@@ -28,7 +29,7 @@ export function useFolderMeta() {
         ? { folders: { [folderName]: null } }
         : { folders: { [folderName]: { icon } as FolderMeta } }
 
-    const updated = await globalThis.$fetch<WorkspaceMeta>('/api/meta', {
+    const updated = await $fetch<WorkspaceMeta>('/api/meta', {
       method: 'PUT',
       body: patch,
     })

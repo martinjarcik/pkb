@@ -1,8 +1,8 @@
-import { createError, defineEventHandler, readBody } from 'h3'
+import { createError, defineEventHandler } from 'h3'
 import { getNoteStorage } from '~/storage/router'
 import { sanitizeNoteTitleForFilename } from '~/notes/noteId'
 import { loadServerConfig } from '../loadServerConfig'
-import { isRecord } from '../validation'
+import { isRecord, readJsonBody } from '../validation'
 
 function parseCreateFolderInput(body: unknown): string {
   if (!isRecord(body)) {
@@ -35,8 +35,7 @@ function parseCreateFolderInput(body: unknown): string {
 
 export default defineEventHandler(async (event) => {
   const storage = getNoteStorage(await loadServerConfig())
-  const body = await readBody(event)
-  const folderName = parseCreateFolderInput(body)
+  const folderName = parseCreateFolderInput(await readJsonBody(event))
 
   await storage.createFolder(folderName)
 

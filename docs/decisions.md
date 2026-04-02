@@ -12,7 +12,7 @@ Derive note timestamps from file system stats (birthtime for createdAt, mtime fo
 
 ## D004 — 2026-03
 
-Duplicate frontmatter serialization logic between browser and filesystem adapters rather than extracting it, per the three-place extraction rule. Extract to app/notes/ if a third adapter needs it.
+Keep shared frontmatter serialization in `app/storage/document.ts`, while browser and filesystem adapters keep only backend-specific read/write behavior.
 
 ## D005 — 2026-03
 
@@ -54,10 +54,6 @@ Recompute `hasTasks` from unchecked markdown checklist items on save and persist
 
 Soft-delete notes by setting the `trashedAt` Application Property instead of removing storage. The Trashed sidebar view lists only trashed notes; other views exclude them. Restoring clears `trashedAt` on `moveNote` to Inbox or a folder. Expired trashed notes are permanently deleted when serving `GET /api/notes`, using `notes.trashRetentionDays` from config (default 30). The note toolbar is hidden while a trashed note is selected.
 
-## D018 — 2026-03
-
-Store per-folder sidebar customization (emoji icons) in a dedicated workspace `meta.yaml` file with `GET`/`PUT` API handlers, separate from `AppConfig` and from hidden files inside vault folders, so metadata stays app-scoped and portable alongside the project.
-
 ## D015 — 2026-03
 
 Deliver per-note webhooks from the Nitro server only: accept HTTPS URLs, POST JSON with `event` (`updated` after `PUT /api/notes`, `deleted` after `POST /api/notes/trash`) and a full note snapshot, use a short request timeout, and swallow errors so persistence never depends on webhook success.
@@ -69,3 +65,7 @@ Store note images as files under a configurable top-level vault folder (`editor.
 ## D017 — 2026-03
 
 Replace `vue3-emoji-picker` with `emoji-picker-element` (web component, ~12.5 KB min+gz, zero dependencies, IndexedDB-backed) to fix browser freezes caused by synchronous rendering of ~1,800 emoji DOM nodes on mount. The web component approach also eliminates the need to spin up a separate Vue app instance inside the Editor.js inline tool.
+
+## D018 — 2026-03
+
+Store per-folder sidebar customization (emoji icons) in a dedicated workspace `meta.yaml` file with `GET`/`PUT` API handlers, separate from `AppConfig` and from hidden files inside vault folders, so metadata stays app-scoped and portable alongside the project.

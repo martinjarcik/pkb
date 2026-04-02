@@ -1,5 +1,7 @@
 import { caretTextOffsetWithin, setCaretTextOffset } from './editorjsCaretUtils'
 
+// Keep this live-DOM hashtag matcher aligned with the markdown-side matchers in
+// `app/notes/extractTags.ts` and `app/lib/markdownToBlocks.ts`.
 function createHashtagFragment(
   text: string,
   hashtagCssClass: string,

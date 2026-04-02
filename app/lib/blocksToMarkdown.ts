@@ -2,6 +2,8 @@ import type { EditorjsBlock } from './editorjsMarkdownTypes'
 import { markdownUrlFromEditorImageFileUrl } from './editorjsImageUrl'
 import { inlineHtmlToMarkdown } from './editorjsInlineNormalization'
 
+// This file is a conversion hotspot. Keep behavior explicit and prefer small,
+// local extractions when future changes touch one branch of the serializer.
 function blockRequiresBlankLineSeparator(type: string): boolean {
   return type === 'list' || type === 'image'
 }

@@ -1,8 +1,8 @@
-import { createError, defineEventHandler, readBody } from 'h3'
+import { createError, defineEventHandler } from 'h3'
 import { getNoteStorage } from '~/storage/router'
 import { dispatchNoteWebhook } from '../../dispatchNoteWebhook'
 import { loadServerConfig } from '../../loadServerConfig'
-import { isRecord } from '../../validation'
+import { isRecord, readJsonBody } from '../../validation'
 
 function parseSoftDeleteNoteInput(body: unknown): string {
   if (!isRecord(body)) {
@@ -26,9 +26,9 @@ function parseSoftDeleteNoteInput(body: unknown): string {
 
 export default defineEventHandler(async (event) => {
   const storage = getNoteStorage(await loadServerConfig())
-  const body = await readBody(event)
-
-  const trashed = await storage.softDeleteNote(parseSoftDeleteNoteInput(body))
+  const trashed = await storage.softDeleteNote(
+    parseSoftDeleteNoteInput(await readJsonBody(event)),
+  )
   const hook = trashed.webhook
 
   if (typeof hook === 'string' && hook.length > 0) {

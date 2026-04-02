@@ -9,7 +9,10 @@ import {
   renderInlineHighlightHtml,
 } from './inlineHighlight'
 import type { EditorjsBlock, MarkdownNode } from './editorjsMarkdownTypes'
+import { normalizeSimpleQuoteText } from './simpleQuoteTool'
 
+// This file is a conversion hotspot. Keep behavior explicit and prefer small,
+// local extractions when future changes touch one branch of the parser.
 const BLOCK_COMMENT_PATTERN = /^<!--\s*block:\s*(.*?)\s*-->$/s
 const LIST_ITEM_LINE = /^(\s*)([*+-]|\d+\.)(\s)/
 
@@ -157,6 +160,9 @@ function markdownNewlinesToEditorHtml(text: string): string {
   return text.replace(/\n/g, '<br>')
 }
 
+// Keep this hashtag wrapper aligned with the extraction matcher in
+// `app/notes/extractTags.ts` and the live editor wrapper in
+// `app/lib/editorjsHashtagHighlight.ts`.
 function wrapHashtagsForEditorHtml(text: string): string {
   return text.replace(
     /(^|\s)(#[^\s#]+)/gu,
@@ -413,13 +419,6 @@ function parseCode(node: MarkdownNode): EditorjsBlock {
       code: node.value ?? '',
     },
   }
-}
-
-function normalizeSimpleQuoteText(text: string): string {
-  return text
-    .replace(/\r\n|\r|\n/g, ' ')
-    .replace(/<br\b[^>]*\/?>/gi, ' ')
-    .trim()
 }
 
 function parseBlockquote(node: MarkdownNode): EditorjsBlock {

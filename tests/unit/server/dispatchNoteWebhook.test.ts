@@ -28,11 +28,17 @@ describe('isAllowedWebhookUrl', () => {
 
   it('rejects non-http schemes', () => {
     expect(isAllowedWebhookUrl('javascript:alert(1)')).toBe(false)
+  })
+
+  it('rejects ftp URLs', () => {
     expect(isAllowedWebhookUrl('ftp://example.com/')).toBe(false)
   })
 
   it('rejects empty or whitespace only', () => {
     expect(isAllowedWebhookUrl('')).toBe(false)
+  })
+
+  it('rejects whitespace-only strings', () => {
     expect(isAllowedWebhookUrl('   ')).toBe(false)
   })
 })
@@ -52,7 +58,7 @@ describe('dispatchNoteWebhook', () => {
     expect(fetchMock).not.toHaveBeenCalled()
   })
 
-  it('POSTs JSON with event and full note', async () => {
+  it('POSTs to the provided webhook URL once', async () => {
     const fetchMock = vi.fn().mockResolvedValue(new Response())
     vi.stubGlobal('fetch', fetchMock)
 
@@ -61,17 +67,56 @@ describe('dispatchNoteWebhook', () => {
     await dispatchNoteWebhook('https://hooks.example/x', 'deleted', note)
 
     expect(fetchMock).toHaveBeenCalledTimes(1)
-    const call = fetchMock.mock.calls[0]
-    expect(call?.[0]).toBe('https://hooks.example/x')
-    expect(call?.[1]).toMatchObject({
+    expect(fetchMock.mock.calls[0]?.[0]).toBe('https://hooks.example/x')
+  })
+
+  it('uses a JSON POST request', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(new Response())
+    vi.stubGlobal('fetch', fetchMock)
+
+    await dispatchNoteWebhook(
+      'https://hooks.example/x',
+      'deleted',
+      minimalNote({ webhook: 'https://hooks.example/x' }),
+    )
+
+    expect(fetchMock.mock.calls[0]?.[1]).toMatchObject({
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
     })
-    const body = JSON.parse(call?.[1]?.body as string) as {
+  })
+
+  it('sends the event in the JSON body', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(new Response())
+    vi.stubGlobal('fetch', fetchMock)
+
+    await dispatchNoteWebhook(
+      'https://hooks.example/x',
+      'deleted',
+      minimalNote({ webhook: 'https://hooks.example/x' }),
+    )
+
+    const body = JSON.parse(fetchMock.mock.calls[0]?.[1]?.body as string) as {
       event: string
       note: Note
     }
+
     expect(body.event).toBe('deleted')
+  })
+
+  it('sends the full note in the JSON body', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(new Response())
+    vi.stubGlobal('fetch', fetchMock)
+
+    const note = minimalNote({ id: 'n.md', webhook: 'https://hooks.example/x' })
+
+    await dispatchNoteWebhook('https://hooks.example/x', 'deleted', note)
+
+    const body = JSON.parse(fetchMock.mock.calls[0]?.[1]?.body as string) as {
+      event: string
+      note: Note
+    }
+
     expect(body.note).toEqual(note)
   })
 })

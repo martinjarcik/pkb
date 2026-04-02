@@ -2,10 +2,9 @@
 import { ref, type CSSProperties } from 'vue'
 import { useEventListener } from '@vueuse/core'
 import { MoreVertical } from 'lucide-vue-next'
-import { selectedTagsFromView } from '~/notes/sidebarFilters'
 
 const { createNote } = useNotes()
-const { selectedView } = useSidebarNavigation()
+const { selectedView, selectedTags } = useSidebarNavigation()
 const {
   showInspectorPanel,
   showSidebarPanel,
@@ -73,7 +72,7 @@ function toggleLayoutMenu(): void {
 async function handleCreateNote(): Promise<void> {
   const view = selectedView.value
   const parentPath = view.kind === 'folder' ? view.folderName : ''
-  const tags = selectedTagsFromView(view)
+  const tags = selectedTags.value
   const initialProperties = tags.length > 0 ? { tags } : {}
 
   await createNote(parentPath, initialProperties)

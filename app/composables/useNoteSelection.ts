@@ -77,7 +77,7 @@ export function useNoteSelection({
     selectedNoteRequestId.value = requestId
 
     try {
-      const loadedNote = await globalThis.$fetch<Note>(
+      const loadedNote = await $fetch<Note>(
         buildNoteContentPath(nextSelectedNoteId),
       )
 

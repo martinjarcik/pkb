@@ -1,9 +1,9 @@
-import { createError, defineEventHandler, readBody } from 'h3'
+import { createError, defineEventHandler } from 'h3'
 import { getNoteStorage } from '~/storage/router'
 import { extractLocalImageRefs } from '~/storage/imageRefs'
 import { deleteOrphanedAssetFiles } from '../deleteOrphanedAssetFiles'
 import { loadServerConfig } from '../loadServerConfig'
-import { isRecord } from '../validation'
+import { isRecord, readJsonBody } from '../validation'
 
 export function parseDeleteNoteInput(body: unknown): string {
   if (!isRecord(body)) {
@@ -28,8 +28,7 @@ export function parseDeleteNoteInput(body: unknown): string {
 export default defineEventHandler(async (event) => {
   const config = await loadServerConfig()
   const storage = getNoteStorage(config)
-  const body = await readBody(event)
-  const id = parseDeleteNoteInput(body)
+  const id = parseDeleteNoteInput(await readJsonBody(event))
 
   const note = await storage.loadNoteById(id)
 

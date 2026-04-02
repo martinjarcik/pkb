@@ -1,7 +1,6 @@
 <script setup lang="ts">
-import { tagFilterState } from '~/notes/sidebarFilters'
-
-const { accentColor, allTags, selectedView, cycleTag } = useSidebarNavigation()
+const { accentColor, allTags, tagFilterState, cycleTag } =
+  useSidebarNavigation()
 </script>
 
 <template>
@@ -10,7 +9,7 @@ const { accentColor, allTags, selectedView, cycleTag } = useSidebarNavigation()
       v-for="tag in allTags"
       :key="tag"
       :tag="tag"
-      :state="tagFilterState(selectedView, tag)"
+      :state="tagFilterState(tag)"
       :accent-color="accentColor"
       @click="cycleTag(tag)"
     />

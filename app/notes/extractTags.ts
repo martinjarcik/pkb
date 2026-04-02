@@ -1,3 +1,5 @@
+// Keep this hashtag matcher aligned with the editor-side wrappers in
+// `app/lib/markdownToBlocks.ts` and `app/lib/editorjsHashtagHighlight.ts`.
 export function extractTagsFromMarkdown(markdown: string): string[] {
   const tagSet = new Set<string>()
 

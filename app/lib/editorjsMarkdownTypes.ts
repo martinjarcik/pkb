@@ -5,9 +5,6 @@ export type EditorjsBlock = {
   tunes?: Record<string, unknown>
 }
 
-/** Path prefix for vault image API (use with a leading `/` before relative paths). */
-export const VAULT_ASSETS_API_PREFIX = '/api/vault-assets'
-
 export type MdPoint = {
   line: number
   column: number

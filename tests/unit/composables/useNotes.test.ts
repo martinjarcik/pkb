@@ -16,17 +16,25 @@ const { fetchMock, stateStore } = vi.hoisted(() => ({
   stateStore: new Map<string, { value: unknown }>(),
 }))
 
-vi.mock('#app', () => {
-  return {
-    useState<T>(key: string, init: () => T) {
-      if (!stateStore.has(key)) {
-        stateStore.set(key, { value: init() })
-      }
-
-      return stateStore.get(key) as { value: T }
-    },
+function mockedUseState<T>(key: string, init: () => T) {
+  if (!stateStore.has(key)) {
+    stateStore.set(key, { value: init() })
   }
-})
+
+  return stateStore.get(key) as { value: T }
+}
+
+vi.mock('#app', () => ({
+  useState: mockedUseState,
+}))
+
+vi.mock('#imports', () => ({
+  useState: mockedUseState,
+}))
+
+vi.mock('nuxt/app', () => ({
+  useState: mockedUseState,
+}))
 
 vi.mock('~/composables/useTranslations', () => ({
   t: (key: string) =>

@@ -44,8 +44,8 @@ function makeFragment(htmlString: string): DocumentFragment {
   return fragment
 }
 
-function normalizeSimpleQuoteHtml(html: string): string {
-  return html
+export function normalizeSimpleQuoteText(text: string): string {
+  return text
     .replace(/\r\n|\r|\n/g, ' ')
     .replace(/<br\b[^>]*\/?>/gi, ' ')
     .trim()
@@ -111,7 +111,7 @@ export default class SimpleQuoteTool {
 
     this.placeholder = config.placeholder ?? SimpleQuoteTool.DEFAULT_PLACEHOLDER
     this.data = {
-      text: normalizeSimpleQuoteHtml(data?.text ?? ''),
+      text: normalizeSimpleQuoteText(data?.text ?? ''),
     }
     this.element = null
     this.preserveBlank = config.preserveBlank ?? false
@@ -154,7 +154,7 @@ export default class SimpleQuoteTool {
       return
     }
 
-    const nextText = normalizeSimpleQuoteHtml(data.text)
+    const nextText = normalizeSimpleQuoteText(data.text)
 
     this.data.text += nextText
     this.element.appendChild(makeFragment(nextText))
@@ -171,13 +171,13 @@ export default class SimpleQuoteTool {
 
   save(toolsContent: HTMLDivElement): SimpleQuoteData {
     return {
-      text: normalizeSimpleQuoteHtml(toolsContent.innerHTML),
+      text: normalizeSimpleQuoteText(toolsContent.innerHTML),
     }
   }
 
   onPaste(event: HTMLPasteEvent): void {
     this.data = {
-      text: normalizeSimpleQuoteHtml(event.detail.data.innerHTML),
+      text: normalizeSimpleQuoteText(event.detail.data.innerHTML),
     }
 
     window.requestAnimationFrame(() => {

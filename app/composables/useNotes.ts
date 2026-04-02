@@ -110,14 +110,7 @@ export function useNotes() {
     saveWebhookForSelectedNote,
     deleteSelectedNote,
   } = useNoteMutations({
-    notes,
     selectedNote,
-    selectedNoteId,
-    selectedNoteFull,
-    saveError,
-    shouldFocusTitle,
-    isRenamingNoteTitle,
-    editorFlush,
     replaceNote,
     replaceRenamedNote,
     prependNote,
@@ -131,8 +124,7 @@ export function useNotes() {
     loadError.value = null
 
     try {
-      const loadedNotes =
-        await globalThis.$fetch<NoteCatalogRow[]>('/api/notes')
+      const loadedNotes = await $fetch<NoteCatalogRow[]>('/api/notes')
 
       notes.value = loadedNotes
 
