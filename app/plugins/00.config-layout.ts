@@ -1,4 +1,5 @@
 import { loadConfig } from '~/config/loader'
+import { LAYOUT_STATE_KEYS } from '~/composables/useLayout'
 
 export default defineNuxtPlugin(async () => {
   const defaultLayout = loadConfig().layout
@@ -7,7 +8,13 @@ export default defineNuxtPlugin(async () => {
 
   const layout = data.value?.layout ?? defaultLayout
 
-  useState('layout.showSidebarPanel', () => layout.showSidebarPanel)
-  useState('layout.showInspectorPanel', () => layout.showInspectorPanel)
-  useState('layout.showNotesListPanel', () => layout.showNotesListPanel)
+  useState(LAYOUT_STATE_KEYS.showSidebarPanel, () => layout.showSidebarPanel)
+  useState(
+    LAYOUT_STATE_KEYS.showInspectorPanel,
+    () => layout.showInspectorPanel,
+  )
+  useState(
+    LAYOUT_STATE_KEYS.showNotesListPanel,
+    () => layout.showNotesListPanel,
+  )
 })

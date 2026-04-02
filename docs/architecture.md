@@ -183,6 +183,21 @@ those rules.
   edited title plus `.md`, while keeping the parent folder unchanged. On
   collisions, storage selects a unique suffixed filename.
 
+### Editor lifecycle contracts
+
+- `NoteEditor.client.vue` applies `patchExecCommandForInlineHighlight()` during
+  mount so inline highlight operations stay in sync with autosave. It must call
+  `restoreExecCommand()` during `onBeforeUnmount`.
+- `BigEmojiTool` registers a capture-phase `mousedown` listener on `document`
+  in its constructor. Cleanup happens through the Editor.js tool `destroy()`
+  path when `NoteEditor` destroys the editor instance on unmount.
+- `useEditorSync()` owns the pending autosave timer. `NoteEditor.client.vue`
+  must call `clearPendingContentSync()` during prop-driven re-renders and
+  before unmount.
+- `useEditorTitleRepair()` uses an `isRepairingTitleBlock` guard to prevent
+  re-entrant title-block normalization while Editor.js change callbacks are in
+  flight.
+
 ## UI interaction patterns
 
 - Actions are scoped to their parent context: `NoteControls` operates on the
@@ -281,3 +296,34 @@ concurrent requests. Module-scope state leaks across requests.
   by default (`PKB_META_PATH` overrides the path). Loaded and updated via
   `GET /api/meta` and `PUT /api/meta`; `useFolderMeta()` holds reactive folder
   metadata in `useState`.
+
+### Config sources in the running app
+
+- Disk-backed config (`useAppConfigDisk()`) currently affects layout panel
+  visibility through `app/plugins/00.config-layout.ts` and the excluded
+  `editor.assetsFolder` name in `useSidebarNavigation()`.
+- Bundled defaults from `loadConfig()` still drive `theme.accentColor`,
+  `theme.defaultEditorColor`, all `features.*` flags, `locale`,
+  `editor.autosaveDelay`, and `editorColors`.
+- `PUT /api/app-config` accepts patches for the full `AppConfig` shape, but the
+  running client only consumes a subset of those values from disk today. Treat
+  that as an explicit design constraint unless a feature changes it.
+
+## Common change chains
+
+- Adding an Application Property:
+  update `APPLICATION_PROPERTY_KEYS` and the explicit optional fields in
+  `app/notes/types.ts`, handle frontmatter mapping in `app/storage/document.ts`,
+  update the affected domain logic in `app/notes/`, expose the behavior through
+  the relevant composable, and update `docs/ubiquitous-language.md` if the
+  term is user-visible.
+- Adding an Editor.js block type:
+  implement the tool in `app/lib/`, register it in
+  `app/lib/editorjsToolsConfig.ts`, add conversion support in
+  `app/lib/markdownToBlocks.ts` and `app/lib/blocksToMarkdown.ts`, then cover
+  the behavior with an end-to-end test.
+- Changing hashtag matching:
+  keep `app/notes/extractTags.ts`, `app/lib/markdownToBlocks.ts`, and
+  `app/lib/editorjsHashtagHighlight.ts` aligned. The shared
+  `createHashtagPattern()` helper in `app/notes/extractTags.ts` exists to keep
+  those three paths consistent.

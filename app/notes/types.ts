@@ -38,6 +38,12 @@ export type Note = NoteProperties & {
   modifiedAt: string
   title: string
   description: string
+  tags?: string[]
+  hasTasks?: boolean
+  trashedAt?: string
+  favorite?: boolean
+  pinned?: boolean
+  webhook?: string
 }
 
 export type NoteCatalogRow = NoteProperties & {
@@ -48,4 +54,10 @@ export type NoteCatalogRow = NoteProperties & {
   modifiedAt: string
   title: string
   description: string
+  tags?: string[]
+  hasTasks?: boolean
+  trashedAt?: string
+  favorite?: boolean
+  pinned?: boolean
+  webhook?: string
 }

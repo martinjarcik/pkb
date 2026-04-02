@@ -1,6 +1,7 @@
 import { remark } from 'remark'
 import remarkGfm from 'remark-gfm'
 import { remarkHighlightMark } from 'remark-highlight-mark'
+import { createHashtagPattern } from '~/notes/extractTags'
 import { isBigEmojiContent, renderBigEmojiHtml } from './bigEmoji'
 import { editorDisplayUrlForMarkdownImage } from './editorjsImageUrl'
 import { inlineHtmlToMarkdown } from './editorjsInlineNormalization'
@@ -165,7 +166,7 @@ function markdownNewlinesToEditorHtml(text: string): string {
 // `app/lib/editorjsHashtagHighlight.ts`.
 function wrapHashtagsForEditorHtml(text: string): string {
   return text.replace(
-    /(^|\s)(#[^\s#]+)/gu,
+    createHashtagPattern(),
     (_match, leadingWhitespace, hashtag) =>
       `${leadingWhitespace}<span class="inline-hashtag">${hashtag}</span>`,
   )

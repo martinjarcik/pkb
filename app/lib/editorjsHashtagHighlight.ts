@@ -1,3 +1,4 @@
+import { createHashtagPattern } from '~/notes/extractTags'
 import { caretTextOffsetWithin, setCaretTextOffset } from './editorjsCaretUtils'
 
 // Keep this live-DOM hashtag matcher aligned with the markdown-side matchers in
@@ -6,7 +7,7 @@ function createHashtagFragment(
   text: string,
   hashtagCssClass: string,
 ): DocumentFragment | null {
-  const matches = [...text.matchAll(/(^|\s)(#[^\s#]+)/gu)]
+  const matches = [...text.matchAll(createHashtagPattern())]
 
   if (matches.length === 0) {
     return null

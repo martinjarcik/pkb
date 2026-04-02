@@ -2,6 +2,13 @@ import { useState } from '#app'
 import { loadConfig } from '~/config/loader'
 
 const defaultLayout = loadConfig().layout
+export const LAYOUT_STATE_KEYS = {
+  showInspectorPanel: 'layout.showInspectorPanel',
+  showSidebarPanel: 'layout.showSidebarPanel',
+  showNotesListPanel: 'layout.showNotesListPanel',
+  nonDistractionMode: 'layout.nonDistractionMode',
+  nonDistractionSnapshot: 'layout.nonDistractionSnapshot',
+} as const
 
 type LayoutVisibilitySnapshot = {
   showInspectorPanel: boolean
@@ -20,21 +27,24 @@ export function useLayout() {
   }
 
   const showInspectorPanel = useState(
-    'layout.showInspectorPanel',
+    LAYOUT_STATE_KEYS.showInspectorPanel,
     () => defaultLayout.showInspectorPanel,
   )
   const showSidebarPanel = useState(
-    'layout.showSidebarPanel',
+    LAYOUT_STATE_KEYS.showSidebarPanel,
     () => defaultLayout.showSidebarPanel,
   )
   const showNotesListPanel = useState(
-    'layout.showNotesListPanel',
+    LAYOUT_STATE_KEYS.showNotesListPanel,
     () => defaultLayout.showNotesListPanel,
   )
 
-  const nonDistractionMode = useState('layout.nonDistractionMode', () => false)
+  const nonDistractionMode = useState(
+    LAYOUT_STATE_KEYS.nonDistractionMode,
+    () => false,
+  )
   const nonDistractionSnapshot = useState<LayoutVisibilitySnapshot | null>(
-    'layout.nonDistractionSnapshot',
+    LAYOUT_STATE_KEYS.nonDistractionSnapshot,
     () => null,
   )
 

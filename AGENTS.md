@@ -76,6 +76,7 @@ Nuxt auto-imported (do not add explicit imports):
 - `app/composables/` -> shared Vue state and UI logic
 - `app/pages/` -> routes
 - `app/layouts/` -> page layouts
+- `$fetch` -> Nuxt HTTP client available globally in app code without import
 
 Explicit imports required:
 
