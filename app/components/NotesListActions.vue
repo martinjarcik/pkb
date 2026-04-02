@@ -2,6 +2,7 @@
 import { ref, type CSSProperties } from 'vue'
 import { useEventListener } from '@vueuse/core'
 import { MoreVertical } from 'lucide-vue-next'
+import { selectedTagsFromView } from '~/notes/sidebarFilters'
 
 const { createNote } = useNotes()
 const { selectedView } = useSidebarNavigation()

@@ -1,14 +1,13 @@
 import { createError, defineEventHandler, readBody } from 'h3'
+import { normalizeSaveProperties } from '~/notes/saveNoteInput'
 import { getNoteStorage } from '~/storage/router'
-import { sanitizeProperties } from '~/storage/document'
-import { orphanedImageRefs } from '~/storage/imageRefs'
 import type { SaveNoteInput } from '~/storage/types'
+import { cleanupOrphanedAssets } from '../cleanupOrphanedAssets'
 import { dispatchNoteWebhook } from '../dispatchNoteWebhook'
-import { deleteOrphanedAssetFiles } from '../deleteOrphanedAssetFiles'
 import { loadServerConfig } from '../loadServerConfig'
 import { isRecord } from '../validation'
 
-export function parseSaveNoteInput(body: unknown): SaveNoteInput {
+function parseSaveNoteInput(body: unknown): SaveNoteInput {
   if (!isRecord(body)) {
     throw createError({
       statusCode: 400,
@@ -39,7 +38,7 @@ export function parseSaveNoteInput(body: unknown): SaveNoteInput {
   return {
     id,
     content,
-    properties: sanitizeProperties(properties),
+    properties: normalizeSaveProperties(properties, content),
   }
 }
 
@@ -55,11 +54,7 @@ export default defineEventHandler(async (event) => {
   const saved = await storage.saveNote(input)
 
   if (config.applicationType === 'desktop') {
-    const orphaned = orphanedImageRefs(oldContent, input.content)
-
-    if (orphaned.length > 0) {
-      void deleteOrphanedAssetFiles(config.vault, orphaned)
-    }
+    cleanupOrphanedAssets(config.vault, oldContent, input.content)
   }
 
   const hook = saved.webhook

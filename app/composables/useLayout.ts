@@ -1,7 +1,6 @@
 import { loadConfig } from '~/config/loader'
 
 const defaultLayout = loadConfig().layout
-const defaultFeatures = loadConfig().features
 
 type LayoutVisibilitySnapshot = {
   showInspectorPanel: boolean
@@ -82,15 +81,5 @@ export function useLayout() {
     toggleInspectorPanel,
     toggleNonDistractionMode,
     toggleSidebarPanel,
-  }
-}
-
-export function useAppFeatures() {
-  return {
-    favorites: defaultFeatures.favorites,
-    tasks: defaultFeatures.tasks,
-    pinned: defaultFeatures.pinned,
-    nonDistractionMode: defaultFeatures.nonDistractionMode,
-    noteWebhook: defaultFeatures.noteWebhook,
   }
 }

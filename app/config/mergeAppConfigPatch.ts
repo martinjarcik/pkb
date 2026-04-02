@@ -1,13 +1,4 @@
-type JsonObject = Record<string, unknown>
-
-function isPlainObject(value: unknown): value is JsonObject {
-  return (
-    typeof value === 'object' &&
-    value !== null &&
-    !Array.isArray(value) &&
-    Object.getPrototypeOf(value) === Object.prototype
-  )
-}
+import { isPlainObject, type JsonObject } from './isPlainObject'
 
 /**
  * Deep-merge patch into base (plain objects only). Patch values win; nested objects merge recursively.

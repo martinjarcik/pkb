@@ -1,7 +1,7 @@
-import { loadConfig } from '~/config/loader'
+import { EDITOR_COLORS } from './editorColors'
 import type { EditorjsBlock } from './editorjsMarkdownTypes'
 
-export const BLOCK_BACKGROUND_COLORS = loadConfig().editorColors
+export const BLOCK_BACKGROUND_COLORS = EDITOR_COLORS
 export const BLOCK_BACKGROUND_TUNE_NAME = 'backgroundColor'
 export const BLOCK_BACKGROUND_CLASS_PREFIX = 'editor-background-'
 
@@ -16,9 +16,9 @@ function blockBackgroundCssClass(color: BlockBackgroundColor): string {
 }
 
 export function isBlockBackgroundColor(
-  value: string,
+  value: string | undefined,
 ): value is BlockBackgroundColor {
-  return value in BLOCK_BACKGROUND_COLORS
+  return Boolean(value && value in BLOCK_BACKGROUND_COLORS)
 }
 
 export function extractBlockBackgroundColorFromCssClasses(

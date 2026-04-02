@@ -1,19 +1,13 @@
 <script setup lang="ts">
 import type { EditorjsBlock } from '~/lib/editorjsMarkdownTypes'
-import { editorjsBlocksToMarkdown } from '~/lib/blocksToMarkdown'
 import {
   BLOCK_BACKGROUND_TUNE_NAME,
-  normalizeSavedEditorjsBlocks,
   prepareEditorjsBlocksForEditor,
 } from '~/lib/editorjsBlockBackground'
 import EditorjsBlockBackgroundTune from '~/lib/editorjsBlockBackgroundTune'
 import { editorMessages } from '~/lib/editorjsMessages'
-import {
-  blocksMatch,
-  ensureNoteTitleBlock,
-  extractNoteTitleText,
-  renderNoteTitleBlocks,
-} from '~/lib/editorjsTitleBlock'
+import { handleHashtagCompletionKeyup } from '~/lib/editorjsHashtagHighlight'
+import { renderNoteTitleBlocks } from '~/lib/editorjsTitleBlock'
 import BigEmojiTool from '~/lib/bigEmojiTool'
 import InlineHighlightTool from '~/lib/inlineHighlightTool'
 import InlineHashtagTool from '~/lib/inlineHashtagTool'
@@ -76,13 +70,7 @@ const holder = ref<HTMLDivElement | null>(null)
 const editorError = ref<string | null>(null)
 const isEditorLoading = ref(true)
 
-let editor: EditorjsInstance | null = null
-let isApplyingExternalContent = false
-let isRepairingTitleBlock = false
-let lastRenderedContent = ''
-let lastRenderedTitle = ''
-let contentSyncTimeout: ReturnType<typeof setTimeout> | null = null
-let pendingExternalRender: { content: string; title: string } | null = null
+const editor = ref<EditorjsInstance | null>(null)
 
 function getDefaultExport(module: unknown): unknown {
   if (typeof module === 'object' && module !== null && 'default' in module) {
@@ -92,156 +80,31 @@ function getDefaultExport(module: unknown): unknown {
   return module
 }
 
-function caretTextOffsetWithin(container: HTMLElement): number | null {
-  const selection = window.getSelection()
+const {
+  isApplyingExternalContent,
+  lastRenderedContent,
+  lastRenderedTitle,
+  renderMarkdownContent,
+  flushContentSync,
+  scheduleContentSync,
+  clearPendingContentSync,
+  resetPendingExternalRender,
+} = useEditorSync({
+  editor,
+  autosaveDelay: () => props.autosaveDelay,
+  content: () => props.content,
+  title: () => props.title,
+  emitContentChange: (value) => emit('content-change', value),
+})
 
-  if (!selection || selection.rangeCount === 0 || !selection.isCollapsed) {
-    return null
-  }
-
-  const range = selection.getRangeAt(0).cloneRange()
-
-  if (!container.contains(range.endContainer)) {
-    return null
-  }
-
-  range.setStart(container, 0)
-
-  return range.toString().length
-}
-
-function setCaretTextOffset(container: HTMLElement, offset: number): void {
-  const selection = window.getSelection()
-
-  if (!selection) {
-    return
-  }
-
-  const walker = document.createTreeWalker(container, NodeFilter.SHOW_TEXT)
-  let traversed = 0
-  let currentNode = walker.nextNode()
-
-  while (currentNode) {
-    const textNode = currentNode as Text
-    const nextTraversed = traversed + textNode.data.length
-
-    if (offset <= nextTraversed) {
-      const range = document.createRange()
-      const nodeOffset = Math.max(0, offset - traversed)
-
-      range.setStart(textNode, nodeOffset)
-      range.collapse(true)
-      selection.removeAllRanges()
-      selection.addRange(range)
-      return
-    }
-
-    traversed = nextTraversed
-    currentNode = walker.nextNode()
-  }
-
-  const range = document.createRange()
-
-  range.selectNodeContents(container)
-  range.collapse(false)
-  selection.removeAllRanges()
-  selection.addRange(range)
-}
-
-function createHashtagFragment(text: string): DocumentFragment | null {
-  const matches = [...text.matchAll(/(^|\s)(#[^\s#]+)/gu)]
-
-  if (matches.length === 0) {
-    return null
-  }
-
-  const fragment = document.createDocumentFragment()
-  let lastIndex = 0
-
-  for (const match of matches) {
-    const leading = match[1] ?? ''
-    const tag = match[2] ?? ''
-    const matchIndex = match.index ?? 0
-    const tagStart = matchIndex + leading.length
-
-    fragment.append(text.slice(lastIndex, tagStart))
-
-    const hashtag = document.createElement('span')
-
-    hashtag.className = InlineHashtagTool.CSS
-    hashtag.textContent = tag
-    fragment.append(hashtag)
-    lastIndex = tagStart + tag.length
-  }
-
-  fragment.append(text.slice(lastIndex))
-
-  return fragment
-}
-
-function highlightHashtagsInEditable(editable: HTMLElement): void {
-  const caretOffset = caretTextOffsetWithin(editable)
-  const walker = document.createTreeWalker(editable, NodeFilter.SHOW_TEXT, {
-    acceptNode(node) {
-      const parentElement = node.parentElement
-
-      if (
-        parentElement?.closest(
-          `.${InlineHashtagTool.CSS}, code, a, [data-note-title]`,
-        )
-      ) {
-        return NodeFilter.FILTER_REJECT
-      }
-
-      return NodeFilter.FILTER_ACCEPT
-    },
-  })
-  const textNodes: Text[] = []
-
-  let currentNode = walker.nextNode()
-
-  while (currentNode) {
-    textNodes.push(currentNode as Text)
-    currentNode = walker.nextNode()
-  }
-
-  let didReplace = false
-
-  for (const textNode of textNodes) {
-    const fragment = createHashtagFragment(textNode.data)
-
-    if (!fragment) {
-      continue
-    }
-
-    textNode.parentNode?.replaceChild(fragment, textNode)
-    didReplace = true
-  }
-
-  if (didReplace && caretOffset !== null) {
-    setCaretTextOffset(editable, caretOffset)
-  }
-}
-
-function resolveEditableTarget(target: EventTarget | null): HTMLElement | null {
-  if (!(target instanceof Node)) {
-    return null
-  }
-
-  const element =
-    target instanceof HTMLElement ? target : (target.parentElement ?? null)
-  const editable = element?.closest<HTMLElement>('[contenteditable="true"]')
-
-  if (
-    !editable ||
-    !holder.value?.contains(editable) ||
-    editable.matches('[data-note-title]')
-  ) {
-    return null
-  }
-
-  return editable
-}
+const { commitTitleChange, handleEditorChange } = useEditorTitleRepair({
+  editor,
+  isApplyingExternalContent,
+  title: () => props.title,
+  flushContentSync,
+  scheduleContentSync,
+  emitTitleChange: (value) => emit('title-change', value),
+})
 
 function findAncestorHighlightMark(node: Node | null): HTMLElement | null {
   if (!node) {
@@ -369,123 +232,12 @@ function restoreExecCommand(): void {
 }
 
 function handleHolderKeyup(event: KeyboardEvent): void {
-  if (event.key !== ' ' && event.code !== 'Space') {
-    return
-  }
-
-  const editable = resolveEditableTarget(event.target)
-
-  if (!editable || !hashtagCompletionPattern.test(editable.textContent ?? '')) {
-    return
-  }
-
-  highlightHashtagsInEditable(editable)
-}
-
-async function renderMarkdownContent(
-  markdown: string,
-  title: string = props.title,
-): Promise<void> {
-  if (!editor) {
-    return
-  }
-
-  if (isApplyingExternalContent) {
-    pendingExternalRender = { content: markdown, title }
-    return
-  }
-
-  await editor.isReady
-  isApplyingExternalContent = true
-
-  try {
-    const blocks = renderNoteTitleBlocks(
-      markdownToEditorjsBlocks(markdown),
-      title,
-    )
-
-    await editor.blocks.render({
-      blocks: prepareEditorjsBlocksForEditor(blocks),
-    })
-    lastRenderedContent = markdown
-    lastRenderedTitle = title
-  } finally {
-    await nextTick()
-    isApplyingExternalContent = false
-  }
-
-  const queuedRender = pendingExternalRender
-
-  pendingExternalRender = null
-
-  if (
-    queuedRender &&
-    (queuedRender.content !== lastRenderedContent ||
-      queuedRender.title !== lastRenderedTitle)
-  ) {
-    await renderMarkdownContent(queuedRender.content, queuedRender.title)
-    return
-  }
-
-  if (
-    props.content !== lastRenderedContent ||
-    props.title !== lastRenderedTitle
-  ) {
-    await renderMarkdownContent(props.content, props.title)
-  }
-}
-
-async function emitContentChange(): Promise<void> {
-  if (!editor || isApplyingExternalContent) {
-    return
-  }
-
-  await editor.isReady
-  const output = await editor.save()
-  const blocks = normalizeSavedEditorjsBlocks(output.blocks)
-  const markdown = editorjsBlocksToMarkdown(blocks)
-
-  lastRenderedContent = markdown
-  emit('content-change', markdown)
-}
-
-async function flushContentSync(): Promise<void> {
-  if (!contentSyncTimeout) {
-    return
-  }
-
-  clearTimeout(contentSyncTimeout)
-  contentSyncTimeout = null
-  await emitContentChange()
-}
-
-function scheduleContentSync(): void {
-  if (contentSyncTimeout) {
-    clearTimeout(contentSyncTimeout)
-  }
-
-  contentSyncTimeout = setTimeout(() => {
-    contentSyncTimeout = null
-    void emitContentChange()
-  }, props.autosaveDelay)
-}
-
-async function commitTitleChange(): Promise<void> {
-  if (!editor || isApplyingExternalContent) {
-    return
-  }
-
-  await editor.isReady
-  const output = await editor.save()
-  const blocks = normalizeSavedEditorjsBlocks(output.blocks)
-  const titleText = extractNoteTitleText(blocks)
-
-  if (titleText.length === 0 || titleText === props.title) {
-    return
-  }
-
-  await flushContentSync()
-  emit('title-change', titleText)
+  handleHashtagCompletionKeyup({
+    event,
+    holder: holder.value,
+    hashtagCssClass: InlineHashtagTool.CSS,
+    completionPattern: hashtagCompletionPattern,
+  })
 }
 
 function handleHolderFocusout(event: FocusEvent): void {
@@ -500,109 +252,20 @@ function handleHolderFocusout(event: FocusEvent): void {
   void commitTitleChange()
 }
 
-function findNoteTitleIndex(): number {
-  if (!editor) {
-    return -1
-  }
-
-  const blocksCount = editor.blocks.getBlocksCount()
-
-  for (let index = 0; index < blocksCount; index++) {
-    if (editor.blocks.getBlockByIndex(index)?.name === 'noteTitle') {
-      return index
-    }
-  }
-
-  return -1
-}
-
-function repairMovedNoteTitleBlock(): boolean {
-  if (!editor) {
-    return false
-  }
-
-  if (editor.blocks.getBlockByIndex(0)?.name === 'noteTitle') {
-    return false
-  }
-
-  const noteTitleIndex = findNoteTitleIndex()
-
-  if (noteTitleIndex <= 0) {
-    return false
-  }
-
-  isRepairingTitleBlock = true
-
-  try {
-    editor.blocks.move(0, noteTitleIndex)
-  } finally {
-    window.requestAnimationFrame(() => {
-      isRepairingTitleBlock = false
-    })
-  }
-
-  return true
-}
-
-function isEditorBusy(): boolean {
-  return !editor || isApplyingExternalContent || isRepairingTitleBlock
-}
-
-async function handleEditorChange(): Promise<void> {
-  if (isEditorBusy()) {
-    return
-  }
-
-  await editor!.isReady
-
-  if (isEditorBusy()) {
-    return
-  }
-
-  if (repairMovedNoteTitleBlock()) {
-    return
-  }
-
-  const output = await editor!.save()
-
-  if (isEditorBusy()) {
-    return
-  }
-
-  const savedBlocks = normalizeSavedEditorjsBlocks(output.blocks)
-  const normalizedBlocks = ensureNoteTitleBlock(savedBlocks, props.title)
-
-  if (!blocksMatch(savedBlocks, normalizedBlocks)) {
-    isRepairingTitleBlock = true
-
-    try {
-      await editor!.blocks.render({
-        blocks: prepareEditorjsBlocksForEditor(normalizedBlocks),
-      })
-    } finally {
-      isRepairingTitleBlock = false
-    }
-
-    return
-  }
-
-  scheduleContentSync()
-}
-
 async function focusTitle(): Promise<void> {
-  if (!editor) {
+  if (!editor.value) {
     return
   }
 
   await nextTick()
-  await editor.isReady
+  await editor.value.isReady
   await nextTick()
 
   const titleElement =
     holder.value?.querySelector<HTMLElement>('[data-note-title]')
 
   if (!titleElement) {
-    editor.caret.setToBlock(0, 'end', 0)
+    editor.value.caret.setToBlock(0, 'end', 0)
     return
   }
 
@@ -631,7 +294,7 @@ onMounted(async () => {
     return
   }
 
-  isApplyingExternalContent = true
+  isApplyingExternalContent.value = true
 
   try {
     const initialContent = props.content
@@ -671,7 +334,7 @@ onMounted(async () => {
       initialTitle,
     )
 
-    editor = new Editorjs({
+    editor.value = new Editorjs({
       holder: holder.value,
       autofocus: false,
       inlineToolbar: inlineToolbarTools,
@@ -796,7 +459,7 @@ onMounted(async () => {
       },
     })
 
-    await editor.isReady
+    await editor.value.isReady
     await nextTick()
 
     const latestBlocks = renderNoteTitleBlocks(
@@ -804,25 +467,25 @@ onMounted(async () => {
       props.title,
     )
 
-    await editor.blocks.render({
+    await editor.value.blocks.render({
       blocks: prepareEditorjsBlocksForEditor(latestBlocks),
     })
 
-    isApplyingExternalContent = false
+    isApplyingExternalContent.value = false
     patchExecCommand()
     holder.value?.addEventListener('focusout', handleHolderFocusout)
     holder.value?.addEventListener('keydown', handleHolderKeydown, true)
     holder.value?.addEventListener('keyup', handleHolderKeyup)
 
-    lastRenderedContent = props.content
-    lastRenderedTitle = props.title
+    lastRenderedContent.value = props.content
+    lastRenderedTitle.value = props.title
   } catch (error) {
     editorError.value =
       error instanceof Error
         ? error.message
         : translate('noteEditor.errorFallback')
   } finally {
-    isApplyingExternalContent = false
+    isApplyingExternalContent.value = false
     isEditorLoading.value = false
   }
 })
@@ -830,14 +493,12 @@ onMounted(async () => {
 watch(
   () => [props.content, props.title] as const,
   ([nextContent, nextTitle]) => {
-    if (contentSyncTimeout) {
-      clearTimeout(contentSyncTimeout)
-      contentSyncTimeout = null
-    }
+    clearPendingContentSync()
 
     if (
-      !editor ||
-      (nextContent === lastRenderedContent && nextTitle === lastRenderedTitle)
+      !editor.value ||
+      (nextContent === lastRenderedContent.value &&
+        nextTitle === lastRenderedTitle.value)
     ) {
       return
     }
@@ -852,20 +513,16 @@ defineExpose({
 })
 
 onBeforeUnmount(() => {
-  if (contentSyncTimeout) {
-    clearTimeout(contentSyncTimeout)
-    contentSyncTimeout = null
-  }
-
-  pendingExternalRender = null
+  clearPendingContentSync()
+  resetPendingExternalRender()
 
   holder.value?.removeEventListener('focusout', handleHolderFocusout)
   holder.value?.removeEventListener('keydown', handleHolderKeydown, true)
   holder.value?.removeEventListener('keyup', handleHolderKeyup)
   restoreExecCommand()
-  isApplyingExternalContent = true
-  editor?.destroy()
-  editor = null
+  isApplyingExternalContent.value = true
+  editor.value?.destroy()
+  editor.value = null
 })
 </script>
 

@@ -1,10 +1,11 @@
 import { createError, defineEventHandler, readBody } from 'h3'
+import { InvalidNoteTitleError } from '~/notes/noteId'
 import { getNoteStorage } from '~/storage/router'
 import type { RenameNoteTitleInput } from '~/storage/types'
 import { loadServerConfig } from '../loadServerConfig'
 import { isRecord } from '../validation'
 
-export function parseRenameNoteTitleInput(body: unknown): RenameNoteTitleInput {
+function parseRenameNoteTitleInput(body: unknown): RenameNoteTitleInput {
   if (!isRecord(body)) {
     throw createError({
       statusCode: 400,
@@ -39,11 +40,7 @@ export default defineEventHandler(async (event) => {
   try {
     return await storage.renameNoteTitle(parseRenameNoteTitleInput(body))
   } catch (error) {
-    if (
-      error instanceof Error &&
-      error.message ===
-        'Note title must contain at least one valid filename character'
-    ) {
+    if (error instanceof InvalidNoteTitleError) {
       throw createError({
         statusCode: 400,
         statusMessage: error.message,

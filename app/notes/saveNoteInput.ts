@@ -18,16 +18,34 @@ function mergeTags(existing: string[], extracted: string[]): string[] {
   )
 }
 
-export function buildSaveNoteInput(note: Note, content: string): SaveNoteInput {
-  const properties = sanitizeProperties(note)
+export function normalizeSaveProperties(
+  properties: unknown,
+  content: string,
+): SaveNoteInput['properties'] {
+  const sanitizedProperties = sanitizeProperties(properties)
+  const existing =
+    Array.isArray(sanitizedProperties.tags) &&
+    sanitizedProperties.tags.every((tag) => typeof tag === 'string')
+      ? sanitizedProperties.tags
+      : []
 
   return {
+    ...sanitizedProperties,
+    hasTasks: detectHasTasks(content),
+    tags: mergeTags(existing, extractTagsFromMarkdown(content)),
+  }
+}
+
+export function buildSaveNoteInput(note: Note, content: string): SaveNoteInput {
+  return {
     id: note.id,
-    properties: {
-      ...properties,
-      hasTasks: detectHasTasks(content),
-      tags: mergeTags(existingTags(note), extractTagsFromMarkdown(content)),
-    },
+    properties: normalizeSaveProperties(
+      {
+        ...note,
+        tags: existingTags(note),
+      },
+      content,
+    ),
     content,
   }
 }

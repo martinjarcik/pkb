@@ -1,9 +1,11 @@
 import type { API, BlockAPI } from '@editorjs/editorjs'
 import {
   BLOCK_BACKGROUND_COLORS,
+  isBlockBackgroundColor,
   type BlockBackgroundColor,
 } from './editorjsBlockBackground'
 import { backgroundSwatchIcon } from './editorColorSwatch'
+import { ICON_CLEAR } from './editorIcons'
 
 type BlockBackgroundTuneData = {
   color?: string
@@ -29,15 +31,6 @@ type MenuConfigItem = {
 
 const ICON_BACKGROUND =
   '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 15.5L14.5 5a2.121 2.121 0 0 1 3 3L7 18.5H4v-3Z"/><path stroke="currentColor" stroke-linecap="round" stroke-width="2" d="M13 7l4 4"/><path stroke="currentColor" stroke-linecap="round" stroke-width="2" d="M4 20h16"/></svg>'
-
-const ICON_CLEAR =
-  '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 20 20"><rect x="1" y="1" width="18" height="18" rx="2" stroke="currentColor" stroke-width="1.25"/><path stroke="currentColor" stroke-linecap="round" stroke-width="1.25" d="M6 14L14 6"/></svg>'
-
-function isBlockBackgroundColor(
-  value: string | undefined,
-): value is BlockBackgroundColor {
-  return Boolean(value && value in BLOCK_BACKGROUND_COLORS)
-}
 
 export default class EditorjsBlockBackgroundTune {
   static get isTune(): boolean {

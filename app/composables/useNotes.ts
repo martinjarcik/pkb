@@ -2,25 +2,18 @@ import { useState } from '#app'
 import { computed } from 'vue'
 import { loadConfig } from '~/config/loader'
 import { t } from '~/composables/useTranslations'
+import { useNoteMutations } from '~/composables/useNoteMutations'
+import {
+  type EditorFlush,
+  useNoteSelection,
+} from '~/composables/useNoteSelection'
 import { createNoteCatalogRow } from '~/notes/catalogRow'
 import { noteDescriptionFromContent } from '~/notes/noteDescriptionFromContent'
-import { resolveUniqueNoteIdForParentPath } from '~/notes/noteId'
-import { noteWithToggledFavorite } from '~/notes/noteWithToggledFavorite'
-import { noteWithToggledPinned } from '~/notes/noteWithToggledPinned'
-import { noteWithWebhookUrl } from '~/notes/noteWithWebhookUrl'
-import { buildSaveNoteInput } from '~/notes/saveNoteInput'
 import type { Note, NoteCatalogRow } from '~/notes/types'
-import { catalogRowIsTrashed } from '~/notes/trash'
-
-function buildNoteContentPath(id: string): string {
-  return `/api/notes/${id.split('/').map(encodeURIComponent).join('/')}`
-}
 
 const defaultEditor = loadConfig().editor
 
 export function useNotes() {
-  type EditorFlush = () => Promise<void>
-
   const editorAutosaveDelay = defaultEditor.autosaveDelay
   const notes = useState<NoteCatalogRow[]>('notes.items', () => [])
   const isLoading = useState('notes.isLoading', () => false)
@@ -41,30 +34,6 @@ export function useNotes() {
     () => null,
   )
   const selectedNoteRequestId = useState('notes.selectedNoteRequestId', () => 0)
-  const selectedNote = computed(() =>
-    selectedNoteFull.value?.id === selectedNoteId.value
-      ? selectedNoteFull.value
-      : null,
-  )
-  const showNoteControls = computed(
-    () =>
-      selectedNote.value !== null && !catalogRowIsTrashed(selectedNote.value),
-  )
-  const selectedNoteTitle = computed(() => {
-    if (selectedNote.value) {
-      return selectedNote.value.title
-    }
-
-    if (selectedNoteId.value) {
-      const catalogRow = notes.value.find(
-        (note) => note.id === selectedNoteId.value,
-      )
-
-      return catalogRow?.title ?? ''
-    }
-
-    return ''
-  })
   const catalog = computed(() => notes.value)
 
   function sortNotesByModifiedAt(
@@ -121,292 +90,41 @@ export function useNotes() {
     shouldFocusTitle.value = false
   }
 
-  async function selectNoteById(id: string | null): Promise<void> {
-    const nextSelectedNoteId =
-      id !== null && notes.value.some((note) => note.id === id) ? id : null
+  const { selectedNote, showNoteControls, selectedNoteTitle, selectNoteById } =
+    useNoteSelection({
+      notes,
+      editorFlush,
+      selectedNoteId,
+      selectedNoteFull,
+      selectedNoteRequestId,
+      replaceNote,
+    })
 
-    if (
-      nextSelectedNoteId === selectedNoteId.value &&
-      (nextSelectedNoteId === null ||
-        selectedNote.value?.id === nextSelectedNoteId)
-    ) {
-      return
-    }
-
-    await editorFlush.value?.()
-    selectedNoteId.value = nextSelectedNoteId
-
-    if (nextSelectedNoteId === null) {
-      selectedNoteRequestId.value += 1
-      selectedNoteFull.value = null
-      return
-    }
-
-    selectedNoteFull.value = null
-
-    const requestId = selectedNoteRequestId.value + 1
-    selectedNoteRequestId.value = requestId
-
-    try {
-      const loadedNote = await globalThis.$fetch<Note>(
-        buildNoteContentPath(nextSelectedNoteId),
-      )
-
-      if (selectedNoteRequestId.value !== requestId) {
-        return
-      }
-
-      selectedNoteFull.value = loadedNote
-      replaceNote(loadedNote)
-    } catch {
-      if (selectedNoteRequestId.value === requestId) {
-        selectedNoteFull.value = null
-      }
-    }
-  }
-
-  async function saveSelectedNoteContent(content: string): Promise<void> {
-    if (!selectedNote.value) {
-      return
-    }
-
-    saveError.value = null
-    const saveInput = buildSaveNoteInput(selectedNote.value, content)
-    updateSelectedNoteContent(content)
-
-    try {
-      const savedNote = await globalThis.$fetch<Note>('/api/notes', {
-        method: 'PUT',
-        body: saveInput,
-      })
-
-      replaceNote(savedNote)
-      selectedNoteFull.value = savedNote
-    } catch (error) {
-      saveError.value =
-        error instanceof Error ? error.message : t('notes.errorSaveFallback')
-    }
-  }
-
-  async function createNote(
-    parentPath: string = '',
-    initialProperties: Record<string, unknown> = {},
-  ): Promise<Note | null> {
-    const translatedDefaultTitle = t('notes.newNoteTitle').trim()
-    const defaultTitle =
-      translatedDefaultTitle.length === 0 ||
-      translatedDefaultTitle === 'notes.newNoteTitle'
-        ? 'New Note'
-        : translatedDefaultTitle
-
-    if (defaultTitle.length === 0) {
-      return null
-    }
-
-    saveError.value = null
-    shouldFocusTitle.value = false
-
-    try {
-      await editorFlush.value?.()
-
-      const createdNote = await globalThis.$fetch<Note>('/api/notes', {
-        method: 'PUT',
-        body: {
-          id: resolveUniqueNoteIdForParentPath(
-            parentPath,
-            defaultTitle,
-            notes.value.map((note) => note.id),
-          ),
-          properties: initialProperties,
-          content: '',
-        },
-      })
-
-      prependNote(createdNote)
-      selectedNoteId.value = createdNote.id
-      selectedNoteFull.value = createdNote
-      shouldFocusTitle.value = true
-
-      return createdNote
-    } catch (error) {
-      saveError.value =
-        error instanceof Error ? error.message : t('notes.errorCreateFallback')
-
-      return null
-    }
-  }
-
-  async function renameSelectedNoteTitle(title: string): Promise<Note | null> {
-    const currentNote = selectedNote.value
-    const trimmedTitle = title.trim()
-
-    if (
-      !currentNote ||
-      isRenamingNoteTitle.value ||
-      trimmedTitle.length === 0
-    ) {
-      return null
-    }
-
-    const currentId = currentNote.id
-
-    saveError.value = null
-    isRenamingNoteTitle.value = true
-
-    try {
-      await editorFlush.value?.()
-
-      const renamedNote = await globalThis.$fetch<Note>('/api/notes', {
-        method: 'PATCH',
-        body: {
-          id: currentId,
-          title: trimmedTitle,
-        },
-      })
-
-      replaceRenamedNote(currentId, renamedNote)
-
-      if (selectedNoteId.value === currentId) {
-        selectedNoteId.value = renamedNote.id
-        selectedNoteFull.value = renamedNote
-      }
-
-      return renamedNote
-    } catch (error) {
-      saveError.value =
-        error instanceof Error ? error.message : t('notes.errorRenameFallback')
-
-      return null
-    } finally {
-      isRenamingNoteTitle.value = false
-    }
-  }
-
-  async function moveNote(
-    id: string,
-    targetParentPath: string,
-  ): Promise<Note | null> {
-    if (!notes.value.some((note) => note.id === id)) {
-      return null
-    }
-
-    saveError.value = null
-
-    try {
-      await editorFlush.value?.()
-
-      const movedNote = await globalThis.$fetch<Note>('/api/notes/move', {
-        method: 'POST',
-        body: {
-          id,
-          targetParentPath,
-        },
-      })
-
-      replaceRenamedNote(id, movedNote)
-
-      if (selectedNoteId.value === id) {
-        selectedNoteId.value = movedNote.id
-        selectedNoteFull.value = movedNote
-      }
-
-      return movedNote
-    } catch (error) {
-      saveError.value =
-        error instanceof Error ? error.message : t('notes.errorSaveFallback')
-
-      return null
-    }
-  }
-
-  async function saveAppPropertyChange(
-    transform: (note: Note) => Note,
-  ): Promise<void> {
-    const current = selectedNote.value
-
-    if (!current) {
-      return
-    }
-
-    saveError.value = null
-
-    try {
-      await editorFlush.value?.()
-
-      const nextNote = transform(current)
-      const saveInput = buildSaveNoteInput(nextNote, nextNote.content)
-
-      const savedNote = await globalThis.$fetch<Note>('/api/notes', {
-        method: 'PUT',
-        body: saveInput,
-      })
-
-      replaceNote(savedNote)
-      selectedNoteFull.value = savedNote
-    } catch (error) {
-      saveError.value =
-        error instanceof Error ? error.message : t('notes.errorSaveFallback')
-    }
-  }
-
-  async function toggleFavoriteSelectedNote(): Promise<void> {
-    await saveAppPropertyChange(noteWithToggledFavorite)
-  }
-
-  async function togglePinnedSelectedNote(): Promise<void> {
-    await saveAppPropertyChange(noteWithToggledPinned)
-  }
-
-  async function saveWebhookForSelectedNote(url: string): Promise<void> {
-    await saveAppPropertyChange((note) => noteWithWebhookUrl(note, url))
-  }
-
-  async function deleteSelectedNote(
-    visibleNoteIds: readonly string[],
-  ): Promise<boolean> {
-    const noteToDelete = selectedNote.value
-
-    if (!noteToDelete) {
-      return false
-    }
-
-    const deletedVisibleIndex = visibleNoteIds.indexOf(noteToDelete.id)
-
-    saveError.value = null
-
-    try {
-      await editorFlush.value?.()
-
-      const trashedNote = await globalThis.$fetch<Note>('/api/notes/trash', {
-        method: 'POST',
-        body: { id: noteToDelete.id },
-      })
-
-      notes.value = sortNotesByModifiedAt(
-        notes.value.map((note) =>
-          note.id === trashedNote.id ? createNoteCatalogRow(trashedNote) : note,
-        ),
-      )
-      selectedNoteFull.value = null
-      selectedNoteId.value = null
-
-      const remainingVisibleIds = visibleNoteIds.filter(
-        (id) => id !== noteToDelete.id,
-      )
-      const nextIndex = Math.min(
-        deletedVisibleIndex,
-        remainingVisibleIds.length - 1,
-      )
-      await selectNoteById(remainingVisibleIds[nextIndex] ?? null)
-
-      return true
-    } catch (error) {
-      saveError.value =
-        error instanceof Error ? error.message : t('notes.errorDeleteFallback')
-
-      return false
-    }
-  }
+  const {
+    saveSelectedNoteContent,
+    createNote,
+    renameSelectedNoteTitle,
+    moveNote,
+    toggleFavoriteSelectedNote,
+    togglePinnedSelectedNote,
+    saveWebhookForSelectedNote,
+    deleteSelectedNote,
+  } = useNoteMutations({
+    notes,
+    selectedNote,
+    selectedNoteId,
+    selectedNoteFull,
+    saveError,
+    shouldFocusTitle,
+    isRenamingNoteTitle,
+    editorFlush,
+    replaceNote,
+    replaceRenamedNote,
+    prependNote,
+    sortNotesByModifiedAt,
+    updateSelectedNoteContent,
+    selectNoteById,
+  })
 
   async function loadNotes(): Promise<NoteCatalogRow[]> {
     isLoading.value = true

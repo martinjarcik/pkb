@@ -1,5 +1,8 @@
 import { describe, expect, it } from 'vitest'
-import { buildSaveNoteInput } from '~/notes/saveNoteInput'
+import {
+  buildSaveNoteInput,
+  normalizeSaveProperties,
+} from '~/notes/saveNoteInput'
 import type { Note } from '~/notes/types'
 
 describe('buildSaveNoteInput', () => {
@@ -144,5 +147,33 @@ describe('buildSaveNoteInput', () => {
     const content = '#idea and #engineering'
 
     expect(buildSaveNoteInput(note, content).content).toBe(content)
+  })
+})
+
+describe('normalizeSaveProperties', () => {
+  it('sanitizes system properties and recomputes canonical save fields', () => {
+    expect(
+      normalizeSaveProperties(
+        {
+          title: 'shadowed',
+          description: 'shadowed',
+          createdAt: '2026-03-25T08:00:00.000Z',
+          modifiedAt: '2026-03-25T08:00:00.000Z',
+          tags: ['existing', 'idea'],
+          favorite: true,
+          meta: {
+            nested: true,
+          },
+        },
+        '#idea\n- [ ] buy groceries',
+      ),
+    ).toEqual({
+      tags: ['existing', 'idea'],
+      hasTasks: true,
+      favorite: true,
+      meta: {
+        nested: true,
+      },
+    })
   })
 })

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import type { NoteCatalogRow } from '~/notes/types'
 
 type NotesListItem = {
@@ -10,7 +10,6 @@ type NotesListItem = {
   pinned: boolean
 }
 
-let dragPreview: HTMLElement | null = null
 const DRAG_PREVIEW_SCALE = 0.5
 
 function toListItem(row: NoteCatalogRow): NotesListItem {
@@ -26,6 +25,7 @@ function toListItem(row: NoteCatalogRow): NotesListItem {
 const { isLoading, loadError, selectedNoteId, selectNoteById } = useNotes()
 const { accentColor, visibleCatalogRows } = useSidebarNavigation()
 
+const dragPreview = ref<HTMLElement | null>(null)
 const listItems = computed(() => visibleCatalogRows.value.map(toListItem))
 
 async function handleSelectNote(id: string): Promise<void> {
@@ -42,7 +42,7 @@ function handleDragStart(event: DragEvent, id: string): void {
   event.dataTransfer.effectAllowed = 'move'
   event.dataTransfer.setData('text/plain', id)
 
-  dragPreview?.remove()
+  dragPreview.value?.remove()
 
   const nextPreview = source.cloneNode(true)
 
@@ -71,13 +71,13 @@ function handleDragStart(event: DragEvent, id: string): void {
     12 * DRAG_PREVIEW_SCALE,
     12 * DRAG_PREVIEW_SCALE,
   )
-  dragPreview = nextPreview
+  dragPreview.value = nextPreview
 }
 
 function handleDragEnd(event: DragEvent): void {
   event.dataTransfer?.clearData()
-  dragPreview?.remove()
-  dragPreview = null
+  dragPreview.value?.remove()
+  dragPreview.value = null
 }
 
 function getRowStyle(

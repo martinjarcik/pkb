@@ -1,10 +1,11 @@
 import { defineEventHandler, readBody, createError } from 'h3'
 import { mergeAndWriteMetaPatch } from '../metaDisk'
+import { isRecord } from '../validation'
 
 export default defineEventHandler(async (event) => {
   const body = await readBody<unknown>(event)
 
-  if (typeof body !== 'object' || body === null || Array.isArray(body)) {
+  if (!isRecord(body)) {
     throw createError({
       statusCode: 400,
       statusMessage: 'Request body must be a JSON object',

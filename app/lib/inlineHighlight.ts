@@ -1,13 +1,13 @@
-import { loadConfig } from '~/config/loader'
+import { DEFAULT_EDITOR_COLOR, EDITOR_COLORS } from './editorColors'
 
 export const INLINE_HIGHLIGHT_CLASS = 'inline-highlight'
 
-export const INLINE_HIGHLIGHT_COLORS = loadConfig().editorColors
+export const INLINE_HIGHLIGHT_COLORS = EDITOR_COLORS
 const INLINE_HIGHLIGHT_COLOR_NAMES = Object.keys(INLINE_HIGHLIGHT_COLORS)
 
 export const INLINE_HIGHLIGHT_DEFAULT_COLOR = (
-  INLINE_HIGHLIGHT_COLOR_NAMES.includes(loadConfig().theme.defaultEditorColor)
-    ? loadConfig().theme.defaultEditorColor
+  INLINE_HIGHLIGHT_COLOR_NAMES.includes(DEFAULT_EDITOR_COLOR)
+    ? DEFAULT_EDITOR_COLOR
     : INLINE_HIGHLIGHT_COLOR_NAMES[0]
 ) as InlineHighlightColor
 

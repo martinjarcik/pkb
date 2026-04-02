@@ -1,5 +1,12 @@
 import { noteTitleFromId } from './noteTitleFromId'
 
+export class InvalidNoteTitleError extends Error {
+  constructor() {
+    super('Note title must contain at least one valid filename character')
+    this.name = 'InvalidNoteTitleError'
+  }
+}
+
 export function splitNoteId(id: string): {
   parentPath: string
   normalizedId: string
@@ -42,9 +49,7 @@ export function resolveUniqueNoteIdForParentPath(
   const sanitizedTitle = sanitizeNoteTitleForFilename(title)
 
   if (sanitizedTitle.length === 0) {
-    throw new Error(
-      'Note title must contain at least one valid filename character',
-    )
+    throw new InvalidNoteTitleError()
   }
 
   const ids = new Set(existingIds)
@@ -73,9 +78,7 @@ export function createNoteIdFromTitle(
   const sanitizedTitle = sanitizeNoteTitleForFilename(title)
 
   if (sanitizedTitle.length === 0) {
-    throw new Error(
-      'Note title must contain at least one valid filename character',
-    )
+    throw new InvalidNoteTitleError()
   }
 
   const { parentPath } = splitNoteId(currentId)

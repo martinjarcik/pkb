@@ -12,7 +12,7 @@ import {
   selectedTagsFromView,
   sortCatalogRowsPinnedFirstByModifiedAt,
   type SidebarWorkspaceView,
-} from '~/composables/useSidebarNavigation'
+} from '~/notes/sidebarFilters'
 
 function createCatalogRow(id: string, tags: unknown): NoteCatalogRow {
   return {

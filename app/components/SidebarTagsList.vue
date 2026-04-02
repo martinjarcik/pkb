@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { tagFilterState } from '~/composables/useSidebarNavigation'
+import { tagFilterState } from '~/notes/sidebarFilters'
 
 const { accentColor, allTags, selectedView, cycleTag } = useSidebarNavigation()
 </script>
