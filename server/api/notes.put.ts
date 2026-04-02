@@ -6,10 +6,7 @@ import type { SaveNoteInput } from '~/storage/types'
 import { dispatchNoteWebhook } from '../dispatchNoteWebhook'
 import { deleteOrphanedAssetFiles } from '../deleteOrphanedAssetFiles'
 import { loadServerConfig } from '../loadServerConfig'
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === 'object' && value !== null && !Array.isArray(value)
-}
+import { isRecord } from '../validation'
 
 export function parseSaveNoteInput(body: unknown): SaveNoteInput {
   if (!isRecord(body)) {

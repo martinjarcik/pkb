@@ -1,4 +1,4 @@
-import type { EditorjsBlock } from './editorjsMarkdown'
+import type { EditorjsBlock } from './editorjsMarkdownTypes'
 
 export function createNoteTitleBlock(title: string): EditorjsBlock {
   return {

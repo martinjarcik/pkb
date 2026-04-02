@@ -1,7 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue'
 import { Inbox, ListTodo, Star, Trash2 } from 'lucide-vue-next'
-import { loadConfig } from '~/config/loader'
 
 const {
   accentColor,
@@ -12,46 +10,17 @@ const {
   selectTrashed,
 } = useSidebarNavigation()
 
-const { favorites: favoritesEnabled, tasks: tasksEnabled } =
-  loadConfig().features
+const { favorites: favoritesEnabled, tasks: tasksEnabled } = useAppFeatures()
 const { moveNote } = useNotes()
-const dragDepth = ref(0)
-const isInboxDropActive = ref(false)
-
-function handleDragEnter(): void {
-  dragDepth.value += 1
-  isInboxDropActive.value = true
-}
-
-function handleDragLeave(): void {
-  dragDepth.value = Math.max(0, dragDepth.value - 1)
-
-  if (dragDepth.value === 0) {
-    isInboxDropActive.value = false
-  }
-}
-
-function handleDragOver(event: DragEvent): void {
-  event.preventDefault()
-
-  if (event.dataTransfer) {
-    event.dataTransfer.dropEffect = 'move'
-  }
-}
-
-async function handleDrop(event: DragEvent): Promise<void> {
-  event.preventDefault()
-  dragDepth.value = 0
-  isInboxDropActive.value = false
-
-  const noteId = event.dataTransfer?.getData('text/plain').trim()
-
-  if (!noteId) {
-    return
-  }
-
+const {
+  isDropActive: isInboxDropActive,
+  handleDragEnter,
+  handleDragLeave,
+  handleDragOver,
+  handleDrop,
+} = useNoteDropTarget(async (noteId) => {
   await moveNote(noteId, '')
-}
+})
 </script>
 
 <template>

@@ -39,9 +39,7 @@
     --app-space-inspector-nav-inline: 0.875rem;
     --app-note-surface-padding-inline: 6vw;
     --app-note-surface-padding-top: 4vh;
-    --app-note-template-background: #3e56de12;
     --app-note-template-gap: 1.75rem;
-    --app-note-title-max-width: 39.5rem;
     --app-note-title-font-size: 1.5rem;
     --app-font-size-sm: 0.875rem;
     --app-font-size-xs: 0.6875rem;
@@ -51,6 +49,10 @@
     --app-notes-list-item-accent-width: 5px;
     --app-notes-list-item-gap: 0.3125rem;
     --app-notes-list-description-lines: 2;
+    --app-sidebar-text: #444444;
+    --app-sidebar-section-title: #414244;
+    --app-sidebar-control: #989999;
+    --app-sidebar-selected-text: #ffffff;
   }
 
   .dark {
@@ -123,7 +125,7 @@
     background: transparent;
     border: 0;
     border-radius: 5px;
-    color: #444444;
+    color: var(--app-sidebar-text);
     cursor: pointer;
     display: flex;
     font-size: 13px;
@@ -145,7 +147,7 @@
   }
 
   .sidebar-navigation-item-selected {
-    color: #ffffff;
+    color: var(--app-sidebar-selected-text);
   }
 
   .sidebar-navigation-item-drop-active {
@@ -181,7 +183,7 @@
   }
 
   .sidebar-section-title {
-    color: #414244;
+    color: var(--app-sidebar-section-title);
     font-size: 11px;
     font-weight: 700;
     line-height: 2;
@@ -206,7 +208,7 @@
     appearance: none;
     background: transparent;
     border: 0;
-    color: #989999;
+    color: var(--app-sidebar-control);
     cursor: pointer;
     display: inline-flex;
     align-items: center;
@@ -240,7 +242,7 @@
   .sidebar-tag-item-shell {
     background: transparent;
     border: 0;
-    color: #444444;
+    color: var(--app-sidebar-text);
     cursor: pointer;
     font-size: 11px;
     line-height: 2;
@@ -433,7 +435,7 @@
   }
 
   .note-editor-surface .ce-simple-quote {
-    border-left: 4px solid black;
+    border-left: 4px solid hsl(var(--foreground));
     line-height: 1.7;
     padding-left: 10px;
   }

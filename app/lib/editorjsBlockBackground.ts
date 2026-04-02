@@ -1,5 +1,5 @@
 import { loadConfig } from '~/config/loader'
-import type { EditorjsBlock } from './editorjsMarkdown'
+import type { EditorjsBlock } from './editorjsMarkdownTypes'
 
 export const BLOCK_BACKGROUND_COLORS = loadConfig().editorColors
 export const BLOCK_BACKGROUND_TUNE_NAME = 'backgroundColor'

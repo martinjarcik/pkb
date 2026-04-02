@@ -28,7 +28,7 @@ Persist note title edits by renaming the note `id` basename, keeping the current
 
 ## D008 — 2026-03
 
-Use `@nuxtjs/i18n` locale files for user-facing UI strings while selecting the active locale from `AppConfig`, with English as the default fallback.
+Use a custom `useTranslations` composable backed by bundled JSON locale files for user-facing UI strings, selecting the active locale from `AppConfig` with English as the default fallback.
 
 ## D009 — 2026-03
 
@@ -54,7 +54,7 @@ Recompute `hasTasks` from unchecked markdown checklist items on save and persist
 
 Soft-delete notes by setting the `trashedAt` Application Property instead of removing storage. The Trashed sidebar view lists only trashed notes; other views exclude them. Restoring clears `trashedAt` on `moveNote` to Inbox or a folder. Expired trashed notes are permanently deleted when serving `GET /api/notes`, using `notes.trashRetentionDays` from config (default 30). The note toolbar is hidden while a trashed note is selected.
 
-## D015 — 2026-03
+## D018 — 2026-03
 
 Store per-folder sidebar customization (emoji icons) in a dedicated workspace `meta.yaml` file with `GET`/`PUT` API handlers, separate from `AppConfig` and from hidden files inside vault folders, so metadata stays app-scoped and portable alongside the project.
 

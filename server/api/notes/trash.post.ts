@@ -2,10 +2,7 @@ import { createError, defineEventHandler, readBody } from 'h3'
 import { getNoteStorage } from '~/storage/router'
 import { dispatchNoteWebhook } from '../../dispatchNoteWebhook'
 import { loadServerConfig } from '../../loadServerConfig'
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === 'object' && value !== null && !Array.isArray(value)
-}
+import { isRecord } from '../../validation'
 
 function parseSoftDeleteNoteInput(body: unknown): string {
   if (!isRecord(body)) {

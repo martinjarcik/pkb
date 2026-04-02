@@ -1,6 +1,6 @@
 import { createNoteCatalogRow } from '~/notes/catalogRow'
 import { noteDescriptionFromContent } from '~/notes/noteDescriptionFromContent'
-import { moveNoteId, resolveUniqueNoteId } from '~/notes/renameNoteTitle'
+import { moveNoteId, resolveUniqueNoteId } from '~/notes/noteId'
 import { noteTitleFromId } from '~/notes/noteTitleFromId'
 import {
   catalogRowIsTrashed,

@@ -59,7 +59,7 @@ preview slice used by the notes list, capped at 1024 UTF-8 bytes.
   `applicationType`, and `notes.trashRetentionDays` for trash retention).
 - `app/config/loader.ts` — typed `AppConfig` parsed from `app/config/default.yaml`,
   including the active locale, theme settings, and `notes.trashRetentionDays`.
-- `app/app.vue` — root app shell that applies the configured locale to Nuxt i18n.
+- `app/app.vue` — root app shell that applies the configured accent color CSS variable.
 - `app/composables/useLayout.ts` — layout panel visibility state initialized
   from config defaults, plus session-only non-distraction mode (snapshot and
   restore of the three panel flags).
@@ -105,13 +105,12 @@ preview slice used by the notes list, capped at 1024 UTF-8 bytes.
   - `NoteControls` (`app/components/NoteControls.vue`) — note toolbar region
     with note-scoped actions (for example favorite toggle when enabled, pin
     toggle, non-distraction mode, webhook URL dialog, delete).
-  - `NoteView` (`app/components/NoteView.vue`) — bounded note display and
-    editing region.
-    - `NoteTemplate` — template (Liquid) output wrapper; narrows and centers the
-      editor column when non-distraction mode is active.
-      - `NoteEditor` — content editing surface (includes an EditorJS
-        `noteTitle` block pinned at index 0 for inline title editing and an
-        inline hashtag formatting tool).
+  - `NoteTemplate` (`app/components/NoteTemplate.vue`) — template (Liquid)
+    output wrapper; narrows and centers the editor column when
+    non-distraction mode is active.
+    - `NoteEditor` — content editing surface (includes an EditorJS `noteTitle`
+      block pinned at index 0 for inline title editing and an inline hashtag
+      formatting tool).
 - `InspectorPanel` (`app/components/InspectorPanel.vue`) — inspector shell.
   - `InspectorNavigation` (`app/components/InspectorNavigation.vue`) — tab bar
     for inspector views.

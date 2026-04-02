@@ -1,11 +1,8 @@
 import { createError, defineEventHandler, readBody } from 'h3'
 import { getNoteStorage } from '~/storage/router'
-import { sanitizeNoteTitleForFilename } from '~/notes/renameNoteTitle'
+import { sanitizeNoteTitleForFilename } from '~/notes/noteId'
 import { loadServerConfig } from '../loadServerConfig'
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === 'object' && value !== null && !Array.isArray(value)
-}
+import { isRecord } from '../validation'
 
 function parseRenameFolderInput(body: unknown): {
   oldName: string

@@ -2,10 +2,7 @@ import { createError, defineEventHandler, readBody } from 'h3'
 import { getNoteStorage } from '~/storage/router'
 import type { RenameNoteTitleInput } from '~/storage/types'
 import { loadServerConfig } from '../loadServerConfig'
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === 'object' && value !== null && !Array.isArray(value)
-}
+import { isRecord } from '../validation'
 
 export function parseRenameNoteTitleInput(body: unknown): RenameNoteTitleInput {
   if (!isRecord(body)) {

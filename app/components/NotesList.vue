@@ -60,7 +60,7 @@ function handleDragStart(event: DragEvent, id: string): void {
   nextPreview.style.maxWidth = `${width * DRAG_PREVIEW_SCALE}px`
   nextPreview.style.margin = '0'
   nextPreview.style.zoom = String(DRAG_PREVIEW_SCALE)
-  nextPreview.style.backgroundColor = '#ffffff'
+  nextPreview.style.backgroundColor = 'hsl(var(--background))'
   nextPreview.style.border = `1px solid ${accentColor.value}`
   nextPreview.style.borderRight = '0'
   nextPreview.style.pointerEvents = 'none'

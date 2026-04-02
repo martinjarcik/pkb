@@ -87,6 +87,7 @@ shadcn-vue managed:
 
 - `app/components/ui/` -> shadcn-vue components (added via `npx shadcn-vue@latest add`)
 - `app/lib/utils.ts` -> `cn()` utility for shadcn-vue class merging
+- `app/lib/` -> Editor.js tool classes and markdown conversion modules (besides `utils.ts`)
 
 Other:
 

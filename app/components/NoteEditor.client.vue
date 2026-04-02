@@ -1,15 +1,12 @@
 <script setup lang="ts">
-import type { EditorjsBlock } from '~/lib/editorjsMarkdown'
+import type { EditorjsBlock } from '~/lib/editorjsMarkdownTypes'
+import { editorjsBlocksToMarkdown } from '~/lib/blocksToMarkdown'
 import {
   BLOCK_BACKGROUND_TUNE_NAME,
   normalizeSavedEditorjsBlocks,
   prepareEditorjsBlocksForEditor,
 } from '~/lib/editorjsBlockBackground'
 import EditorjsBlockBackgroundTune from '~/lib/editorjsBlockBackgroundTune'
-import {
-  editorjsBlocksToMarkdown,
-  markdownToEditorjsBlocks,
-} from '~/lib/editorjsMarkdown'
 import { editorMessages } from '~/lib/editorjsMessages'
 import {
   blocksMatch,
@@ -20,6 +17,7 @@ import {
 import BigEmojiTool from '~/lib/bigEmojiTool'
 import InlineHighlightTool from '~/lib/inlineHighlightTool'
 import InlineHashtagTool from '~/lib/inlineHashtagTool'
+import { markdownToEditorjsBlocks } from '~/lib/markdownToBlocks'
 import NoteTitleTool from '~/lib/noteTitleTool'
 import { t as translate } from '~/composables/useTranslations'
 import SimpleQuoteTool from '~/lib/simpleQuoteTool'

@@ -17,7 +17,7 @@ export default defineConfig({
   },
   projects: [{ name: 'chromium', use: { ...devices['Desktop Chrome'] } }],
   webServer: {
-    command: `npm run dev -- --port ${port}`,
+    command: `sh -c 'rm -f data/e2e-app-config.yaml && PKB_APP_CONFIG_PATH=data/e2e-app-config.yaml npm run dev -- --port ${port}'`,
     url: baseURL,
     ignoreHTTPSErrors: true,
     reuseExistingServer: !process.env.CI,

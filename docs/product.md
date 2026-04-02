@@ -221,9 +221,9 @@ The note content area uses Editor.js as the editing surface.
 
 ### Internationalization
 
-The application uses `@nuxtjs/i18n` for UI translations.
+The application uses the custom `useTranslations` composable for UI translations.
 
 - English (`en`) is the default and currently the only bundled locale.
 - The active locale is selected through `app/config/default.yaml` via the `locale` key.
 - User-facing UI strings and Editor.js labels are sourced from `app/locales/en.json`.
-- Adding another language requires a new locale file, a matching entry in `nuxt.config.ts`, and an updated config value.
+- Adding another language requires a new locale file and an updated config value.

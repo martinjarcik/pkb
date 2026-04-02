@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { Maximize2, Pin, PinOff, PlugZap, Star, Trash2 } from 'lucide-vue-next'
-import { loadConfig } from '~/config/loader'
 
 const {
   selectedNote,
@@ -13,12 +12,12 @@ const {
 } = useNotes()
 const { visibleCatalogRows, accentColor } = useSidebarNavigation()
 const { nonDistractionMode, toggleNonDistractionMode } = useLayout()
-
-const config = loadConfig()
-const favoritesEnabled = config.features.favorites
-const pinnedEnabled = config.features.pinned
-const nonDistractionModeEnabled = config.features.nonDistractionMode
-const noteWebhookEnabled = config.features.noteWebhook
+const {
+  favorites: favoritesEnabled,
+  pinned: pinnedEnabled,
+  nonDistractionMode: nonDistractionModeEnabled,
+  noteWebhook: noteWebhookEnabled,
+} = useAppFeatures()
 
 const webhookDialogOpen = ref(false)
 const webhookDraft = ref('')

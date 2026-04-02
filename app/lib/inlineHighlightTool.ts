@@ -7,6 +7,7 @@ import {
   type InlineHighlightColor,
   type InlineHighlightStyle,
 } from './inlineHighlight'
+import { backgroundSwatchIcon } from './editorColorSwatch'
 
 const ICON_MARKER = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2" d="M11.3535 9.31802L12.7678 7.90381C13.5488 7.12276 14.8151 7.12276 15.5962 7.90381C16.3772 8.68486 16.3772 9.95119 15.5962 10.7322L14.182 12.1464M11.3535 9.31802L7.96729 12.7043C7.40889 13.2627 7.02826 13.9739 6.87339 14.7482L6.69798 15.6253C6.55803 16.325 7.17495 16.942 7.87467 16.802L8.75175 16.6266C9.52612 16.4717 10.2373 16.0911 10.7957 15.5327L14.182 12.1464M11.3535 9.31802L14.182 12.1464"/><line x1="15" x2="19" y1="17" y2="17" stroke="currentColor" stroke-linecap="round" stroke-width="2"/></svg>`
 const ICON_CLEAR =
@@ -23,25 +24,8 @@ type InlineHighlightApi = API & {
   }
 }
 
-function darkenHexColor(color: string): string {
-  const match = color.trim().match(/^#([0-9a-f]{6})([0-9a-f]{2})?$/i)
-
-  if (!match) {
-    return color
-  }
-
-  const hex = match[1]!
-  const channels = [0, 2, 4].map((offset) =>
-    Math.round(parseInt(hex.slice(offset, offset + 2), 16) * 0.82)
-      .toString(16)
-      .padStart(2, '0'),
-  )
-
-  return `#${channels.join('')}`
-}
-
 function bgSwatchIcon(background: string): string {
-  return `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" fill="none"><rect x="1" y="1" width="18" height="18" rx="2" fill="${background}" stroke="${darkenHexColor(background)}" stroke-width="1.25"/></svg>`
+  return backgroundSwatchIcon(background)
 }
 
 function textSwatchIcon(textHex: string): string {

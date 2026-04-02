@@ -18,7 +18,7 @@ import {
   type NoteCatalogRow,
   type NoteProperties,
 } from '~/notes/types'
-import { moveNoteId, resolveUniqueNoteId } from '~/notes/renameNoteTitle'
+import { moveNoteId, resolveUniqueNoteId } from '~/notes/noteId'
 import {
   catalogRowIsTrashed,
   trashExpired,

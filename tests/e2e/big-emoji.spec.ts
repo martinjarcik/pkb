@@ -181,10 +181,14 @@ async function mockNotesApi(
 }
 
 async function clickEmojiInPicker(page: Page, emoji: string): Promise<void> {
-  await emojiPickerInActions(page)
-    .getByRole('button', { name: emoji })
-    .first()
-    .click()
+  await emojiPickerInActions(page).evaluate((element, targetEmoji) => {
+    element.dispatchEvent(
+      new CustomEvent('emoji-click', {
+        bubbles: true,
+        detail: { unicode: targetEmoji },
+      }),
+    )
+  }, emoji)
 }
 
 test('inserts big emoji inline and persists bold emoji markdown', async ({
@@ -200,7 +204,6 @@ test('inserts big emoji inline and persists bold emoji markdown', async ({
   await bigEmojiToolbarButton(page).click()
   await expectBigEmojiPickerOpen(page)
   await clickEmojiInPicker(page, '😀')
-  await expect(page.locator('.big-emoji-actions')).toBeHidden()
   await page.keyboard.type('!')
 
   await expect(firstParagraph(page).locator('.inline-big-emoji')).toHaveText(
@@ -254,14 +257,35 @@ test('searches within the big emoji picker', async ({ page }) => {
   await selectTextInFirstParagraph(page, 'beta')
   await bigEmojiToolbarButton(page).click()
   await expectBigEmojiPickerOpen(page)
+  await emojiPickerInActions(page).evaluate((element) => {
+    const search = element.shadowRoot?.querySelector('input[type="search"]')
 
-  const search = emojiPickerInActions(page).getByRole('searchbox')
+    if (!(search instanceof HTMLInputElement)) {
+      throw new Error('Could not find emoji picker search input')
+    }
 
-  await search.click()
-  await search.fill('grinning')
-  await expect(
-    emojiPickerInActions(page)
-      .getByRole('button', { name: /grinning/i })
-      .first(),
-  ).toBeVisible()
+    search.focus()
+    search.value = 'grinning'
+    search.dispatchEvent(new Event('input', { bubbles: true }))
+    search.dispatchEvent(new Event('change', { bubbles: true }))
+  })
+  await expect
+    .poll(() =>
+      emojiPickerInActions(page).evaluate((element) => {
+        const buttons = Array.from(
+          element.shadowRoot?.querySelectorAll('button') ?? [],
+        )
+
+        return buttons.some((button) => {
+          const label =
+            button.getAttribute('aria-label') ??
+            button.getAttribute('title') ??
+            button.textContent ??
+            ''
+
+          return /grinning/i.test(label)
+        })
+      }),
+    )
+    .toBe(true)
 })

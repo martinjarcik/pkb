@@ -2,7 +2,7 @@ import { computed } from 'vue'
 import { loadConfig } from '~/config/loader'
 import { t } from '~/composables/useTranslations'
 import type { NoteCatalogRow } from '~/notes/types'
-import { sanitizeNoteTitleForFilename } from '~/notes/renameNoteTitle'
+import { sanitizeNoteTitleForFilename } from '~/notes/noteId'
 import {
   isDirectChildOfVaultFolder,
   isVaultRootNote,

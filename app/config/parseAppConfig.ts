@@ -54,11 +54,11 @@ const DEFAULT_EDITOR_COLORS: EditorColors = {
     text: '#EB445A',
     label: 'Pink',
   },
-  green: {
+  mint: {
     emoji: '🟢',
-    background: '#EAF1EC',
+    background: '#E6F6F4',
     text: '#5AC5B3',
-    label: 'Green',
+    label: 'Mint',
   },
   yellow: {
     emoji: '🟡',
@@ -206,29 +206,7 @@ function parseEditorColors(value: unknown): EditorColors {
   return parsed
 }
 
-export function parseAppConfig(value: unknown): AppConfig {
-  if (typeof value !== 'object' || value === null) {
-    throw new Error('Config must be an object')
-  }
-
-  const obj = value as Record<string, unknown>
-
-  if (
-    !VALID_APPLICATION_TYPES.includes(obj.applicationType as ApplicationType)
-  ) {
-    throw new Error(
-      `Config applicationType must be one of: ${VALID_APPLICATION_TYPES.join(', ')}`,
-    )
-  }
-
-  if (typeof obj.locale !== 'string' || obj.locale.length === 0) {
-    throw new Error('Config locale must be a non-empty string')
-  }
-
-  if (typeof obj.vault !== 'string' || obj.vault.length === 0) {
-    throw new Error('Config vault must be a non-empty string')
-  }
-
+function parseNotesConfig(obj: Record<string, unknown>): AppConfig['notes'] {
   if (typeof obj.notes !== 'object' || obj.notes === null) {
     throw new Error('Config notes must be an object')
   }
@@ -245,6 +223,12 @@ export function parseAppConfig(value: unknown): AppConfig {
     )
   }
 
+  return {
+    trashRetentionDays: notes.trashRetentionDays,
+  }
+}
+
+function parseEditorConfig(obj: Record<string, unknown>): AppConfig['editor'] {
   if (typeof obj.editor !== 'object' || obj.editor === null) {
     throw new Error('Config editor must be an object')
   }
@@ -255,6 +239,13 @@ export function parseAppConfig(value: unknown): AppConfig {
     throw new Error('Config editor.autosaveDelay must be a non-negative number')
   }
 
+  return {
+    autosaveDelay: editor.autosaveDelay,
+    assetsFolder: parseEditorAssetsFolder(editor),
+  }
+}
+
+function parseLayoutConfig(obj: Record<string, unknown>): AppConfig['layout'] {
   if (typeof obj.layout !== 'object' || obj.layout === null) {
     throw new Error('Config layout must be an object')
   }
@@ -271,6 +262,14 @@ export function parseAppConfig(value: unknown): AppConfig {
     }
   }
 
+  return {
+    showInspectorPanel: layout.showInspectorPanel as boolean,
+    showSidebarPanel: layout.showSidebarPanel as boolean,
+    showNotesListPanel: layout.showNotesListPanel as boolean,
+  }
+}
+
+function parseThemeConfig(obj: Record<string, unknown>): AppConfig['theme'] {
   if (typeof obj.theme !== 'object' || obj.theme === null) {
     throw new Error('Config theme must be an object')
   }
@@ -290,6 +289,15 @@ export function parseAppConfig(value: unknown): AppConfig {
       ? theme.defaultEditorColor.trim()
       : 'yellow'
 
+  return {
+    accentColor: theme.accentColor,
+    defaultEditorColor,
+  }
+}
+
+function parseFeaturesConfig(
+  obj: Record<string, unknown>,
+): AppConfig['features'] {
   let favorites = true
   let tasks = true
   let pinned = true
@@ -345,34 +353,48 @@ export function parseAppConfig(value: unknown): AppConfig {
   }
 
   return {
+    favorites,
+    tasks,
+    pinned,
+    nonDistractionMode,
+    noteWebhook,
+  }
+}
+
+export function parseAppConfig(value: unknown): AppConfig {
+  if (typeof value !== 'object' || value === null) {
+    throw new Error('Config must be an object')
+  }
+
+  const obj = value as Record<string, unknown>
+
+  if (
+    !VALID_APPLICATION_TYPES.includes(obj.applicationType as ApplicationType)
+  ) {
+    throw new Error(
+      `Config applicationType must be one of: ${VALID_APPLICATION_TYPES.join(', ')}`,
+    )
+  }
+
+  if (typeof obj.locale !== 'string' || obj.locale.length === 0) {
+    throw new Error('Config locale must be a non-empty string')
+  }
+
+  if (typeof obj.vault !== 'string' || obj.vault.length === 0) {
+    throw new Error('Config vault must be a non-empty string')
+  }
+
+  return {
     applicationType: obj.applicationType as ApplicationType,
     locale: obj.locale as string,
     vault: obj.vault as string,
-    notes: {
-      trashRetentionDays: notes.trashRetentionDays as number,
-    },
-    editor: {
-      autosaveDelay: editor.autosaveDelay as number,
-      assetsFolder: parseEditorAssetsFolder(editor),
-    },
-    layout: {
-      showInspectorPanel: layout.showInspectorPanel as boolean,
-      showSidebarPanel: layout.showSidebarPanel as boolean,
-      showNotesListPanel: layout.showNotesListPanel as boolean,
-    },
-    theme: {
-      accentColor: theme.accentColor as string,
-      defaultEditorColor,
-    },
+    notes: parseNotesConfig(obj),
+    editor: parseEditorConfig(obj),
+    layout: parseLayoutConfig(obj),
+    theme: parseThemeConfig(obj),
     editorColors: parseEditorColors(
       obj.editorColors ?? obj.editorBackgroundColors,
     ),
-    features: {
-      favorites,
-      tasks,
-      pinned,
-      nonDistractionMode,
-      noteWebhook,
-    },
+    features: parseFeaturesConfig(obj),
   }
 }

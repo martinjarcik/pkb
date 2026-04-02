@@ -68,6 +68,7 @@ async function pickHighlightColor(
 ): Promise<void> {
   await page
     .locator(`.inline-highlight-action[aria-label="${colorName}"]:visible`)
+    .first()
     .click()
 }
 
@@ -192,7 +193,7 @@ test('applies default highlight and saves == markdown', async ({ page }) => {
   )
   await expect(
     firstParagraph(page).locator('.inline-highlight'),
-  ).toHaveAttribute('data-color', 'yellow')
+  ).toHaveAttribute('data-bg', 'yellow')
 
   await expect
     .poll(() => api.getLastSaveBody()?.content, {
@@ -216,12 +217,13 @@ test('changes highlight color and persists it after reload', async ({
 
   const highlight = firstParagraph(page).locator('.inline-highlight')
 
-  await expect(highlight).toHaveAttribute('data-color', 'red')
+  await expect(highlight).toHaveAttribute('data-bg', 'yellow')
+  await expect(highlight).toHaveAttribute('data-text', 'red')
   await expect
     .poll(() => api.getLastSaveBody()?.content, {
       timeout: 10000,
     })
-    .toBe('Alpha ==🔴beta== gamma.')
+    .toBe('Alpha ==🟡🟡🔴beta== gamma.')
 
   await page.reload()
   await waitForEditorReady(page)
@@ -231,7 +233,10 @@ test('changes highlight color and persists it after reload', async ({
   )
   await expect(
     firstParagraph(page).locator('.inline-highlight'),
-  ).toHaveAttribute('data-color', 'red')
+  ).toHaveAttribute('data-bg', 'yellow')
+  await expect(
+    firstParagraph(page).locator('.inline-highlight'),
+  ).toHaveAttribute('data-text', 'red')
 })
 
 test('toggles an active highlight off and removes markdown syntax on save', async ({

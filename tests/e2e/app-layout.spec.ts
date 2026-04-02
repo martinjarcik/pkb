@@ -1,5 +1,10 @@
 import { expect, test, type Page } from '@playwright/test'
-import { createMockNote, mockNotesApi, waitForEditorReady } from './helpers'
+import {
+  createMockNote,
+  mockAppConfigApi,
+  mockNotesApi,
+  waitForEditorReady,
+} from './helpers'
 
 function buildAppLayoutNotes() {
   return [
@@ -13,7 +18,14 @@ function visiblePopoverItems(page: Page) {
   return page.locator('.ce-popover-item:visible')
 }
 
+async function waitForNotesListItems(page: Page): Promise<void> {
+  await expect(page.getByTestId('notes-list-item').first()).toBeVisible({
+    timeout: 10000,
+  })
+}
+
 test.beforeEach(async ({ page }) => {
+  await mockAppConfigApi(page)
   await mockNotesApi(page, buildAppLayoutNotes())
 })
 
@@ -28,12 +40,12 @@ test('renders the default application layout', async ({ page }) => {
 
 test('renders loaded notes in the notes list', async ({ page }) => {
   await page.goto('/')
-
-  await expect(page.getByTestId('notes-list-item').first()).toBeVisible()
+  await waitForNotesListItems(page)
 })
 
 test('selects the first loaded note in the list', async ({ page }) => {
   await page.goto('/')
+  await waitForNotesListItems(page)
 
   await expect(page.getByTestId('notes-list-item').first()).toHaveAttribute(
     'data-selected',

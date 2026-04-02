@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+- Refactor internal note-id, markdown-conversion, and config-parsing modules
+  into smaller units; centralize repeated helpers; remove the unused
+  `radix-vue` dependency; and align documentation with the current
+  implementation.
 - Add an Editor.js `Big Emoji` inline tool backed by `emoji-picker-element`,
   rendering selected emoji at `2em` in the editor while preserving Markdown
   storage as bold emoji such as `**🤖**`.
@@ -57,7 +61,8 @@ All notable changes to this project will be documented in this file.
   note at the top of the list, opens it immediately, and focuses the note
   title for inline renaming.
 - Add config-backed i18n infrastructure with an English locale file and
-  translated UI/editor strings wired through `@nuxtjs/i18n`.
+  translated UI/editor strings wired through the custom `useTranslations`
+  composable.
 - Display the active note title in `NoteTemplate`, make it editable inline, and
   save title changes by renaming the note filename with collision-safe suffixes.
 - Add 2-second debounced autosave for note content, including flush-on-switch

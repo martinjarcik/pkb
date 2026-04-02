@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import type { EditorjsBlock } from '~/lib/editorjsMarkdown'
+import type { EditorjsBlock } from '~/lib/editorjsMarkdownTypes'
 import {
   BLOCK_BACKGROUND_COLORS,
   normalizeSavedEditorjsBlocks,

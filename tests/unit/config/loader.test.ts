@@ -10,11 +10,11 @@ function createEditorColors() {
       text: '#EB445A',
       label: 'Pink',
     },
-    green: {
+    mint: {
       emoji: '🟢',
-      background: '#EAF1EC',
+      background: '#E6F6F4',
       text: '#5AC5B3',
-      label: 'Green',
+      label: 'Mint',
     },
     yellow: {
       emoji: '🟡',
@@ -171,7 +171,7 @@ describe('parseAppConfig', () => {
     config.editorBackgroundColors = {
       red: { emoji: '🔴', hex: '#111111', text: '#C0594E', label: 'Red' },
       pink: { emoji: '🩷', hex: '#222222', text: '#EB445A', label: 'Pink' },
-      green: { emoji: '🟢', hex: '#333333', text: '#5AC5B3', label: 'Green' },
+      mint: { emoji: '🟢', hex: '#333333', text: '#5AC5B3', label: 'Mint' },
       yellow: { emoji: '🟡', hex: '#444444', text: '#C39647', label: 'Yellow' },
       blue: { emoji: '🔵', hex: '#555555', text: '#3B86F7', label: 'Blue' },
       orange: { emoji: '🟠', hex: '#666666', text: '#F09343', label: 'Orange' },

@@ -10,45 +10,18 @@ import {
   renderInlineHighlightHtml,
   type InlineHighlightStyle,
 } from './inlineHighlight'
-
-export type EditorjsBlock = {
-  type: string
-  data: Record<string, unknown>
-  cssClasses?: string[]
-  tunes?: Record<string, unknown>
-}
-
-/** Path prefix for vault image API (use with a leading `/` before relative paths). */
-export const VAULT_ASSETS_API_PREFIX = '/api/vault-assets'
-
-type MdPoint = {
-  line: number
-  column: number
-  offset: number
-}
-
-type MdPosition = {
-  start: MdPoint
-  end: MdPoint
-}
-
-type MarkdownNode = {
-  type: string
-  value?: string
-  depth?: number
-  ordered?: boolean
-  /** GFM task list: true / false; `null` when the line is not a task item. */
-  checked?: boolean | null
-  lang?: string | null
-  url?: string
-  alt?: string
-  title?: string
-  align?: Array<'left' | 'center' | 'right' | null>
-  children?: MarkdownNode[]
-  position?: MdPosition
-}
+import {
+  VAULT_ASSETS_API_PREFIX,
+  type EditorjsBlock,
+  type MarkdownNode,
+} from './editorjsMarkdownTypes'
 
 const BLOCK_COMMENT_PATTERN = /^<!--\s*block:\s*(.*?)\s*-->$/s
+const LIST_ITEM_LINE = /^(\s*)([*+-]|\d+\.)(\s)/
+
+type ParseMarkdownContext = {
+  didParseNoteTitle: boolean
+}
 
 function parseBlockCommentClasses(value: string): string[] | null {
   const match = value.trim().match(BLOCK_COMMENT_PATTERN)
@@ -56,19 +29,18 @@ function parseBlockCommentClasses(value: string): string[] | null {
   return match[1]!.split(/\s+/).filter((token) => token.length > 0)
 }
 
-const LIST_ITEM_LINE = /^(\s*)([*+-]|\d+\.)(\s)/
-
 function isMarkdownListItemLine(line: string): boolean {
   return LIST_ITEM_LINE.test(line)
 }
 
 function dedentMarkdownListRun(lines: string[]): string[] {
-  const indents = lines.map((l) => {
-    const m = l.match(LIST_ITEM_LINE)
-    const ws = m?.[1]
+  const indents = lines.map((line) => {
+    const match = line.match(LIST_ITEM_LINE)
+    const ws = match?.[1]
     return ws !== undefined ? ws.length : 0
   })
   const minIndent = Math.min(...indents)
+
   if (minIndent === 0) {
     return lines
   }
@@ -80,27 +52,29 @@ function dedentMarkdownListRun(lines: string[]): string[] {
 
 function dedentContiguousMarkdownListRuns(prose: string): string {
   const lines = prose.split('\n')
-  const out: string[] = []
-  let i = 0
+  const output: string[] = []
+  let index = 0
 
-  while (i < lines.length) {
-    const line = lines[i]!
+  while (index < lines.length) {
+    const line = lines[index]!
+
     if (!isMarkdownListItemLine(line)) {
-      out.push(line)
-      i++
+      output.push(line)
+      index += 1
       continue
     }
 
-    const start = i
-    i++
-    while (i < lines.length && isMarkdownListItemLine(lines[i]!)) {
-      i++
+    const start = index
+    index += 1
+
+    while (index < lines.length && isMarkdownListItemLine(lines[index]!)) {
+      index += 1
     }
 
-    out.push(...dedentMarkdownListRun(lines.slice(start, i)))
+    output.push(...dedentMarkdownListRun(lines.slice(start, index)))
   }
 
-  return out.join('\n')
+  return output.join('\n')
 }
 
 function transformProseOutsideFencedCodeBlocks(
@@ -109,21 +83,21 @@ function transformProseOutsideFencedCodeBlocks(
 ): string {
   const lines = markdown.split('\n')
   const segments: string[] = []
-  let proseBuf: string[] = []
-  let fenceBuf: string[] = []
+  let proseBuffer: string[] = []
+  let fenceBuffer: string[] = []
   let inFence = false
 
   const flushProse = () => {
-    if (proseBuf.length > 0) {
-      segments.push(transformProse(proseBuf.join('\n')))
-      proseBuf = []
+    if (proseBuffer.length > 0) {
+      segments.push(transformProse(proseBuffer.join('\n')))
+      proseBuffer = []
     }
   }
 
   const flushFence = () => {
-    if (fenceBuf.length > 0) {
-      segments.push(fenceBuf.join('\n'))
-      fenceBuf = []
+    if (fenceBuffer.length > 0) {
+      segments.push(fenceBuffer.join('\n'))
+      fenceBuffer = []
     }
   }
 
@@ -132,22 +106,23 @@ function transformProseOutsideFencedCodeBlocks(
       if (!inFence) {
         flushProse()
         inFence = true
-        fenceBuf.push(line)
+        fenceBuffer.push(line)
       } else {
-        fenceBuf.push(line)
+        fenceBuffer.push(line)
         flushFence()
         inFence = false
       }
     } else if (inFence) {
-      fenceBuf.push(line)
+      fenceBuffer.push(line)
     } else {
-      proseBuf.push(line)
+      proseBuffer.push(line)
     }
   }
 
   flushProse()
-  if (fenceBuf.length > 0) {
-    segments.push(fenceBuf.join('\n'))
+
+  if (fenceBuffer.length > 0) {
+    segments.push(fenceBuffer.join('\n'))
   }
 
   return segments.join('\n')
@@ -158,30 +133,6 @@ function parseMarkdown(markdown: string): MarkdownNode {
     .use(remarkGfm)
     .use(remarkHighlightMark)
     .parse(markdown) as MarkdownNode
-}
-
-function normalizeMarkdownProse(markdown: string): string {
-  return dedentContiguousMarkdownListRuns(inlineHtmlToMarkdown(markdown))
-}
-
-function isNonEmptyString(value: unknown): value is string {
-  return typeof value === 'string' && value.length > 0
-}
-
-function countNewlines(text: string): number {
-  return text.match(/\n/g)?.length ?? 0
-}
-
-function emptyParagraphsForBlockGap(
-  _prevType: string,
-  _nextType: string,
-  gapNewlines: number,
-): number {
-  if (gapNewlines < 2) {
-    return 0
-  }
-
-  return gapNewlines - 1
 }
 
 function editorHtmlLineBreaksToMarkdownNewlines(text: string): string {
@@ -272,6 +223,30 @@ function inlineHtmlToMarkdown(text: string): string {
   return normalized
 }
 
+function normalizeMarkdownProse(markdown: string): string {
+  return dedentContiguousMarkdownListRuns(inlineHtmlToMarkdown(markdown))
+}
+
+function isNonEmptyString(value: unknown): value is string {
+  return typeof value === 'string' && value.length > 0
+}
+
+function countNewlines(text: string): number {
+  return text.match(/\n/g)?.length ?? 0
+}
+
+function emptyParagraphsForBlockGap(
+  _prevType: string,
+  _nextType: string,
+  gapNewlines: number,
+): number {
+  if (gapNewlines < 2) {
+    return 0
+  }
+
+  return gapNewlines - 1
+}
+
 function markdownNewlinesToEditorHtml(text: string): string {
   return text.replace(/\n/g, '<br>')
 }
@@ -284,37 +259,7 @@ function wrapHashtagsForEditorHtml(text: string): string {
   )
 }
 
-function blockRequiresBlankLineSeparator(type: string): boolean {
-  return type === 'list' || type === 'image'
-}
-
-function newlinesBetweenSubstantive(
-  prevType: string,
-  nextType: string,
-  blanksBefore: number,
-): number {
-  if (blanksBefore <= 0) {
-    if (
-      (prevType === 'header' && nextType === 'list') ||
-      (prevType === 'list' && nextType === 'header')
-    ) {
-      return 1
-    }
-
-    if (
-      blockRequiresBlankLineSeparator(prevType) ||
-      blockRequiresBlankLineSeparator(nextType)
-    ) {
-      return 2
-    }
-
-    return 1
-  }
-
-  return blanksBefore + 1
-}
-
-function emptyParagraphBlock(): EditorjsBlock {
+function createEmptyParagraphBlock(): EditorjsBlock {
   return {
     type: 'paragraph',
     data: {
@@ -323,28 +268,22 @@ function emptyParagraphBlock(): EditorjsBlock {
   }
 }
 
-function isEmptyParagraphBlock(block: EditorjsBlock): boolean {
-  return (
-    block.type === 'paragraph' && String(block.data.text ?? '').length === 0
-  )
-}
-
 function blocksFromRootWithBlankLines(
   source: string,
   root: MarkdownNode,
 ): EditorjsBlock[] {
   const children = root.children ?? []
-  const out: EditorjsBlock[] = []
-  const parseContext = {
+  const output: EditorjsBlock[] = []
+  const parseContext: ParseMarkdownContext = {
     didParseNoteTitle: false,
   }
   let pendingCssClasses: string[] | null = null
 
-  for (let i = 0; i < children.length; i++) {
-    const node = children[i]!
-    const pos = node.position
-    const startOffset = pos?.start.offset
-    const endOffset = pos?.end.offset
+  for (let index = 0; index < children.length; index += 1) {
+    const node = children[index]!
+    const position = node.position
+    const startOffset = position?.start.offset
+    const endOffset = position?.end.offset
 
     if (node.type === 'html') {
       const classes = parseBlockCommentClasses(node.value ?? '')
@@ -355,23 +294,25 @@ function blocksFromRootWithBlankLines(
     }
 
     if (startOffset !== undefined && endOffset !== undefined) {
-      if (i === 0) {
+      if (index === 0) {
         const leading = source.slice(0, startOffset)
-        for (let n = 0; n < countNewlines(leading); n++) {
-          out.push(emptyParagraphBlock())
+        for (let count = 0; count < countNewlines(leading); count += 1) {
+          output.push(createEmptyParagraphBlock())
         }
       } else {
-        const prev = children[i - 1]!
-        const prevEnd = prev.position?.end.offset
-        if (prevEnd !== undefined) {
-          const gap = source.slice(prevEnd, startOffset)
+        const previous = children[index - 1]!
+        const previousEnd = previous.position?.end.offset
+
+        if (previousEnd !== undefined) {
+          const gap = source.slice(previousEnd, startOffset)
           const extra = emptyParagraphsForBlockGap(
-            prev.type,
+            previous.type,
             node.type,
             countNewlines(gap),
           )
-          for (let n = 0; n < extra; n++) {
-            out.push(emptyParagraphBlock())
+
+          for (let count = 0; count < extra; count += 1) {
+            output.push(createEmptyParagraphBlock())
           }
         }
       }
@@ -384,20 +325,22 @@ function blocksFromRootWithBlankLines(
       pendingCssClasses = null
     }
 
-    out.push(...blocks)
+    output.push(...blocks)
   }
 
   const last = children[children.length - 1]
   const lastEnd = last?.position?.end.offset
+
   if (lastEnd !== undefined && children.length > 0) {
     const trailing = source.slice(lastEnd)
     const extraTrail = Math.max(0, countNewlines(trailing) - 1)
-    for (let n = 0; n < extraTrail; n++) {
-      out.push(emptyParagraphBlock())
+
+    for (let count = 0; count < extraTrail; count += 1) {
+      output.push(createEmptyParagraphBlock())
     }
   }
 
-  return out
+  return output
 }
 
 function editorDisplayUrlForMarkdownImage(url: string): string {
@@ -410,15 +353,6 @@ function editorDisplayUrlForMarkdownImage(url: string): string {
   }
 
   return `${VAULT_ASSETS_API_PREFIX}/${url}`
-}
-
-function markdownUrlFromEditorImageFileUrl(fileUrl: string): string {
-  const prefix = `${VAULT_ASSETS_API_PREFIX}/`
-  if (fileUrl.startsWith(prefix)) {
-    return fileUrl.slice(prefix.length)
-  }
-
-  return fileUrl
 }
 
 function parseInlineNodeToHtml(node: MarkdownNode): string {
@@ -500,9 +434,9 @@ function parseParagraph(node: MarkdownNode): EditorjsBlock[] {
   const children = node.children ?? []
 
   if (children.length === 1 && children[0]!.type === 'image') {
-    const img = children[0]!
-    const rawUrl = String(img.url ?? '')
-    const caption = String(img.alt ?? '')
+    const image = children[0]!
+    const rawUrl = String(image.url ?? '')
+    const caption = String(image.alt ?? '')
 
     return [
       {
@@ -627,10 +561,6 @@ function parseTable(node: MarkdownNode): EditorjsBlock {
   }
 }
 
-type ParseMarkdownContext = {
-  didParseNoteTitle: boolean
-}
-
 function parseMarkdownNode(
   node: MarkdownNode,
   context: ParseMarkdownContext,
@@ -663,173 +593,6 @@ function parseMarkdownNode(
   }
 }
 
-function normalizeCellValue(value: unknown): string {
-  const normalizedValue = value === undefined || value === null ? '' : value
-
-  return inlineHtmlToMarkdown(String(normalizedValue))
-    .replace(/\r\n/g, '\n')
-    .replace(/\n/g, '<br>')
-    .replace(/\|/g, '\\|')
-}
-
-function renderAlignmentCell(alignment: unknown): string {
-  switch (alignment) {
-    case 'left':
-      return ':---'
-    case 'center':
-      return ':---:'
-    case 'right':
-      return '---:'
-    default:
-      return '---'
-  }
-}
-
-type NormalizedListItem = {
-  content: string
-  checked: boolean
-}
-
-function normalizeListItemRecord(item: unknown): NormalizedListItem {
-  if (typeof item === 'string') {
-    return { content: item, checked: false }
-  }
-
-  if (item === null || typeof item !== 'object') {
-    return { content: '', checked: false }
-  }
-
-  const record = item as Record<string, unknown>
-  const rawContent = record.content ?? record.text
-  const content =
-    typeof rawContent === 'string' ? rawContent : String(rawContent ?? '')
-  const meta = record.meta
-  const fromMeta =
-    meta !== null &&
-    typeof meta === 'object' &&
-    typeof (meta as { checked?: unknown }).checked === 'boolean'
-      ? (meta as { checked: boolean }).checked
-      : undefined
-  const checked =
-    typeof record.checked === 'boolean'
-      ? record.checked
-      : fromMeta !== undefined
-        ? fromMeta
-        : false
-
-  return { content, checked }
-}
-
-function renderTableMarkdown(data: Record<string, unknown>): string {
-  const rawContent = Array.isArray(data.content) ? data.content : []
-  const content = rawContent.filter((row): row is unknown[] =>
-    Array.isArray(row),
-  )
-
-  if (content.length === 0) {
-    return ''
-  }
-
-  const columnCount = content.reduce(
-    (count, row) => Math.max(count, row.length),
-    0,
-  )
-
-  if (columnCount === 0) {
-    return ''
-  }
-
-  const rawAlignments = Array.isArray(data.alignments)
-    ? data.alignments
-    : Array.isArray(data.align)
-      ? data.align
-      : []
-  const alignments = Array.from({ length: columnCount }, (_, index) =>
-    renderAlignmentCell(rawAlignments[index]),
-  )
-  const withHeadings = Boolean(data.withHeadings)
-  const headerRow =
-    withHeadings && content[0] ? content[0] : new Array(columnCount).fill('')
-  const bodyRows = withHeadings ? content.slice(1) : content
-
-  const renderRow = (row: unknown[]) =>
-    `| ${Array.from({ length: columnCount }, (_, index) => normalizeCellValue(row[index])).join(' | ')} |`
-
-  return [
-    renderRow(headerRow),
-    `| ${alignments.join(' | ')} |`,
-    ...bodyRows.map((row) => renderRow(row)),
-  ].join('\n')
-}
-
-function renderBlockComment(block: EditorjsBlock): string {
-  if (!block.cssClasses || block.cssClasses.length === 0) return ''
-  return `<!-- block: ${block.cssClasses.join(' ')} -->\n`
-}
-
-function renderMarkdownBlock(block: EditorjsBlock): string {
-  switch (block.type) {
-    case 'header': {
-      const level = Math.min(Math.max(Number(block.data.level ?? 1) || 1, 1), 6)
-      const text = inlineHtmlToMarkdown(String(block.data.text ?? ''))
-      return `${'#'.repeat(level)} ${text}`.trimEnd()
-    }
-    case 'paragraph':
-      return inlineHtmlToMarkdown(String(block.data.text ?? ''))
-    case 'simpleQuote':
-      return `> ${inlineHtmlToMarkdown(String(block.data.text ?? ''))}`
-    case 'list': {
-      const items = Array.isArray(block.data.items) ? block.data.items : []
-      const style =
-        block.data.style === 'ordered'
-          ? 'ordered'
-          : block.data.style === 'checklist'
-            ? 'checklist'
-            : 'unordered'
-
-      if (style === 'checklist') {
-        return items
-          .map((item) => {
-            const { content, checked } = normalizeListItemRecord(item)
-            const line = inlineHtmlToMarkdown(content)
-            const mark = checked ? '[x]' : '[ ]'
-
-            return `- ${mark} ${line}`.trimEnd()
-          })
-          .join('\n')
-      }
-
-      return items
-        .map((item, index) => {
-          const { content } = normalizeListItemRecord(item)
-          const line = inlineHtmlToMarkdown(content)
-
-          return style === 'ordered' ? `${index + 1}. ${line}` : `- ${line}`
-        })
-        .join('\n')
-    }
-    case 'delimiter':
-      return '---'
-    case 'code':
-      return `\`\`\`\n${String(block.data.code ?? '')}\n\`\`\``
-    case 'table':
-      return renderTableMarkdown(block.data)
-    case 'image': {
-      const file = block.data.file
-      const fileUrl =
-        file && typeof file === 'object' && file !== null && 'url' in file
-          ? String((file as { url?: unknown }).url ?? '')
-          : ''
-      const url = markdownUrlFromEditorImageFileUrl(fileUrl)
-      const caption = String(block.data.caption ?? '')
-
-      return `![${caption}](${url})`
-    }
-    default:
-      return ''
-  }
-}
-
 export function markdownToEditorjsBlocks(markdown: string): EditorjsBlock[] {
   if (markdown.length === 0) {
     return []
@@ -846,7 +609,7 @@ export function markdownToEditorjsBlocks(markdown: string): EditorjsBlock[] {
     if (!/\S/u.test(normalizedMarkdown)) {
       const blankLines = countNewlines(normalizedMarkdown)
       if (blankLines > 0) {
-        return Array.from({ length: blankLines }, emptyParagraphBlock)
+        return Array.from({ length: blankLines }, createEmptyParagraphBlock)
       }
     }
 
@@ -854,76 +617,4 @@ export function markdownToEditorjsBlocks(markdown: string): EditorjsBlock[] {
   }
 
   return blocksFromRootWithBlankLines(normalizedMarkdown, parsedMarkdown)
-}
-
-export function editorjsBlocksToMarkdown(blocks: EditorjsBlock[]): string {
-  const normalizedBlocks = blocks.filter((block) => block.type !== 'noteTitle')
-
-  while (
-    normalizedBlocks.length > 0 &&
-    isEmptyParagraphBlock(normalizedBlocks[normalizedBlocks.length - 1]!)
-  ) {
-    normalizedBlocks.pop()
-  }
-
-  if (normalizedBlocks.length === 0) {
-    return ''
-  }
-
-  let i = 0
-  let leadingBlanks = 0
-  while (
-    i < normalizedBlocks.length &&
-    isEmptyParagraphBlock(normalizedBlocks[i]!)
-  ) {
-    leadingBlanks++
-    i++
-  }
-
-  const substantive: EditorjsBlock[] = []
-  const blanksBeforeEach: number[] = []
-  let pendingBlanks = leadingBlanks
-
-  for (; i < normalizedBlocks.length; i++) {
-    const block = normalizedBlocks[i]!
-    if (isEmptyParagraphBlock(block)) {
-      pendingBlanks++
-    } else {
-      substantive.push(block)
-      blanksBeforeEach.push(pendingBlanks)
-      pendingBlanks = 0
-    }
-  }
-
-  const trailingBlanks = pendingBlanks
-
-  if (substantive.length === 0) {
-    return '\n'.repeat(leadingBlanks)
-  }
-
-  let result = ''
-  for (let j = 0; j < substantive.length; j++) {
-    const block = substantive[j]!
-    const md = renderMarkdownBlock(block)
-    const comment = renderBlockComment(block)
-    const blanksBefore = blanksBeforeEach[j]!
-    if (j === 0) {
-      result += '\n'.repeat(blanksBefore) + comment + md
-    } else {
-      result +=
-        '\n'.repeat(
-          newlinesBetweenSubstantive(
-            substantive[j - 1]!.type,
-            substantive[j]!.type,
-            blanksBefore,
-          ),
-        ) +
-        comment +
-        md
-    }
-  }
-
-  result += '\n'.repeat(trailingBlanks)
-
-  return result
 }

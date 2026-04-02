@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed } from 'vue'
 import { Folder, Pencil } from 'lucide-vue-next'
 
 const props = defineProps<{
@@ -16,12 +16,18 @@ const emit = defineEmits<{
 }>()
 
 const navigationId = computed(() => `folder:${props.folderName}`)
-const dragDepth = ref(0)
-const isDropActive = ref(false)
-
 const displayIcon = computed(() =>
   props.customIcon && props.customIcon.length > 0 ? props.customIcon : Folder,
 )
+const {
+  isDropActive,
+  handleDragEnter,
+  handleDragLeave,
+  handleDragOver,
+  handleDrop,
+} = useNoteDropTarget(async (noteId) => {
+  await moveNote(noteId, props.folderName)
+})
 
 function handleClick(): void {
   emit('click')
@@ -30,41 +36,6 @@ function handleClick(): void {
 function handleEditClick(event: MouseEvent): void {
   event.stopPropagation()
   emit('edit')
-}
-
-function handleDragEnter(): void {
-  dragDepth.value += 1
-  isDropActive.value = true
-}
-
-function handleDragLeave(): void {
-  dragDepth.value = Math.max(0, dragDepth.value - 1)
-
-  if (dragDepth.value === 0) {
-    isDropActive.value = false
-  }
-}
-
-function handleDragOver(event: DragEvent): void {
-  event.preventDefault()
-
-  if (event.dataTransfer) {
-    event.dataTransfer.dropEffect = 'move'
-  }
-}
-
-async function handleDrop(event: DragEvent): Promise<void> {
-  event.preventDefault()
-  dragDepth.value = 0
-  isDropActive.value = false
-
-  const noteId = event.dataTransfer?.getData('text/plain').trim()
-
-  if (!noteId) {
-    return
-  }
-
-  await moveNote(noteId, props.folderName)
 }
 </script>
 

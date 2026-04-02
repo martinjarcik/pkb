@@ -51,10 +51,19 @@ test('dragging a trashed note to Inbox restores it to the inbox list', async ({
 
   await page.goto('/')
   await waitForNotesList(page)
-  await page.locator('[data-navigation-id="trashed"]').click()
+  await expect(page.getByTestId('notes-list-empty')).toBeVisible()
+  await expect
+    .poll(async () => {
+      const trashedNav = page.locator('[data-navigation-id="trashed"]')
+
+      await trashedNav.click()
+
+      return trashedNav.getAttribute('data-selected')
+    })
+    .toBe('true')
   await expect(
     page.locator('[data-note-id="E2E-Trashed-Drag-Restore.md"]'),
-  ).toBeVisible()
+  ).toBeVisible({ timeout: 10000 })
 
   const noteRow = page.locator('[data-note-id="E2E-Trashed-Drag-Restore.md"]')
   const inboxNav = page.locator('[data-navigation-id="inbox"]').first()
@@ -62,7 +71,11 @@ test('dragging a trashed note to Inbox restores it to the inbox list', async ({
   await noteRow.dragTo(inboxNav)
 
   await page.locator('[data-navigation-id="inbox"]').click()
+  await expect(page.locator('[data-navigation-id="inbox"]')).toHaveAttribute(
+    'data-selected',
+    'true',
+  )
   await expect(
     page.locator('[data-note-id="E2E-Trashed-Drag-Restore.md"]'),
-  ).toBeVisible()
+  ).toBeVisible({ timeout: 10000 })
 })

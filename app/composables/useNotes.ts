@@ -4,7 +4,7 @@ import { loadConfig } from '~/config/loader'
 import { t } from '~/composables/useTranslations'
 import { createNoteCatalogRow } from '~/notes/catalogRow'
 import { noteDescriptionFromContent } from '~/notes/noteDescriptionFromContent'
-import { resolveUniqueNoteIdForParentPath } from '~/notes/renameNoteTitle'
+import { resolveUniqueNoteIdForParentPath } from '~/notes/noteId'
 import { noteWithToggledFavorite } from '~/notes/noteWithToggledFavorite'
 import { noteWithToggledPinned } from '~/notes/noteWithToggledPinned'
 import { noteWithWebhookUrl } from '~/notes/noteWithWebhookUrl'
@@ -319,7 +319,9 @@ export function useNotes() {
     }
   }
 
-  async function toggleFavoriteSelectedNote(): Promise<void> {
+  async function saveAppPropertyChange(
+    transform: (note: Note) => Note,
+  ): Promise<void> {
     const current = selectedNote.value
 
     if (!current) {
@@ -331,8 +333,8 @@ export function useNotes() {
     try {
       await editorFlush.value?.()
 
-      const toggled = noteWithToggledFavorite(current)
-      const saveInput = buildSaveNoteInput(toggled, toggled.content)
+      const nextNote = transform(current)
+      const saveInput = buildSaveNoteInput(nextNote, nextNote.content)
 
       const savedNote = await globalThis.$fetch<Note>('/api/notes', {
         method: 'PUT',
@@ -345,62 +347,18 @@ export function useNotes() {
       saveError.value =
         error instanceof Error ? error.message : t('notes.errorSaveFallback')
     }
+  }
+
+  async function toggleFavoriteSelectedNote(): Promise<void> {
+    await saveAppPropertyChange(noteWithToggledFavorite)
   }
 
   async function togglePinnedSelectedNote(): Promise<void> {
-    const current = selectedNote.value
-
-    if (!current) {
-      return
-    }
-
-    saveError.value = null
-
-    try {
-      await editorFlush.value?.()
-
-      const toggled = noteWithToggledPinned(current)
-      const saveInput = buildSaveNoteInput(toggled, toggled.content)
-
-      const savedNote = await globalThis.$fetch<Note>('/api/notes', {
-        method: 'PUT',
-        body: saveInput,
-      })
-
-      replaceNote(savedNote)
-      selectedNoteFull.value = savedNote
-    } catch (error) {
-      saveError.value =
-        error instanceof Error ? error.message : t('notes.errorSaveFallback')
-    }
+    await saveAppPropertyChange(noteWithToggledPinned)
   }
 
   async function saveWebhookForSelectedNote(url: string): Promise<void> {
-    const current = selectedNote.value
-
-    if (!current) {
-      return
-    }
-
-    saveError.value = null
-
-    try {
-      await editorFlush.value?.()
-
-      const next = noteWithWebhookUrl(current, url)
-      const saveInput = buildSaveNoteInput(next, next.content)
-
-      const savedNote = await globalThis.$fetch<Note>('/api/notes', {
-        method: 'PUT',
-        body: saveInput,
-      })
-
-      replaceNote(savedNote)
-      selectedNoteFull.value = savedNote
-    } catch (error) {
-      saveError.value =
-        error instanceof Error ? error.message : t('notes.errorSaveFallback')
-    }
+    await saveAppPropertyChange((note) => noteWithWebhookUrl(note, url))
   }
 
   async function deleteSelectedNote(

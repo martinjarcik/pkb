@@ -3,10 +3,7 @@ import { getNoteStorage } from '~/storage/router'
 import { extractLocalImageRefs } from '~/storage/imageRefs'
 import { deleteOrphanedAssetFiles } from '../deleteOrphanedAssetFiles'
 import { loadServerConfig } from '../loadServerConfig'
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === 'object' && value !== null && !Array.isArray(value)
-}
+import { isRecord } from '../validation'
 
 export function parseDeleteNoteInput(body: unknown): string {
   if (!isRecord(body)) {

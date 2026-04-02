@@ -5,9 +5,9 @@ import {
   resolveUniqueNoteId,
   resolveUniqueNoteIdForParentPath,
   sanitizeNoteTitleForFilename,
-} from '~/notes/renameNoteTitle'
+} from '~/notes/noteId'
 
-describe('renameNoteTitle', () => {
+describe('noteId', () => {
   it('sanitizes path separators and illegal filename characters', () => {
     expect(sanitizeNoteTitleForFilename('  Report: Q1 / Q2?  ')).toBe(
       'Report Q1 Q2',

@@ -11,11 +11,11 @@ function createEditorColors() {
       text: '#EB445A',
       label: 'Pink',
     },
-    green: {
+    mint: {
       emoji: '🟢',
-      background: '#EAF1EC',
+      background: '#E6F6F4',
       text: '#5AC5B3',
-      label: 'Green',
+      label: 'Mint',
     },
     yellow: {
       emoji: '🟡',

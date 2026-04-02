@@ -1,5 +1,5 @@
 import { expect, type Page, type Route } from '@playwright/test'
-import { moveNoteId } from '../../app/notes/renameNoteTitle'
+import { moveNoteId } from '../../app/notes/noteId'
 import { noteDescriptionFromContent } from '../../app/notes/noteDescriptionFromContent'
 import { noteTitleFromId } from '../../app/notes/noteTitleFromId'
 import type { Note, NoteProperties } from '../../app/notes/types'
@@ -262,6 +262,93 @@ export async function mockAppConfigApi(page: Page): Promise<void> {
       return
     }
 
-    await route.fallback()
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        applicationType: 'desktop',
+        locale: 'en',
+        vault: './vault',
+        notes: {
+          trashRetentionDays: 30,
+        },
+        editor: {
+          autosaveDelay: 2000,
+          assetsFolder: 'assets',
+        },
+        layout: {
+          showInspectorPanel: true,
+          showSidebarPanel: true,
+          showNotesListPanel: true,
+        },
+        theme: {
+          accentColor: '#3f57dfff',
+          defaultEditorColor: 'yellow',
+        },
+        editorColors: {
+          red: {
+            emoji: '🔴',
+            background: '#F9EAE7',
+            text: '#C0594E',
+            label: 'Red',
+          },
+          pink: {
+            emoji: '🩷',
+            background: '#FCE3E6',
+            text: '#EB445A',
+            label: 'Pink',
+          },
+          mint: {
+            emoji: '🟢',
+            background: '#E6F6F4',
+            text: '#5AC5B3',
+            label: 'Mint',
+          },
+          yellow: {
+            emoji: '🟡',
+            background: '#F8F3DE',
+            text: '#C39647',
+            label: 'Yellow',
+          },
+          blue: {
+            emoji: '🔵',
+            background: '#E2EDFE',
+            text: '#3B86F7',
+            label: 'Blue',
+          },
+          orange: {
+            emoji: '🟠',
+            background: '#FDEFE3',
+            text: '#F09343',
+            label: 'Orange',
+          },
+          purple: {
+            emoji: '🟣',
+            background: '#F5E2F9',
+            text: '#BB3ED9',
+            label: 'Purple',
+          },
+          grey: {
+            emoji: '⚪️',
+            background: '#F0EFED',
+            text: '#7C7A76',
+            label: 'Grey',
+          },
+          brown: {
+            emoji: '🟤',
+            background: '#F4EDE9',
+            text: '#99785E',
+            label: 'Brown',
+          },
+        },
+        features: {
+          favorites: true,
+          tasks: true,
+          pinned: true,
+          nonDistractionMode: true,
+          noteWebhook: true,
+        },
+      }),
+    })
   })
 }
