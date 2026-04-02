@@ -43,9 +43,9 @@ export function filterCatalogBySelectedTags(
   }
 
   return rows.filter((row) => {
-    const tags = rowTags(row)
+    const tags = new Set(rowTags(row))
 
-    return selectedTags.every((tag) => tags.includes(tag))
+    return selectedTags.every((tag) => tags.has(tag))
   })
 }
 
@@ -196,7 +196,7 @@ export function sortCatalogRowsPinnedFirstByModifiedAt(
       return pinnedB - pinnedA
     }
 
-    return new Date(b.modifiedAt).getTime() - new Date(a.modifiedAt).getTime()
+    return b.modifiedAt.localeCompare(a.modifiedAt)
   })
 }
 

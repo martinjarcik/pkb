@@ -1,10 +1,10 @@
 import { loadConfig } from '~/config/loader'
 import { LAYOUT_STATE_KEYS } from '~/composables/useLayout'
 
-export default defineNuxtPlugin(async () => {
+export default defineNuxtPlugin(() => {
   const defaultLayout = loadConfig().layout
 
-  const { data } = await useAppConfigDisk()
+  const { data } = useAppConfigDisk()
 
   const layout = data.value?.layout ?? defaultLayout
 

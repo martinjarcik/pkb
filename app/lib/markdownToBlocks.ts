@@ -16,6 +16,7 @@ import { normalizeSimpleQuoteText } from './simpleQuoteTool'
 // local extractions when future changes touch one branch of the parser.
 const BLOCK_COMMENT_PATTERN = /^<!--\s*block:\s*(.*?)\s*-->$/s
 const LIST_ITEM_LINE = /^(\s*)([*+-]|\d+\.)(\s)/
+const markdownParser = remark().use(remarkGfm).use(remarkHighlightMark)
 
 type ParseMarkdownContext = {
   didParseNoteTitle: boolean
@@ -127,10 +128,7 @@ function transformProseOutsideFencedCodeBlocks(
 }
 
 function parseMarkdown(markdown: string): MarkdownNode {
-  return remark()
-    .use(remarkGfm)
-    .use(remarkHighlightMark)
-    .parse(markdown) as MarkdownNode
+  return markdownParser.parse(markdown) as MarkdownNode
 }
 
 function normalizeMarkdownProse(markdown: string): string {

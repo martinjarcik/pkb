@@ -20,7 +20,9 @@ import {
   serializeDocument,
 } from './document'
 
-const STORAGE_KEY = 'notes'
+const LEGACY_STORAGE_KEY = 'notes'
+const NOTE_INDEX_STORAGE_KEY = 'note-index'
+const NOTE_STORAGE_KEY_PREFIX = 'note:'
 const FOLDERS_STORAGE_KEY = 'folders'
 
 type BrowserStoredNote = {
@@ -60,6 +62,10 @@ function getLocalStorage(): Storage {
   return localStorage
 }
 
+function noteStorageKey(id: string): string {
+  return `${NOTE_STORAGE_KEY_PREFIX}${id}`
+}
+
 function parseStoredNotes(raw: string | null): BrowserStoredNotes {
   if (!raw) return {}
 
@@ -86,6 +92,22 @@ function parseStoredNotes(raw: string | null): BrowserStoredNotes {
   }
 }
 
+function parseStoredNoteIds(raw: string | null): string[] {
+  if (!raw) {
+    return []
+  }
+
+  try {
+    const parsed: unknown = JSON.parse(raw)
+
+    return Array.isArray(parsed)
+      ? parsed.filter((item): item is string => typeof item === 'string')
+      : []
+  } catch {
+    return []
+  }
+}
+
 function composeNote(id: string, storedNote: BrowserStoredNote): Note {
   const { properties, content } = parseDocument(storedNote.document)
 
@@ -107,8 +129,90 @@ function composeNoteCatalogRow(
   return createNoteCatalogRow(composeNote(id, storedNote))
 }
 
+function writeStoredNoteIds(ids: string[]): void {
+  const storage = getLocalStorage()
+
+  if (ids.length === 0) {
+    storage.removeItem(NOTE_INDEX_STORAGE_KEY)
+    return
+  }
+
+  storage.setItem(NOTE_INDEX_STORAGE_KEY, JSON.stringify(ids))
+}
+
+function writeStoredNote(id: string, storedNote: BrowserStoredNote): void {
+  getLocalStorage().setItem(noteStorageKey(id), JSON.stringify(storedNote))
+}
+
+function readStoredNote(id: string): BrowserStoredNote | null {
+  migrateLegacyStoredNotes()
+  const raw = getLocalStorage().getItem(noteStorageKey(id))
+
+  if (!raw) {
+    return null
+  }
+
+  try {
+    return coerceBrowserStoredNote(JSON.parse(raw))
+  } catch {
+    return null
+  }
+}
+
+function removeStoredNote(id: string): void {
+  getLocalStorage().removeItem(noteStorageKey(id))
+}
+
+function migrateLegacyStoredNotes(): void {
+  const storage = getLocalStorage()
+
+  if (storage.getItem(NOTE_INDEX_STORAGE_KEY)) {
+    return
+  }
+
+  const legacyNotes = parseStoredNotes(storage.getItem(LEGACY_STORAGE_KEY))
+  const ids = Object.keys(legacyNotes)
+
+  if (ids.length === 0) {
+    storage.removeItem(LEGACY_STORAGE_KEY)
+    return
+  }
+
+  for (const id of ids) {
+    writeStoredNote(id, legacyNotes[id]!)
+  }
+
+  writeStoredNoteIds(ids)
+  storage.removeItem(LEGACY_STORAGE_KEY)
+}
+
+function readStoredNoteIds(): string[] {
+  migrateLegacyStoredNotes()
+
+  return parseStoredNoteIds(getLocalStorage().getItem(NOTE_INDEX_STORAGE_KEY))
+}
+
 function readStoredNotes(): BrowserStoredNotes {
-  return parseStoredNotes(getLocalStorage().getItem(STORAGE_KEY))
+  const ids = readStoredNoteIds()
+  const notes: BrowserStoredNotes = {}
+  const validIds: string[] = []
+
+  for (const id of ids) {
+    const storedNote = readStoredNote(id)
+
+    if (!storedNote) {
+      continue
+    }
+
+    notes[id] = storedNote
+    validIds.push(id)
+  }
+
+  if (validIds.length !== ids.length) {
+    writeStoredNoteIds(validIds)
+  }
+
+  return notes
 }
 
 function readStoredFolders(): string[] {
@@ -138,27 +242,13 @@ function writeStoredFolders(folders: string[]): void {
   storage.setItem(FOLDERS_STORAGE_KEY, JSON.stringify(folders))
 }
 
-function writeStoredNotes(notes: BrowserStoredNotes): void {
-  const storage = getLocalStorage()
-
-  if (Object.keys(notes).length === 0) {
-    storage.removeItem(STORAGE_KEY)
-    return
-  }
-
-  storage.setItem(STORAGE_KEY, JSON.stringify(notes))
-}
-
 export const browserStorage: NoteStorage = {
   async loadNotesCatalog(): Promise<NoteCatalogRow[]> {
     const notes = Object.entries(readStoredNotes()).map(([id, storedNote]) =>
       composeNoteCatalogRow(id, storedNote),
     )
 
-    return notes.sort(
-      (a, b) =>
-        new Date(b.modifiedAt).getTime() - new Date(a.modifiedAt).getTime(),
-    )
+    return notes.sort((a, b) => b.modifiedAt.localeCompare(a.modifiedAt))
   },
 
   async loadFolders(): Promise<string[]> {
@@ -166,7 +256,7 @@ export const browserStorage: NoteStorage = {
   },
 
   async loadNoteById(id: string): Promise<Note | null> {
-    const storedNote = readStoredNotes()[id]
+    const storedNote = readStoredNote(id)
 
     if (!storedNote) {
       return null
@@ -176,8 +266,8 @@ export const browserStorage: NoteStorage = {
   },
 
   async saveNote(input: SaveNoteInput): Promise<Note> {
-    const notes = readStoredNotes()
-    const existingNote = notes[input.id]
+    const ids = readStoredNoteIds()
+    const existingNote = readStoredNote(input.id)
     const timestamp = new Date().toISOString()
     const storedNote: BrowserStoredNote = {
       document: serializeDocument(input.properties, input.content),
@@ -185,16 +275,18 @@ export const browserStorage: NoteStorage = {
       modifiedAt: timestamp,
     }
 
-    notes[input.id] = storedNote
+    writeStoredNote(input.id, storedNote)
 
-    writeStoredNotes(notes)
+    if (!ids.includes(input.id)) {
+      writeStoredNoteIds([...ids, input.id])
+    }
 
     return composeNote(input.id, storedNote)
   },
 
   async renameNoteTitle(input: RenameNoteTitleInput): Promise<Note> {
-    const notes = readStoredNotes()
-    const storedNote = notes[input.id]
+    const ids = readStoredNoteIds()
+    const storedNote = readStoredNote(input.id)
 
     if (!storedNote) {
       throw new Error(`Note not found: ${input.id}`)
@@ -203,24 +295,21 @@ export const browserStorage: NoteStorage = {
     const nextId = resolveUniqueNoteId(
       input.id,
       input.title,
-      Object.keys(notes),
+      input.existingIds ?? ids,
     )
 
     if (nextId !== input.id) {
-      const { [input.id]: _removed, ...remaining } = notes
-
-      writeStoredNotes({
-        ...remaining,
-        [nextId]: storedNote,
-      })
+      writeStoredNote(nextId, storedNote)
+      removeStoredNote(input.id)
+      writeStoredNoteIds(ids.map((id) => (id === input.id ? nextId : id)))
     }
 
     return composeNote(nextId, storedNote)
   },
 
   async moveNote(input: MoveNoteInput): Promise<Note> {
-    const notes = readStoredNotes()
-    const storedNote = notes[input.id]
+    const ids = readStoredNoteIds()
+    const storedNote = readStoredNote(input.id)
 
     if (!storedNote) {
       throw new Error(`Note not found: ${input.id}`)
@@ -229,7 +318,7 @@ export const browserStorage: NoteStorage = {
     const nextId = moveNoteId(
       input.id,
       input.targetParentPath,
-      Object.keys(notes),
+      input.existingIds ?? ids,
     )
 
     const parsedMove = parseDocument(storedNote.document)
@@ -260,17 +349,11 @@ export const browserStorage: NoteStorage = {
         }
 
     if (nextId !== input.id) {
-      const { [input.id]: _removed, ...remaining } = notes
-
-      writeStoredNotes({
-        ...remaining,
-        [nextId]: nextStored,
-      })
+      writeStoredNote(nextId, nextStored)
+      removeStoredNote(input.id)
+      writeStoredNoteIds(ids.map((id) => (id === input.id ? nextId : id)))
     } else if (hadTrashed) {
-      writeStoredNotes({
-        ...notes,
-        [input.id]: nextStored,
-      })
+      writeStoredNote(input.id, nextStored)
     }
 
     const effectiveStored =
@@ -312,21 +395,18 @@ export const browserStorage: NoteStorage = {
       )
       .map((row) => row.id)
 
-    for (const id of idsToDelete) {
-      await this.deleteNote(id)
-    }
+    await Promise.all(idsToDelete.map(async (id) => this.deleteNote(id)))
   },
 
   async deleteNote(id: string): Promise<void> {
-    const notes = readStoredNotes()
+    const ids = readStoredNoteIds()
 
-    if (!notes[id]) {
+    if (!ids.includes(id)) {
       return
     }
 
-    const { [id]: _, ...remaining } = notes
-
-    writeStoredNotes(remaining)
+    removeStoredNote(id)
+    writeStoredNoteIds(ids.filter((existingId) => existingId !== id))
   },
 
   async createFolder(name: string): Promise<void> {
@@ -345,15 +425,21 @@ export const browserStorage: NoteStorage = {
 
     const notes = readStoredNotes()
     const prefix = `${oldName}/`
-    const rekeyed: BrowserStoredNotes = {}
+    const rekeyedIds: string[] = []
 
     for (const [id, note] of Object.entries(notes)) {
       const key = id.startsWith(prefix)
         ? `${newName}/${id.slice(prefix.length)}`
         : id
-      rekeyed[key] = note
+
+      writeStoredNote(key, note)
+      rekeyedIds.push(key)
+
+      if (key !== id) {
+        removeStoredNote(id)
+      }
     }
 
-    writeStoredNotes(rekeyed)
+    writeStoredNoteIds(rekeyedIds)
   },
 }

@@ -40,20 +40,11 @@ import {
 const NOTE_FILE_READ_CHUNK_BYTES = 2048
 
 async function findMarkdownFiles(dir: string): Promise<string[]> {
-  const entries = await readdir(dir, { withFileTypes: true })
-  const paths: string[] = []
+  const entries = await readdir(dir, { recursive: true })
 
-  for (const entry of entries) {
-    const fullPath = resolve(dir, entry.name)
-
-    if (entry.isDirectory()) {
-      paths.push(...(await findMarkdownFiles(fullPath)))
-    } else if (entry.isFile() && entry.name.endsWith('.md')) {
-      paths.push(fullPath)
-    }
-  }
-
-  return paths
+  return entries
+    .filter((entry) => entry.endsWith('.md'))
+    .map((entry) => resolve(dir, entry))
 }
 
 function assertSafeId(vaultPath: string, id: string): string {
@@ -65,6 +56,25 @@ function assertSafeId(vaultPath: string, id: string): string {
   }
 
   return filePath
+}
+
+async function fileExists(path: string): Promise<boolean> {
+  try {
+    await stat(path)
+    return true
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
+      return false
+    }
+
+    throw error
+  }
+}
+
+async function loadExistingIds(normalizedVault: string): Promise<string[]> {
+  const filePaths = await findMarkdownFiles(normalizedVault)
+
+  return filePaths.map((filePath) => relative(normalizedVault, filePath))
 }
 
 function hasUnclosedFrontmatter(raw: string): boolean {
@@ -100,7 +110,8 @@ async function readCatalogContent(filePath: string): Promise<{
   content: string
 }> {
   const fileHandle = await open(filePath, 'r')
-  const chunks: Buffer[] = []
+  const decoder = new TextDecoder()
+  let raw = ''
 
   try {
     while (true) {
@@ -108,7 +119,8 @@ async function readCatalogContent(filePath: string): Promise<{
       const { bytesRead } = await fileHandle.read(chunk, 0, chunk.length, null)
 
       if (bytesRead === 0) {
-        const parsed = parseDocument(Buffer.concat(chunks).toString('utf-8'))
+        raw += decoder.decode()
+        const parsed = parseDocument(raw)
 
         return {
           properties: parsed.properties,
@@ -119,9 +131,7 @@ async function readCatalogContent(filePath: string): Promise<{
         }
       }
 
-      chunks.push(chunk.subarray(0, bytesRead))
-
-      const raw = Buffer.concat(chunks).toString('utf-8')
+      raw += decoder.decode(chunk.subarray(0, bytesRead), { stream: true })
 
       if (hasUnclosedFrontmatter(raw)) {
         continue
@@ -168,10 +178,7 @@ export function createFilesystemStorage(vaultPath: string): NoteStorage {
         }),
       )
 
-      return notes.sort(
-        (a, b) =>
-          new Date(b.modifiedAt).getTime() - new Date(a.modifiedAt).getTime(),
-      )
+      return notes.sort((a, b) => b.modifiedAt.localeCompare(a.modifiedAt))
     },
 
     async loadFolders(): Promise<string[]> {
@@ -229,12 +236,24 @@ export function createFilesystemStorage(vaultPath: string): NoteStorage {
     async renameNoteTitle(input: RenameNoteTitleInput): Promise<Note> {
       const normalizedVault = resolve(vaultPath)
       const currentPath = assertSafeId(vaultPath, input.id)
-      const existingFilePaths = await findMarkdownFiles(normalizedVault)
-      const existingIds = existingFilePaths.map((filePath) =>
-        relative(normalizedVault, filePath),
+      let nextId = resolveUniqueNoteId(
+        input.id,
+        input.title,
+        input.existingIds ?? (await loadExistingIds(normalizedVault)),
       )
-      const nextId = resolveUniqueNoteId(input.id, input.title, existingIds)
       const raw = await readFile(currentPath, 'utf-8')
+
+      if (nextId !== input.id) {
+        const nextPath = assertSafeId(vaultPath, nextId)
+
+        if (await fileExists(nextPath)) {
+          nextId = resolveUniqueNoteId(
+            input.id,
+            input.title,
+            await loadExistingIds(normalizedVault),
+          )
+        }
+      }
 
       if (nextId !== input.id) {
         const nextPath = assertSafeId(vaultPath, nextId)
@@ -257,15 +276,27 @@ export function createFilesystemStorage(vaultPath: string): NoteStorage {
     async moveNote(input: MoveNoteInput): Promise<Note> {
       const normalizedVault = resolve(vaultPath)
       const currentPath = assertSafeId(vaultPath, input.id)
-      const existingFilePaths = await findMarkdownFiles(normalizedVault)
-      const existingIds = existingFilePaths.map((filePath) =>
-        relative(normalizedVault, filePath),
+      let nextId = moveNoteId(
+        input.id,
+        input.targetParentPath,
+        input.existingIds ?? (await loadExistingIds(normalizedVault)),
       )
-      const nextId = moveNoteId(input.id, input.targetParentPath, existingIds)
       const raw = await readFile(currentPath, 'utf-8')
       const parsed = parseDocument(raw)
       const content = parsed.content
       let properties = parsed.properties
+
+      if (nextId !== input.id) {
+        const nextPath = assertSafeId(vaultPath, nextId)
+
+        if (await fileExists(nextPath)) {
+          nextId = moveNoteId(
+            input.id,
+            input.targetParentPath,
+            await loadExistingIds(normalizedVault),
+          )
+        }
+      }
 
       if (nextId !== input.id) {
         const nextPath = assertSafeId(vaultPath, nextId)

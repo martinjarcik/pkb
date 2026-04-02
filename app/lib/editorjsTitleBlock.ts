@@ -41,5 +41,5 @@ export function extractNoteTitleText(blocks: EditorjsBlock[]): string {
 }
 
 export function blocksMatch(a: EditorjsBlock[], b: EditorjsBlock[]): boolean {
-  return JSON.stringify(a) === JSON.stringify(b)
+  return a.length === b.length && a.every((block, index) => block === b[index])
 }

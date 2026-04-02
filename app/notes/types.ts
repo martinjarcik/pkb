@@ -48,8 +48,6 @@ export type Note = NoteProperties & {
 
 export type NoteCatalogRow = NoteProperties & {
   id: string
-  // Note catalog rows keep only the preview slice used by the notes list.
-  content: string
   createdAt: string
   modifiedAt: string
   title: string

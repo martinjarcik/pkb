@@ -38,8 +38,19 @@ type EditorjsInstance = {
 type EditorjsConstructor = new (
   configuration: Record<string, unknown>,
 ) => EditorjsInstance
+type LoadedEditorModules = [
+  editorModule: unknown,
+  headerModule: unknown,
+  listModule: unknown,
+  codeModule: unknown,
+  delimiterModule: unknown,
+  inlineCodeModule: unknown,
+  tableModule: unknown,
+  imageModule: unknown,
+]
 
 const hashtagCompletionPattern = /(^|\s)#[^\s#]+\s$/u
+let editorModulesPromise: Promise<LoadedEditorModules> | null = null
 
 const props = withDefaults(
   defineProps<{
@@ -71,6 +82,21 @@ function getDefaultExport(module: unknown): unknown {
   }
 
   return module
+}
+
+function loadEditorModules(): Promise<LoadedEditorModules> {
+  editorModulesPromise ??= Promise.all([
+    import('@editorjs/editorjs'),
+    import('@editorjs/header'),
+    import('@editorjs/list'),
+    import('@editorjs/code'),
+    import('@editorjs/delimiter'),
+    import('@editorjs/inline-code'),
+    import('@editorjs/table'),
+    import('@editorjs/image'),
+  ]) as Promise<LoadedEditorModules>
+
+  return editorModulesPromise
 }
 
 const {
@@ -202,16 +228,7 @@ onMounted(async () => {
       inlineCodeModule,
       tableModule,
       imageModule,
-    ] = await Promise.all([
-      import('@editorjs/editorjs'),
-      import('@editorjs/header'),
-      import('@editorjs/list'),
-      import('@editorjs/code'),
-      import('@editorjs/delimiter'),
-      import('@editorjs/inline-code'),
-      import('@editorjs/table'),
-      import('@editorjs/image'),
-    ])
+    ] = await loadEditorModules()
 
     const Editorjs = getDefaultExport(
       editorModule,
@@ -268,14 +285,16 @@ onMounted(async () => {
     await editor.value.isReady
     await nextTick()
 
-    const latestBlocks = renderNoteTitleBlocks(
-      markdownToEditorjsBlocks(props.content),
-      props.title,
-    )
+    if (props.content !== initialContent || props.title !== initialTitle) {
+      const latestBlocks = renderNoteTitleBlocks(
+        markdownToEditorjsBlocks(props.content),
+        props.title,
+      )
 
-    await editor.value.blocks.render({
-      blocks: prepareEditorjsBlocksForEditor(latestBlocks),
-    })
+      await editor.value.blocks.render({
+        blocks: prepareEditorjsBlocksForEditor(latestBlocks),
+      })
+    }
 
     isApplyingExternalContent.value = false
     patchExecCommandForInlineHighlight({

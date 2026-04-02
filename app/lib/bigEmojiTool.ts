@@ -1,5 +1,4 @@
 import type { API, SanitizerConfig } from '@editorjs/editorjs'
-import 'emoji-picker-element'
 import { BIG_EMOJI_CLASS } from './bigEmoji'
 
 const ICON_MARKER = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 14s1.5 2 4 2 4-2 4-2"/><circle cx="9" cy="10" r="1" fill="currentColor"/><circle cx="15" cy="10" r="1" fill="currentColor"/><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2"/></svg>`
@@ -48,6 +47,7 @@ export default class BigEmojiTool {
   private tagName: string
   private targetBigEmoji: HTMLElement | null
   private toolbarOpen: boolean
+  private emojiPickerModule: Promise<void> | null
 
   constructor({ api }: { api: API }) {
     this.api = api as BigEmojiApi
@@ -58,6 +58,7 @@ export default class BigEmojiTool {
     this.tagName = 'STRONG'
     this.targetBigEmoji = null
     this.toolbarOpen = false
+    this.emojiPickerModule = null
     document.addEventListener('mousedown', this.handleDocumentMouseDown, true)
   }
 
@@ -230,15 +231,15 @@ export default class BigEmojiTool {
   }
 
   private showActions(): void {
-    this.ensureFloatingPicker()
+    void this.ensureFloatingPicker().then(() => {
+      if (!this.floatingPicker) {
+        return
+      }
 
-    if (!this.floatingPicker) {
-      return
-    }
-
-    this.toolbarOpen = true
-    this.floatingPicker.hidden = false
-    this.positionFloatingPicker()
+      this.toolbarOpen = true
+      this.floatingPicker.hidden = false
+      this.positionFloatingPicker()
+    })
   }
 
   private hideActions(): void {
@@ -268,10 +269,13 @@ export default class BigEmojiTool {
     }
   }
 
-  private ensureFloatingPicker(): void {
+  private async ensureFloatingPicker(): Promise<void> {
     if (this.floatingPicker) {
       return
     }
+
+    this.emojiPickerModule ??= import('emoji-picker-element').then(() => {})
+    await this.emojiPickerModule
 
     this.floatingPicker = document.createElement('div')
     this.floatingPicker.className = 'big-emoji-actions'

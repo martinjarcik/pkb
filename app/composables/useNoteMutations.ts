@@ -142,6 +142,7 @@ export function useNoteMutations({
         body: {
           id: currentId,
           title: trimmedTitle,
+          existingIds: notes.value.map((note) => note.id),
         },
       })
 
@@ -181,6 +182,7 @@ export function useNoteMutations({
         body: {
           id,
           targetParentPath,
+          existingIds: notes.value.map((note) => note.id),
         },
       })
 

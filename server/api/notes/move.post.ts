@@ -13,6 +13,11 @@ function parseMoveNoteInput(body: unknown): MoveNoteInput {
   }
 
   const { id, targetParentPath } = body
+  const existingIds = Array.isArray(body.existingIds)
+    ? body.existingIds.filter(
+        (item): item is string => typeof item === 'string',
+      )
+    : undefined
 
   if (
     typeof id !== 'string' ||
@@ -30,6 +35,7 @@ function parseMoveNoteInput(body: unknown): MoveNoteInput {
   return {
     id,
     targetParentPath,
+    ...(existingIds ? { existingIds } : {}),
   }
 }
 

@@ -9,11 +9,13 @@ export type SaveNoteInput = {
 export type RenameNoteTitleInput = {
   id: string
   title: string
+  existingIds?: string[]
 }
 
 export type MoveNoteInput = {
   id: string
   targetParentPath: string
+  existingIds?: string[]
 }
 
 export type NoteStorage = {

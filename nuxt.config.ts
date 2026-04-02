@@ -20,9 +20,28 @@ export default defineNuxtConfig({
     },
   },
 
+  nitro: {
+    compressPublicAssets: true,
+  },
+
   vite: {
     optimizeDeps: {
       include: [
+        'yaml',
+        '@editorjs/editorjs',
+        '@editorjs/header',
+        '@editorjs/list',
+        '@editorjs/code',
+        '@editorjs/delimiter',
+        '@editorjs/inline-code',
+        '@editorjs/table',
+        '@editorjs/image',
+        '@vueuse/core',
+        'lucide-vue-next',
+        'emoji-picker-element',
+        'remark',
+        'remark-gfm',
+        'remark-highlight-mark',
         'reka-ui',
         'tailwind-merge',
         'clsx',

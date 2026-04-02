@@ -14,6 +14,11 @@ function parseRenameNoteTitleInput(body: unknown): RenameNoteTitleInput {
   }
 
   const { id, title } = body
+  const existingIds = Array.isArray(body.existingIds)
+    ? body.existingIds.filter(
+        (item): item is string => typeof item === 'string',
+      )
+    : undefined
 
   if (
     typeof id !== 'string' ||
@@ -30,6 +35,7 @@ function parseRenameNoteTitleInput(body: unknown): RenameNoteTitleInput {
   return {
     id,
     title,
+    ...(existingIds ? { existingIds } : {}),
   }
 }
 

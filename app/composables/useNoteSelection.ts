@@ -62,24 +62,26 @@ export function useNoteSelection({
       return
     }
 
-    await editorFlush.value?.()
-    selectedNoteId.value = nextSelectedNoteId
-
     if (nextSelectedNoteId === null) {
+      await editorFlush.value?.()
+      selectedNoteId.value = null
       selectedNoteRequestId.value += 1
       selectedNoteFull.value = null
       return
     }
 
-    selectedNoteFull.value = null
-
     const requestId = selectedNoteRequestId.value + 1
     selectedNoteRequestId.value = requestId
+    const loadNotePromise = $fetch<Note>(
+      buildNoteContentPath(nextSelectedNoteId),
+    )
+
+    await editorFlush.value?.()
+    selectedNoteId.value = nextSelectedNoteId
+    selectedNoteFull.value = null
 
     try {
-      const loadedNote = await $fetch<Note>(
-        buildNoteContentPath(nextSelectedNoteId),
-      )
+      const loadedNote = await loadNotePromise
 
       if (selectedNoteRequestId.value !== requestId) {
         return

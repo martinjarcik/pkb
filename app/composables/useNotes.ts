@@ -1,5 +1,4 @@
 import { useState } from '#app'
-import { computed } from 'vue'
 import { loadConfig } from '~/config/loader'
 import { t } from '~/composables/useTranslations'
 import { useNoteMutations } from '~/composables/useNoteMutations'
@@ -34,31 +33,27 @@ export function useNotes() {
     () => null,
   )
   const selectedNoteRequestId = useState('notes.selectedNoteRequestId', () => 0)
-  const catalog = computed(() => notes.value)
 
   function sortNotesByModifiedAt(
     nextNotes: NoteCatalogRow[],
   ): NoteCatalogRow[] {
-    return nextNotes.sort(
-      (a, b) =>
-        new Date(b.modifiedAt).getTime() - new Date(a.modifiedAt).getTime(),
+    return nextNotes.sort((a, b) => b.modifiedAt.localeCompare(a.modifiedAt))
+  }
+
+  function replaceNoteRow(previousId: string, nextNote: Note): void {
+    notes.value = notes.value.map((note) =>
+      note.id === previousId ? createNoteCatalogRow(nextNote) : note,
     )
   }
 
   function replaceNote(nextNote: Note): void {
-    notes.value = sortNotesByModifiedAt(
-      notes.value.map((note) =>
-        note.id === nextNote.id ? createNoteCatalogRow(nextNote) : note,
-      ),
-    )
+    replaceNoteRow(nextNote.id, nextNote)
+    notes.value = sortNotesByModifiedAt(notes.value)
   }
 
   function replaceRenamedNote(previousId: string, nextNote: Note): void {
-    notes.value = sortNotesByModifiedAt(
-      notes.value.map((note) =>
-        note.id === previousId ? createNoteCatalogRow(nextNote) : note,
-      ),
-    )
+    replaceNoteRow(previousId, nextNote)
+    notes.value = sortNotesByModifiedAt(notes.value)
   }
 
   function prependNote(nextNote: Note): void {
@@ -79,7 +74,7 @@ export function useNotes() {
       description: noteDescriptionFromContent(content),
     }
     selectedNoteFull.value = nextNote
-    replaceNote(nextNote)
+    replaceNoteRow(nextNote.id, nextNote)
   }
 
   function registerEditorFlush(flush: EditorFlush | null): void {
@@ -154,7 +149,7 @@ export function useNotes() {
     selectedNote,
     showNoteControls,
     selectedNoteTitle,
-    catalog,
+    catalog: notes,
     clearShouldFocusTitle,
     createNote,
     deleteSelectedNote,

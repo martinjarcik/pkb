@@ -2,7 +2,6 @@ import { readFile, writeFile, mkdtemp, rm, stat, utimes } from 'fs/promises'
 import { join } from 'path'
 import { tmpdir } from 'os'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
-import { NOTE_CATALOG_CONTENT_BYTES } from '~/notes/types'
 import { createFilesystemStorage } from '~/storage/filesystem'
 import type { NoteStorage } from '~/storage/types'
 
@@ -44,8 +43,8 @@ describe('filesystemStorage', () => {
       id: 'hello.md',
       label: 'Hello',
       published: true,
-      content: '# Content',
     })
+    expect('content' in (note ?? {})).toBe(false)
   })
 
   it('reads modification timestamp from the file system', async () => {
@@ -103,8 +102,8 @@ describe('filesystemStorage', () => {
       views: 3,
       meta: { nested: true },
       tags: ['a', 'b'],
-      content: '# Body',
     })
+    expect('content' in (note ?? {})).toBe(false)
   })
 
   it('creates intermediate directories when saving a nested note', async () => {
@@ -219,8 +218,8 @@ describe('filesystemStorage', () => {
     const notes = await storage.loadNotesCatalog()
 
     expect(notes).toHaveLength(1)
-    expect(notes[0]!.content).toBe('# Still readable')
     expect(notes[0]!.title).toBe('broken')
+    expect('content' in notes[0]!).toBe(false)
   })
 
   it('loads a full note by id', async () => {
@@ -242,7 +241,7 @@ describe('filesystemStorage', () => {
     await expect(storage.loadNoteById('missing.md')).resolves.toBeNull()
   })
 
-  it('truncates catalog content to the first 1024 utf-8 bytes', async () => {
+  it('omits content from catalog rows', async () => {
     await writeFile(
       join(vaultPath, 'emoji.md'),
       `---\nlabel: Emoji\n---\n${'🙂'.repeat(300)}`,
@@ -251,9 +250,7 @@ describe('filesystemStorage', () => {
 
     const [note] = await storage.loadNotesCatalog()
 
-    expect(new TextEncoder().encode(note?.content ?? '').length).toBe(
-      NOTE_CATALOG_CONTENT_BYTES,
-    )
+    expect('content' in (note ?? {})).toBe(false)
   })
 
   it('does not throw when deleting a non-existent note', async () => {

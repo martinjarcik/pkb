@@ -1,7 +1,9 @@
 // Keep this hashtag matcher aligned with the editor-side wrappers in
 // `app/lib/markdownToBlocks.ts` and `app/lib/editorjsHashtagHighlight.ts`.
+const HASHTAG_PATTERN_SOURCE = '(^|\\s)(#[^\\s#]+)'
+
 export function createHashtagPattern(): RegExp {
-  return /(^|\s)(#[^\s#]+)/gu
+  return new RegExp(HASHTAG_PATTERN_SOURCE, 'gu')
 }
 
 export function extractTagsFromMarkdown(markdown: string): string[] {

@@ -1,5 +1,4 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { NOTE_CATALOG_CONTENT_BYTES } from '~/notes/types'
 import { browserStorage } from '~/storage/browser'
 
 type StoredNote = {
@@ -34,10 +33,24 @@ function createLocalStorageMock(): Storage {
 }
 
 function readStoredNotes(): Record<string, StoredNote> {
-  return JSON.parse(localStorage.getItem('notes') ?? '{}') as Record<
-    string,
-    StoredNote
-  >
+  const storedIds = JSON.parse(localStorage.getItem('note-index') ?? 'null') as
+    | string[]
+    | null
+
+  if (!storedIds) {
+    return JSON.parse(localStorage.getItem('notes') ?? '{}') as Record<
+      string,
+      StoredNote
+    >
+  }
+
+  return Object.fromEntries(
+    storedIds.flatMap((id) => {
+      const raw = localStorage.getItem(`note:${id}`)
+
+      return raw ? [[id, JSON.parse(raw) as StoredNote]] : []
+    }),
+  )
 }
 
 describe('browserStorage', () => {
@@ -127,7 +140,6 @@ describe('browserStorage', () => {
         published: true,
         views: 3,
         meta: { nested: true },
-        content: '# Hello',
         createdAt: '2026-03-19T09:00:00.000Z',
         modifiedAt: '2026-03-20T11:00:00.000Z',
         title: 'welcome',
@@ -176,7 +188,7 @@ describe('browserStorage', () => {
       }),
     )
 
-    const [note] = await browserStorage.loadNotesCatalog()
+    const note = await browserStorage.loadNoteById('notes/crlf.md')
 
     expect(note?.content).toBe('# Hello\nworld')
   })
@@ -193,7 +205,7 @@ describe('browserStorage', () => {
       }),
     )
 
-    const [note] = await browserStorage.loadNotesCatalog()
+    const note = await browserStorage.loadNoteById('notes/cr.md')
 
     expect(note?.content).toBe('# Hello\nworld')
   })
@@ -227,7 +239,6 @@ describe('browserStorage', () => {
     await expect(browserStorage.loadNotesCatalog()).resolves.toEqual([
       {
         id: 'notes/broken.md',
-        content: '# Still readable',
         createdAt: '2026-03-19T09:00:00.000Z',
         modifiedAt: '2026-03-20T11:00:00.000Z',
         title: 'broken',
@@ -258,7 +269,6 @@ describe('browserStorage', () => {
       {
         id: 'notes/ok.md',
         label: 'Fine',
-        content: '# Body',
         createdAt: '2026-03-19T09:00:00.000Z',
         modifiedAt: '2026-03-20T11:00:00.000Z',
         title: 'ok',
@@ -266,7 +276,6 @@ describe('browserStorage', () => {
       },
       {
         id: 'notes/bad-types.md',
-        content: '42',
         createdAt: 'false',
         modifiedAt: '',
         title: 'bad-types',
@@ -340,7 +349,7 @@ describe('browserStorage', () => {
     await expect(browserStorage.loadNoteById('missing.md')).resolves.toBeNull()
   })
 
-  it('truncates catalog content to the first 1024 utf-8 bytes', async () => {
+  it('omits content from catalog rows', async () => {
     localStorage.setItem(
       'notes',
       JSON.stringify({
@@ -354,9 +363,7 @@ describe('browserStorage', () => {
 
     const [note] = await browserStorage.loadNotesCatalog()
 
-    expect(new TextEncoder().encode(note?.content ?? '').length).toBe(
-      NOTE_CATALOG_CONTENT_BYTES,
-    )
+    expect('content' in (note ?? {})).toBe(false)
   })
 
   it('renames a note title and returns the new id', async () => {

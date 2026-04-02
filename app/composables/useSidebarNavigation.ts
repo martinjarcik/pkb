@@ -59,9 +59,7 @@ export function useSidebarNavigation() {
 
   async function selectView(view: SidebarWorkspaceView): Promise<void> {
     selectedView.value = view
-    await selectNoteById(
-      orderedCatalogRowsForSidebarView(catalog.value, view)[0]?.id ?? null,
-    )
+    await selectNoteById(visibleCatalogRows.value[0]?.id ?? null)
   }
 
   async function selectInbox(): Promise<void> {
