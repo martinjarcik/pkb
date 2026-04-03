@@ -1,5 +1,5 @@
 {
-  "version": "2.9",
+  "version": "2.10",
   "children": [
     {
       "type": "frame",
@@ -119,14 +119,14 @@
                       "x": 0,
                       "y": 0,
                       "width": "fill_container",
-                      "height": 33849.14197145053,
+                      "height": 71423.29366259693,
                       "descendants": {
                         "ZYZFX": {
-                          "y": 16917.070985725266
+                          "y": 35704.146831298465
                         },
                         "Rv7um": {
                           "x": -39,
-                          "y": 16917.070985725266
+                          "y": 35704.146831298465
                         }
                       }
                     },
@@ -135,17 +135,17 @@
                       "type": "ref",
                       "ref": "XpvfC",
                       "x": 0,
-                      "y": 33849.14197145053,
+                      "y": 71423.29366259693,
                       "width": "fill_container",
-                      "height": 33849.14197145053,
+                      "height": 71423.29366259693,
                       "descendants": {
                         "ZYZFX": {
                           "content": "modifiedAt",
-                          "y": 16917.070985725266
+                          "y": 35704.146831298465
                         },
                         "Rv7um": {
                           "x": -39,
-                          "y": 16917.070985725266
+                          "y": 35704.146831298465
                         }
                       }
                     },
@@ -154,18 +154,18 @@
                       "type": "ref",
                       "ref": "XpvfC",
                       "x": 0,
-                      "y": 67698.28394290106,
+                      "y": 142846.58732519386,
                       "width": "fill_container",
-                      "height": 33849.141971450554,
+                      "height": 71423.29366259699,
                       "descendants": {
                         "ZYZFX": {
                           "content": "favorite",
-                          "y": 16917.070985725277
+                          "y": 35704.146831298494
                         },
                         "Rv7um": {
                           "content": "false",
                           "x": -27,
-                          "y": 16917.070985725277
+                          "y": 35704.146831298494
                         }
                       }
                     },
@@ -174,18 +174,18 @@
                       "type": "ref",
                       "ref": "XpvfC",
                       "x": 0,
-                      "y": 101547.42591435162,
+                      "y": 214269.88098779085,
                       "width": "fill_container",
-                      "height": 33849.14197145055,
+                      "height": 71423.29366259699,
                       "descendants": {
                         "ZYZFX": {
                           "content": "pinned",
-                          "y": 16917.070985725273
+                          "y": 35704.146831298494
                         },
                         "Rv7um": {
                           "content": "false",
                           "x": -27,
-                          "y": 16917.070985725273
+                          "y": 35704.146831298494
                         }
                       }
                     },
@@ -195,7 +195,7 @@
                       "name": "InspectorPropertyItem",
                       "reusable": true,
                       "width": "fill_container",
-                      "height": 33849.14197145053,
+                      "height": 71423.29366259693,
                       "justifyContent": "space_between",
                       "alignItems": "center",
                       "children": [
@@ -226,14 +226,14 @@
                       "id": "Xn4l2",
                       "name": "spacer",
                       "width": "fill_container",
-                      "height": 58223.73239656753
+                      "height": 122854.83456567205
                     },
                     {
                       "type": "frame",
                       "id": "KkocO",
                       "name": "addBtn",
                       "width": "fill_container",
-                      "height": 58223.73239656757,
+                      "height": 122854.83456567214,
                       "cornerRadius": 6,
                       "stroke": {
                         "thickness": 1,
@@ -1302,12 +1302,12 @@
                           "iconFontFamily": "lucide",
                           "iconFontName": "chart-pie",
                           "x": 10,
-                          "y": 8.999999999999998
+                          "y": 9
                         },
                         "5rc5Q": {
                           "content": "Work",
                           "x": 27,
-                          "y": -1.7763568394002505e-15
+                          "y": 0
                         }
                       }
                     },
@@ -1323,12 +1323,12 @@
                           "iconFontFamily": "lucide",
                           "iconFontName": "apple",
                           "x": 10,
-                          "y": 8.999999999999991
+                          "y": 9
                         },
                         "5rc5Q": {
                           "content": "Home",
                           "x": 27,
-                          "y": -8.881784197001252e-15
+                          "y": 0
                         }
                       }
                     }
