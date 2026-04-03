@@ -64,6 +64,32 @@ export async function mockNotesApi(
       const pathname = new URL(route.request().url()).pathname
       const method = route.request().method()
 
+      if (pathname === '/api/notes/search') {
+        const query = new URL(route.request().url()).searchParams.get('q') ?? ''
+        const normalizedQuery = query.trim().toLocaleLowerCase()
+
+        await route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify(
+            normalizedQuery.length === 0
+              ? []
+              : notes
+                  .filter((note) => {
+                    const title = note.title.toLocaleLowerCase()
+                    const content = note.content.toLocaleLowerCase()
+
+                    return (
+                      title.includes(normalizedQuery) ||
+                      content.includes(normalizedQuery)
+                    )
+                  })
+                  .map((note) => note.id),
+          ),
+        })
+        return
+      }
+
       if (pathname === '/api/notes' || pathname === '/api/notes/') {
         if (method === 'GET') {
           await route.fulfill({

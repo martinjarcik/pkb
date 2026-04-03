@@ -9,6 +9,15 @@ import { catalogRowIsTrashed } from './trash'
 export type TagFilterState = 'idle' | 'active' | 'pinned'
 
 export type SidebarWorkspaceView =
+  | SidebarNonSearchView
+  | {
+      kind: 'search'
+      query: string
+      matchingIds: string[]
+      previousView: SidebarNonSearchView
+    }
+
+export type SidebarNonSearchView =
   | { kind: 'inbox' }
   | { kind: 'tasks' }
   | { kind: 'favorites' }
@@ -99,7 +108,7 @@ export function selectedTagsFromView(view: SidebarWorkspaceView): string[] {
 export function applyTagCycle(
   view: SidebarWorkspaceView,
   tag: string,
-): SidebarWorkspaceView | null {
+): SidebarNonSearchView | null {
   const current = tagFilterState(view, tag)
   const next = cycleTagState(current)
   const pinned =
@@ -149,6 +158,10 @@ export function filterCatalogForSidebarView(
   rows: readonly NoteCatalogRow[],
   view: SidebarWorkspaceView,
 ): readonly NoteCatalogRow[] {
+  if (view.kind === 'search') {
+    return rows
+  }
+
   if (view.kind === 'inbox') {
     return rows.filter(
       (row) => isVaultRootNote(row.id) && !catalogRowIsTrashed(row),

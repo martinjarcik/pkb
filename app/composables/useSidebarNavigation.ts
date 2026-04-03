@@ -2,6 +2,7 @@ import { useState } from '#app'
 import { computed } from 'vue'
 import { loadConfig } from '~/config/loader'
 import { t } from '~/composables/useTranslations'
+import { filterOrderedCatalogRowsByIds } from '~/notes/noteSearch'
 import { sanitizeNoteTitleForFilename } from '~/notes/noteId'
 import {
   allTagsFromCatalog,
@@ -10,19 +11,23 @@ import {
   orderedCatalogRowsForSidebarView,
   selectedTagsFromView,
   tagFilterState as resolveTagFilterState,
+  type SidebarNonSearchView,
   type TagFilterState,
   type SidebarWorkspaceView,
   vaultTopLevelFolderNames,
 } from '~/notes/sidebarFilters'
+import type { NoteCatalogRow } from '~/notes/types'
 
 const defaultTheme = loadConfig().theme
 
 export function useSidebarNavigation() {
-  const { catalog, selectNoteById } = useNotes()
+  const { catalog, selectedNoteId, selectNoteById } = useNotes()
   const selectedView = useState<SidebarWorkspaceView>(
     'sidebarNavigation.selectedView',
     () => ({ kind: 'inbox' }),
   )
+  const searchInput = useState('sidebarNavigation.searchInput', () => '')
+  const searchRequestId = useState('sidebarNavigation.searchRequestId', () => 0)
   const foldersExpanded = useState(
     'sidebarNavigation.foldersExpanded',
     () => true,
@@ -54,12 +59,40 @@ export function useSidebarNavigation() {
     resolveTagFilterState(selectedView.value, tag)
 
   const visibleCatalogRows = computed(() =>
-    orderedCatalogRowsForSidebarView(catalog.value, selectedView.value),
+    resolveVisibleCatalogRows(catalog.value, selectedView.value),
   )
 
-  async function selectView(view: SidebarWorkspaceView): Promise<void> {
+  function resolveVisibleCatalogRows(
+    rows: readonly NoteCatalogRow[],
+    view: SidebarWorkspaceView,
+  ): NoteCatalogRow[] {
+    if (view.kind === 'search') {
+      return filterOrderedCatalogRowsByIds(rows, view.matchingIds)
+    }
+
+    return orderedCatalogRowsForSidebarView(rows, view)
+  }
+
+  function clearSearchState(): void {
+    searchInput.value = ''
+    searchRequestId.value += 1
+  }
+
+  async function syncSelection(rows: readonly NoteCatalogRow[]): Promise<void> {
+    if (
+      selectedNoteId.value &&
+      rows.some((row) => row.id === selectedNoteId.value)
+    ) {
+      return
+    }
+
+    await selectNoteById(rows[0]?.id ?? null)
+  }
+
+  async function selectView(view: SidebarNonSearchView): Promise<void> {
+    clearSearchState()
     selectedView.value = view
-    await selectNoteById(visibleCatalogRows.value[0]?.id ?? null)
+    await syncSelection(resolveVisibleCatalogRows(catalog.value, view))
   }
 
   async function selectInbox(): Promise<void> {
@@ -99,6 +132,65 @@ export function useSidebarNavigation() {
     }
 
     await selectView(nextView)
+  }
+
+  async function updateSearchInput(nextValue: string): Promise<void> {
+    searchInput.value = nextValue
+    const query = nextValue.trim()
+
+    if (query.length === 0) {
+      searchRequestId.value += 1
+
+      if (selectedView.value.kind === 'search') {
+        selectedView.value = selectedView.value.previousView
+        await syncSelection(
+          resolveVisibleCatalogRows(catalog.value, selectedView.value),
+        )
+      }
+
+      return
+    }
+
+    const previousView =
+      selectedView.value.kind === 'search'
+        ? selectedView.value.previousView
+        : selectedView.value
+    const requestId = searchRequestId.value + 1
+
+    searchRequestId.value = requestId
+
+    try {
+      const matchingIds = await $fetch<string[]>('/api/notes/search', {
+        query: { q: query },
+      })
+
+      if (searchRequestId.value !== requestId) {
+        return
+      }
+
+      selectedView.value = {
+        kind: 'search',
+        query,
+        matchingIds,
+        previousView,
+      }
+
+      await syncSelection(
+        resolveVisibleCatalogRows(catalog.value, selectedView.value),
+      )
+    } catch {
+      if (searchRequestId.value !== requestId) {
+        return
+      }
+
+      selectedView.value = {
+        kind: 'search',
+        query,
+        matchingIds: [],
+        previousView,
+      }
+      await syncSelection([])
+    }
   }
 
   async function loadFolders(): Promise<void> {
@@ -191,6 +283,7 @@ export function useSidebarNavigation() {
 
   return {
     selectedView,
+    searchInput,
     accentColor,
     topLevelFolders,
     foldersExpanded,
@@ -199,6 +292,7 @@ export function useSidebarNavigation() {
     selectedTags,
     tagFilterState,
     visibleCatalogRows,
+    updateSearchInput,
     loadFolders,
     selectInbox,
     selectTasks,

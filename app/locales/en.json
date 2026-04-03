@@ -16,6 +16,9 @@
     "createNote": "Create note",
     "openLayoutMenu": "Layout options"
   },
+  "notesListControls": {
+    "searchPlaceholder": "Search in All Notes"
+  },
   "layoutMenu": {
     "hideSidebar": "Hide Sidebar",
     "showSidebar": "Show Sidebar",

@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+- Add whole-vault notes search in `NotesListControls`: each keystroke calls
+  `GET /api/notes/search`, the server returns matching note ids from cached
+  full-note content in desktop mode, the frontend filters the existing catalog
+  to show matching notes (including trashed notes), clears visible sidebar/tag
+  selection while search is active, and restores the previous sidebar view when
+  the query is cleared.
 - Refactor internal note-id, markdown-conversion, and config-parsing modules
   into smaller units; centralize repeated helpers; remove the unused
   `radix-vue` dependency; and align documentation with the current

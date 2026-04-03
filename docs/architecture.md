@@ -262,10 +262,10 @@ produce stale views, failed saves, or overwritten files.
 - `app/storage/router.ts` selects the active `NoteStorage` from configuration.
 - The active storage adapter is determined by `applicationType` in
   `app/config/default.yaml`: `desktop` → filesystem adapter (default),
-  `browser` → browser localStorage adapter, `cloud` → database adapter.
+  `browser` → browser localStorage adapter.
 - Browser localStorage stores one Markdown document plus storage-owned
   timestamps per note.
-- Expected adapters: filesystem (desktop), browser, cloud.
+- Expected adapters: filesystem (desktop), browser.
 - Adapter-specific caches or indexes are derived artifacts, never the source of
   truth.
 

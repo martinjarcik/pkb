@@ -46,11 +46,26 @@ and focuses the title for immediate renaming. The note is created in the
 currently selected sidebar view: `Inbox` creates it in the vault root, while a
 selected folder creates it directly in that folder.
 
+The notes list toolbar also includes a search field.
+
+- Typing into the search field calls `GET /api/notes/search?q=<query>` after
+  each keystroke.
+- The server returns only matching note ids; the frontend filters the existing
+  loaded catalog to render the visible search results.
+- Search matches against the full note title and full note Content, not only
+  the catalog preview text.
+- Search spans the whole Vault, including notes that are currently in
+  `Trashed`.
+- While search is active, sidebar navigation, folder rows, and tag chips do not
+  show an active selection.
+- Clearing the search query restores the previously selected sidebar view and
+  its normal filtered note list.
+
 ## Configuration
 
 | Key                         | Type    | Default       | Description                                                                     |
 | --------------------------- | ------- | ------------- | ------------------------------------------------------------------------------- |
-| `applicationType`           | string  | `"desktop"`   | Application mode: `browser`, `desktop`, `cloud`                                 |
+| `applicationType`           | string  | `"desktop"`   | Application mode: `browser`, `desktop`                                          |
 | `locale`                    | string  | `"en"`        | Active application locale                                                       |
 | `vault`                     | string  | `"./vault"`   | Path to the vault directory for desktop storage                                 |
 | `editor.autosaveDelay`      | number  | `2000`        | Milliseconds of idle time before content autosaves                              |
