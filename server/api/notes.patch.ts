@@ -1,6 +1,6 @@
 import { createError, defineEventHandler } from 'h3'
 import { InvalidNoteTitleError } from '~/notes/noteId'
-import { getNoteStorage } from '~/storage/router'
+import { getServerNoteStorage } from '../getServerNoteStorage'
 import type { RenameNoteTitleInput } from '~/storage/types'
 import { loadServerConfig } from '../loadServerConfig'
 import { isRecord, readJsonBody } from '../validation'
@@ -40,7 +40,7 @@ function parseRenameNoteTitleInput(body: unknown): RenameNoteTitleInput {
 }
 
 export default defineEventHandler(async (event) => {
-  const storage = getNoteStorage(await loadServerConfig())
+  const storage = getServerNoteStorage(await loadServerConfig())
 
   try {
     return await storage.renameNoteTitle(

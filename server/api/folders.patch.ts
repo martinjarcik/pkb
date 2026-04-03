@@ -1,6 +1,6 @@
 import { createError, defineEventHandler } from 'h3'
-import { getNoteStorage } from '~/storage/router'
 import { sanitizeNoteTitleForFilename } from '~/notes/noteId'
+import { getServerNoteStorage } from '../getServerNoteStorage'
 import { loadServerConfig } from '../loadServerConfig'
 import { isRecord, readJsonBody } from '../validation'
 
@@ -44,7 +44,7 @@ function parseRenameFolderInput(body: unknown): {
 }
 
 export default defineEventHandler(async (event) => {
-  const storage = getNoteStorage(await loadServerConfig())
+  const storage = getServerNoteStorage(await loadServerConfig())
   const { oldName, newName } = parseRenameFolderInput(await readJsonBody(event))
 
   await storage.renameFolder(oldName, newName)

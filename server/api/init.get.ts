@@ -1,8 +1,8 @@
 import { defineEventHandler } from 'h3'
 import type { WorkspaceMeta } from '~/config/parseMeta'
 import type { NoteCatalogRow } from '~/notes/types'
-import { getNoteStorage } from '~/storage/router'
 import type { AppConfig } from '~/config/loader'
+import { getServerNoteStorage } from '../getServerNoteStorage'
 import { loadNotesResponse } from './notes.get'
 import { readAppConfigFromDisk } from '../appConfigDisk'
 import { loadServerConfig } from '../loadServerConfig'
@@ -21,7 +21,7 @@ export default defineEventHandler(async (): Promise<InitResponse> => {
     loadServerConfig(),
     readMetaFromDisk(),
   ])
-  const storage = getNoteStorage(serverConfig)
+  const storage = getServerNoteStorage(serverConfig)
   const [catalog, folders] = await Promise.all([
     loadNotesResponse(storage, serverConfig),
     storage.loadFolders(),

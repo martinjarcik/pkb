@@ -1,5 +1,5 @@
 import { createError, defineEventHandler } from 'h3'
-import { getNoteStorage } from '~/storage/router'
+import { getServerNoteStorage } from '../../getServerNoteStorage'
 import type { MoveNoteInput } from '~/storage/types'
 import { loadServerConfig } from '../../loadServerConfig'
 import { isRecord, readJsonBody } from '../../validation'
@@ -40,6 +40,6 @@ function parseMoveNoteInput(body: unknown): MoveNoteInput {
 }
 
 export default defineEventHandler(async (event) => {
-  const storage = getNoteStorage(await loadServerConfig())
+  const storage = getServerNoteStorage(await loadServerConfig())
   return storage.moveNote(parseMoveNoteInput(await readJsonBody(event)))
 })

@@ -1,7 +1,7 @@
 import { defineEventHandler } from 'h3'
 import type { NoteCatalogRow } from '~/notes/types'
-import { getNoteStorage } from '~/storage/router'
 import type { NoteStorage } from '~/storage/types'
+import { getServerNoteStorage } from '../getServerNoteStorage'
 import { loadServerConfig, type ServerLoadedConfig } from '../loadServerConfig'
 import { purgeExpiredNotes } from '../purgeExpiredNotes'
 
@@ -14,7 +14,7 @@ export async function loadNotesResponse(
   configOverride?: ServerLoadedConfig,
 ): Promise<NoteCatalogRow[]> {
   const config = configOverride ?? (await loadServerConfig())
-  const resolvedStorage = storage ?? getNoteStorage(config)
+  const resolvedStorage = storage ?? getServerNoteStorage(config)
   const catalog = await resolvedStorage.loadNotesCatalog()
   const now = Date.now()
 

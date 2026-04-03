@@ -1,9 +1,9 @@
 import { createError, defineEventHandler } from 'h3'
 import { normalizeSaveProperties } from '~/notes/saveNoteInput'
-import { getNoteStorage } from '~/storage/router'
 import type { SaveNoteInput } from '~/storage/types'
 import { cleanupOrphanedAssets } from '../cleanupOrphanedAssets'
 import { dispatchNoteWebhook } from '../dispatchNoteWebhook'
+import { getServerNoteStorage } from '../getServerNoteStorage'
 import { loadServerConfig } from '../loadServerConfig'
 import { isRecord, readJsonBody } from '../validation'
 
@@ -44,7 +44,7 @@ function parseSaveNoteInput(body: unknown): SaveNoteInput {
 
 export default defineEventHandler(async (event) => {
   const config = await loadServerConfig()
-  const storage = getNoteStorage(config)
+  const storage = getServerNoteStorage(config)
   const input = parseSaveNoteInput(await readJsonBody(event))
 
   const oldNote = await storage.loadNoteById(input.id)

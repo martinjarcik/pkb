@@ -1,7 +1,7 @@
 import { createError, defineEventHandler } from 'h3'
-import { getNoteStorage } from '~/storage/router'
 import { extractLocalImageRefs } from '~/storage/imageRefs'
 import { deleteOrphanedAssetFiles } from '../deleteOrphanedAssetFiles'
+import { getServerNoteStorage } from '../getServerNoteStorage'
 import { loadServerConfig } from '../loadServerConfig'
 import { isRecord, readJsonBody } from '../validation'
 
@@ -27,7 +27,7 @@ export function parseDeleteNoteInput(body: unknown): string {
 
 export default defineEventHandler(async (event) => {
   const config = await loadServerConfig()
-  const storage = getNoteStorage(config)
+  const storage = getServerNoteStorage(config)
   const id = parseDeleteNoteInput(await readJsonBody(event))
 
   const note = await storage.loadNoteById(id)

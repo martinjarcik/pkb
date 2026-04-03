@@ -1,5 +1,5 @@
 import { createError, defineEventHandler } from 'h3'
-import { getNoteStorage } from '~/storage/router'
+import { getServerNoteStorage } from '../../getServerNoteStorage'
 import { loadServerConfig } from '../../loadServerConfig'
 
 function parseNoteId(pathParam: string | undefined): string {
@@ -42,7 +42,7 @@ function parseNoteId(pathParam: string | undefined): string {
 }
 
 export default defineEventHandler(async (event) => {
-  const storage = getNoteStorage(await loadServerConfig())
+  const storage = getServerNoteStorage(await loadServerConfig())
   const note = await storage.loadNoteById(
     parseNoteId(event.context.params?.path),
   )
