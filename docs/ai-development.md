@@ -9,7 +9,7 @@ Follow these rules for the whole workflow:
 - Create branch `feat/<slug>` from `main` at the start of Phase 4; all implementation work stays on that branch.
 - The feature spec is a conversation artifact only; do not commit it as a repo file.
 - Phases are strictly sequential: complete each phase before starting the next.
-- You MUST pass all unit tests and UAT (Playwright) before finalizing; do not proceed while any test fails.
+- You MUST pass all unit tests before finalizing; do not proceed while any test fails.
 - You MUST satisfy `AGENTS.md` and align with the authoritative docs where applicable.
 - End with a pull request for human review.
 
@@ -178,20 +178,14 @@ Repeat for each slice in order. For each unit test listed in the technical plan 
 3. Polish: names, duplication inside the slice, clarity.
 4. Commit: `feat(<slug>): <what the test verifies>`
 
-### Step 3: UAT tests
-
-1. Implement all Playwright e2e tests from the feature spec. Use the component mapping from Phase 2 section 5 to keep selectors and interacted page regions aligned with the intended UI areas.
-2. Commit: `test(<slug>): add UAT tests`
-
-### Step 4: Verification
+### Step 3: Verification
 
 1. Run all unit tests; they MUST pass.
-2. Run all UAT tests; they MUST pass.
-3. Confirm every requirement R1..Rn from the spec is implemented.
+2. Confirm every requirement R1..Rn from the spec is implemented.
 
 If any test fails: fix, re-run, and do not continue until green.
 
-### Step 5: Critical review (four-lens code review)
+### Step 4: Critical review (four-lens code review)
 
 Perform one pass per lens. Each lens is mandatory; fix issues before finalize.
 
@@ -215,9 +209,9 @@ Lens 4 — Performance and simplicity
 - No unnecessary complexity or overengineering beyond what the spec and tests require.
 - Obvious performance problems that can be fixed without adding significant complexity are addressed.
 
-### Step 6: Finalize
+### Step 5: Finalize
 
-1. Run all unit and UAT tests again; fix failures.
+1. Run all unit tests again; fix failures.
 2. Validate the app boots on the default dev URL. If `http://localhost:3000` returns `503` or stale output, confirm the problem with a direct request, inspect the current listener with `lsof -nP -iTCP:3000 -sTCP:LISTEN`, kill the stale PID, restart with `npm run dev -- --port 3000`, then verify `/` returns `200`.
 3. Update `CHANGELOG.md`.
 4. Update `docs/product.md` (feature and how to use it).

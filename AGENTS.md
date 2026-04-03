@@ -94,7 +94,6 @@ Other:
 
 - `app/assets/css/` -> stylesheets and theme CSS variables
 - `tests/unit/` -> domain logic tests
-- `tests/e2e/` -> end-to-end tests (Playwright)
 - `docs/` -> architecture, decisions, workflow, product manual
 
 Ignored (do not read or modify):
@@ -116,7 +115,6 @@ Reserved (create when first needed):
 - Composables: `useXxx.ts` (for example `useNotes.ts`)
 - Domain and storage files: `camelCase.ts` (for example `browser.ts`)
 - Unit test files: `*.test.ts`
-- E2E test files: `*.spec.ts`
 - Import alias: `~/` from app root (for example `import { Note } from '~/notes/types'`)
 - Use relative imports (`./`) within the same folder
 - Use `~/` for all imports from app root. `@/` is reserved for shadcn-vue tooling only.
@@ -169,16 +167,8 @@ Unit tests (`tests/unit/`):
 - Import from `vitest`: `import { describe, it, expect } from 'vitest'`
 - Test pure logic only. Do not test Vue components in unit tests.
 
-E2E tests (`tests/e2e/`):
-
-- Runner: Playwright
-- File naming: `*.spec.ts`
-- Import from `@playwright/test`: `import { test, expect } from '@playwright/test'`
-- Tests run against `http://localhost:3000`
-
 General:
 
-- Do not mix unit and e2e patterns.
 - Keep tests focused. One logical assertion per `it` or `test` block.
 
 ## Complexity constraints

@@ -30,12 +30,6 @@ npm run dev
 
 Then open `http://localhost:3000`.
 
-If Playwright browsers are not installed yet, run:
-
-```sh
-npm run playwright:install
-```
-
 ## Documentation
 
 | Document                                                   | Purpose                                                               |
@@ -50,18 +44,15 @@ npm run playwright:install
 
 ## Scripts
 
-| Command                      | Purpose                                     |
-| ---------------------------- | ------------------------------------------- |
-| `npm run dev`                | Start dev server at `http://localhost:3000` |
-| `npm run build`              | Production build                            |
-| `npm run preview`            | Preview production build locally            |
-| `npm run playwright:install` | Install Playwright Chromium locally         |
-| `npm run lint`               | Check for lint errors (ESLint)              |
-| `npm run lint:fix`           | Auto-fix lint errors                        |
-| `npm run format`             | Format all files (Prettier)                 |
-| `npm run format:check`       | Check formatting without writing            |
-| `npm run typecheck`          | Type-check the project (Nuxt typecheck)     |
-| `npm run test:unit`          | Run unit tests in watch mode (Vitest)       |
-| `npm run test:unit:ci`       | Run unit tests once                         |
-| `npm run test:e2e`           | Run end-to-end tests (Playwright)           |
-| `npm run test:e2e:ui`        | Run e2e tests with Playwright UI            |
+| Command                | Purpose                                     |
+| ---------------------- | ------------------------------------------- |
+| `npm run dev`          | Start dev server at `http://localhost:3000` |
+| `npm run build`        | Production build                            |
+| `npm run preview`      | Preview production build locally            |
+| `npm run lint`         | Check for lint errors (ESLint)              |
+| `npm run lint:fix`     | Auto-fix lint errors                        |
+| `npm run format`       | Format all files (Prettier)                 |
+| `npm run format:check` | Check formatting without writing            |
+| `npm run typecheck`    | Type-check the project (Nuxt typecheck)     |
+| `npm run test:unit`    | Run unit tests in watch mode (Vitest)       |
+| `npm run test:unit:ci` | Run unit tests once                         |
