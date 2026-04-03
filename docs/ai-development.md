@@ -218,7 +218,7 @@ Lens 4 — Performance and simplicity
 ### Step 6: Finalize
 
 1. Run all unit and UAT tests again; fix failures.
-2. Validate the app boots on the default dev URL. If `https://localhost:3000` returns `503` or stale output, confirm the problem with a direct request, inspect the current listener with `lsof -nP -iTCP:3000 -sTCP:LISTEN`, kill the stale PID, restart with `npm run dev -- --port 3000`, then verify `/` returns `200`.
+2. Validate the app boots on the default dev URL. If `http://localhost:3000` returns `503` or stale output, confirm the problem with a direct request, inspect the current listener with `lsof -nP -iTCP:3000 -sTCP:LISTEN`, kill the stale PID, restart with `npm run dev -- --port 3000`, then verify `/` returns `200`.
 3. Update `CHANGELOG.md`.
 4. Update `docs/product.md` (feature and how to use it).
 5. If the canonical model or terminology changed: update `docs/architecture.md` and `docs/ubiquitous-language.md`.

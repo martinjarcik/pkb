@@ -1,12 +1,12 @@
 import { describe, expect, it } from 'vitest'
 import { editorjsBlocksToMarkdown } from '~/lib/blocksToMarkdown'
-import { VAULT_ASSETS_API_PREFIX } from '~/lib/editorjsImageUrl'
 import { markdownToEditorjsBlocks } from '~/lib/markdownToBlocks'
 import {
   INLINE_HIGHLIGHT_COLORS,
   INLINE_HIGHLIGHT_DEFAULT_COLOR,
   inlineHighlightMarkdownPrefix,
 } from '~/lib/inlineHighlight'
+import { VAULT_ASSETS_API_PREFIX } from '~/storage/httpPlatformApi'
 
 const altColor =
   Object.keys(INLINE_HIGHLIGHT_COLORS).find(

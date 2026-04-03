@@ -1,66 +1,5 @@
-import {
-  expect,
-  test,
-  type APIRequestContext,
-  type Page,
-} from '@playwright/test'
-import type { Note, NoteProperties } from '../../app/notes/types'
-
-const FIXTURE_NOTE_PROPERTY_TITLE = 'Second note (test seed)'
-
-function buildNoteContentPath(id: string): string {
-  return `/api/notes/${id.split('/').map(encodeURIComponent).join('/')}`
-}
-
-function getNoteProperties(note: Note): NoteProperties {
-  const {
-    id: _id,
-    content: _content,
-    createdAt: _createdAt,
-    modifiedAt: _modifiedAt,
-    title: _title,
-    description: _description,
-    ...properties
-  } = note
-
-  return properties
-}
-
-async function loadFixtureNote(request: APIRequestContext): Promise<Note> {
-  const response = await request.get('/api/notes')
-
-  expect(response.ok()).toBeTruthy()
-
-  const notes = (await response.json()) as Note[]
-  const note =
-    notes.find(
-      (entry) =>
-        entry.title === FIXTURE_NOTE_PROPERTY_TITLE && !entry.id.includes('/'),
-    ) ?? notes.find((entry) => !entry.id.includes('/'))
-
-  expect(note).toBeDefined()
-
-  const noteResponse = await request.get(buildNoteContentPath(note!.id))
-
-  expect(noteResponse.ok()).toBeTruthy()
-
-  return (await noteResponse.json()) as Note
-}
-
-async function restoreNote(
-  request: APIRequestContext,
-  note: Note,
-): Promise<void> {
-  const response = await request.put('/api/notes', {
-    data: {
-      id: note.id,
-      content: note.content,
-      properties: getNoteProperties(note),
-    },
-  })
-
-  expect(response.ok()).toBeTruthy()
-}
+import { expect, test, type Page } from '@playwright/test'
+import { createMockNote, mockNotesApi } from './helpers'
 
 async function waitForEditorReady(page: Page): Promise<void> {
   await expect(page.getByTestId('note-editor-error')).toHaveCount(0, {
@@ -109,27 +48,25 @@ async function appendMarkerToFirstParagraph(
 
 test('persists editor changes after autosave and survives a reload', async ({
   page,
-  request,
 }) => {
   const marker = `autosave-saved-${Date.now()}`
-  const originalNote = await loadFixtureNote(request)
+  const noteId = 'autosave-note.md'
+  const api = await mockNotesApi(page, [
+    createMockNote(noteId, 'Seed paragraph.\n\nSecond paragraph.'),
+  ])
 
-  try {
-    await page.goto('/')
-    await openNote(page, originalNote.id)
-    await appendMarkerToFirstParagraph(page, marker)
+  await page.goto('/')
+  await openNote(page, noteId)
+  await appendMarkerToFirstParagraph(page, marker)
 
-    await expect
-      .poll(async () => (await loadFixtureNote(request)).content, {
-        timeout: 10000,
-      })
-      .toContain(marker)
-    await page.reload()
-    await openNote(page, originalNote.id)
-    await expect(firstBodyParagraph(page)).toBeVisible({ timeout: 10000 })
+  await expect
+    .poll(() => api.getNote(noteId)?.content, {
+      timeout: 10000,
+    })
+    .toContain(marker)
 
-    await expect(firstBodyParagraph(page)).toContainText(marker)
-  } finally {
-    await restoreNote(request, originalNote)
-  }
+  await page.reload()
+  await openNote(page, noteId)
+  await expect(firstBodyParagraph(page)).toBeVisible({ timeout: 10000 })
+  await expect(firstBodyParagraph(page)).toContainText(marker)
 })

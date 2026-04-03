@@ -1,50 +1,5 @@
-import { expect, test, type Page } from '@playwright/test'
+import { expect, test } from '@playwright/test'
 import { createMockNote, mockNotesApi } from './helpers'
-
-async function mockInitApi(
-  page: Page,
-  catalog: ReturnType<typeof createMockNote>[],
-) {
-  await page.route('**/api/init', async (route) => {
-    await route.fulfill({
-      status: 200,
-      contentType: 'application/json',
-      body: JSON.stringify({
-        config: {
-          applicationType: 'desktop',
-          locale: 'en',
-          vault: './vault',
-          notes: {
-            trashRetentionDays: 30,
-          },
-          editor: {
-            autosaveDelay: 2000,
-            assetsFolder: 'assets',
-          },
-          layout: {
-            showInspectorPanel: true,
-            showSidebarPanel: true,
-            showNotesListPanel: true,
-          },
-          theme: {
-            accentColor: '#3f57dfff',
-            defaultEditorColor: 'yellow',
-          },
-          features: {
-            favorites: true,
-            tasks: true,
-            pinned: true,
-            nonDistractionMode: true,
-            noteWebhook: true,
-          },
-        },
-        catalog,
-        folders: [],
-        meta: {},
-      }),
-    })
-  })
-}
 
 test('searches across the whole vault and clears sidebar selection while active', async ({
   page,
@@ -60,7 +15,6 @@ test('searches across the whole vault and clears sidebar selection while active'
       trashedAt: '2026-03-20T00:00:00.000Z',
     }),
   ]
-  await mockInitApi(page, notes)
   await mockNotesApi(page, notes)
 
   await page.goto('/', { waitUntil: 'networkidle' })
@@ -88,7 +42,6 @@ test('restores the previous sidebar view when search is cleared', async ({
       tags: ['personal'],
     }),
   ]
-  await mockInitApi(page, notes)
   await mockNotesApi(page, notes)
 
   await page.goto('/', { waitUntil: 'networkidle' })

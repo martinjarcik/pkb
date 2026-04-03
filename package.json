@@ -6,7 +6,7 @@
     "node": ">=22"
   },
   "scripts": {
-    "dev": "nuxt dev --https --no-fork",
+    "dev": "nuxt dev --no-fork",
     "build": "nuxt build",
     "generate": "nuxt generate",
     "preview": "nuxt preview",

@@ -3,7 +3,7 @@ import {
   readAppConfigPersistence,
   writeAppConfigPatchPersistence,
 } from '~/config/persistence'
-import { getPlatformApi } from '~/storage/platformRouter'
+import { detectApplicationType, getPlatformApi } from '~/storage/platformRouter'
 import {
   loadConfig,
   type AppConfig,
@@ -63,7 +63,11 @@ export function useAppConfigDisk() {
   }
 
   function resolveReadApplicationType(): ApplicationType {
-    return readStoredApplicationType() ?? loadConfig().applicationType
+    return (
+      detectApplicationType() ??
+      readStoredApplicationType() ??
+      loadConfig().applicationType
+    )
   }
 
   return {

@@ -1,13 +1,5 @@
-import { expect, test, type Page, type Route } from '@playwright/test'
-import { noteDescriptionFromContent } from '../../app/notes/noteDescriptionFromContent'
-import type { Note, NoteProperties } from '../../app/notes/types'
-import { createMockNote, waitForEditorReady } from './helpers'
-
-type SaveBody = {
-  id: string
-  content: string
-  properties: NoteProperties
-}
+import { expect, test, type Page } from '@playwright/test'
+import { createMockNote, mockNotesApi, waitForEditorReady } from './helpers'
 
 const FIXED_TIMESTAMP = '2026-03-26T12:00:00.000Z'
 
@@ -31,95 +23,10 @@ async function appendToFirstParagraph(page: Page, text: string): Promise<void> {
   await page.keyboard.type(text)
 }
 
-async function mockTagNotesApi(
-  page: Page,
-  initialNotes: Note[],
-): Promise<{ getLastSaveBody: () => SaveBody | null }> {
-  let notes = [...initialNotes]
-  let lastSaveBody: SaveBody | null = null
-
-  await page.route('**/api/notes/**', async (route: Route) => {
-    if (route.request().method() !== 'GET') {
-      await route.fallback()
-      return
-    }
-
-    const pathname = new URL(route.request().url()).pathname
-    const noteId = pathname
-      .replace(/^\/api\/notes\//, '')
-      .split('/')
-      .map((segment) => decodeURIComponent(segment))
-      .join('/')
-    const note = notes.find((entry) => entry.id === noteId)
-
-    if (!note) {
-      await route.fulfill({
-        status: 404,
-        contentType: 'application/json',
-        body: JSON.stringify({ statusMessage: 'Note not found' }),
-      })
-      return
-    }
-
-    await route.fulfill({
-      status: 200,
-      contentType: 'application/json',
-      body: JSON.stringify(note),
-    })
-  })
-
-  await page.route('**/api/notes', async (route: Route) => {
-    const method = route.request().method()
-
-    if (method === 'GET') {
-      await route.fulfill({
-        status: 200,
-        contentType: 'application/json',
-        body: JSON.stringify(notes),
-      })
-      return
-    }
-
-    if (method === 'PUT') {
-      const body = route.request().postDataJSON() as SaveBody
-      const noteIndex = notes.findIndex((note) => note.id === body.id)
-
-      lastSaveBody = body
-
-      if (noteIndex >= 0) {
-        const updatedNote = {
-          ...notes[noteIndex]!,
-          ...body.properties,
-          content: body.content,
-          modifiedAt: FIXED_TIMESTAMP,
-          description: noteDescriptionFromContent(body.content),
-        }
-
-        notes = notes.map((note, index) =>
-          index === noteIndex ? updatedNote : note,
-        )
-
-        await route.fulfill({
-          status: 200,
-          contentType: 'application/json',
-          body: JSON.stringify(updatedNote),
-        })
-        return
-      }
-    }
-
-    await route.fallback()
-  })
-
-  return {
-    getLastSaveBody: () => lastSaveBody,
-  }
-}
-
 test('extracts tags on save and keeps hashtags in content', async ({
   page,
 }) => {
-  const api = await mockTagNotesApi(page, [
+  const api = await mockNotesApi(page, [
     createMockNote('first-note.md', 'First paragraph.'),
   ])
 
@@ -128,15 +35,13 @@ test('extracts tags on save and keeps hashtags in content', async ({
   await appendToFirstParagraph(page, ' #engineering #idea')
 
   await expect
-    .poll(() => api.getLastSaveBody(), {
+    .poll(() => api.getNote('first-note.md'), {
       timeout: 10000,
     })
     .toMatchObject({
       id: 'first-note.md',
       content: 'First paragraph. #engineering #idea',
-      properties: {
-        tags: ['engineering', 'idea'],
-      },
+      tags: ['engineering', 'idea'],
     })
 
   await expect(page.locator('.ce-paragraph').first()).toContainText(
@@ -148,7 +53,7 @@ test('extracts tags on save and keeps hashtags in content', async ({
 test('lists tags in the sidebar and filters notes by selected tags', async ({
   page,
 }) => {
-  await mockTagNotesApi(page, [
+  await mockNotesApi(page, [
     createMockNote('a.md', 'Alpha note.', FIXED_TIMESTAMP, {
       tags: ['engineering', 'idea'],
     }),
@@ -184,7 +89,7 @@ test('lists tags in the sidebar and filters notes by selected tags', async ({
 })
 
 test('cycles tag through active, pinned, and idle states', async ({ page }) => {
-  await mockTagNotesApi(page, [
+  await mockNotesApi(page, [
     createMockNote('a.md', 'Alpha note.', FIXED_TIMESTAMP, {
       tags: ['engineering', 'idea'],
     }),
@@ -219,7 +124,7 @@ test('cycles tag through active, pinned, and idle states', async ({ page }) => {
 })
 
 test('pinned tag is displayed in bold', async ({ page }) => {
-  await mockTagNotesApi(page, [
+  await mockNotesApi(page, [
     createMockNote('a.md', 'Alpha note.', FIXED_TIMESTAMP, {
       tags: ['engineering'],
     }),
@@ -242,7 +147,7 @@ test('pinned tag is displayed in bold', async ({ page }) => {
 test('clicking a new tag replaces the previously active tag', async ({
   page,
 }) => {
-  await mockTagNotesApi(page, [
+  await mockNotesApi(page, [
     createMockNote('a.md', 'Alpha note.', FIXED_TIMESTAMP, {
       tags: ['engineering', 'idea'],
     }),
@@ -265,7 +170,7 @@ test('clicking a new tag replaces the previously active tag', async ({
 })
 
 test('unpinning the last tag returns to inbox', async ({ page }) => {
-  await mockTagNotesApi(page, [
+  await mockNotesApi(page, [
     createMockNote('a.md', 'Alpha note.', FIXED_TIMESTAMP, {
       tags: ['engineering'],
     }),
@@ -286,7 +191,7 @@ test('unpinning the last tag returns to inbox', async ({ page }) => {
 })
 
 test('renders sidebar tags with the hash prefix', async ({ page }) => {
-  await mockTagNotesApi(page, [
+  await mockNotesApi(page, [
     createMockNote('first-note.md', 'Tagged note.', FIXED_TIMESTAMP, {
       tags: ['engineering'],
     }),
@@ -302,7 +207,7 @@ test('renders sidebar tags with the hash prefix', async ({ page }) => {
 test('tags chevron is always visible and collapses the tag list', async ({
   page,
 }) => {
-  await mockTagNotesApi(page, [
+  await mockNotesApi(page, [
     createMockNote('first-note.md', 'Tagged note.', FIXED_TIMESTAMP, {
       tags: ['engineering', 'idea'],
     }),
@@ -328,7 +233,7 @@ test('tags chevron is always visible and collapses the tag list', async ({
 test('turns a typed hashtag into an inline hashtag span after space', async ({
   page,
 }) => {
-  await mockTagNotesApi(page, [
+  await mockNotesApi(page, [
     createMockNote('first-note.md', 'First paragraph.'),
   ])
 

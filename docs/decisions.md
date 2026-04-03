@@ -77,3 +77,7 @@ Run the app as a client-only SPA: load full notes into memory at startup, keep s
 ## D020 — 2026-04
 
 Add a `PlatformApi` boundary for desktop-only raw I/O. The current implementation uses HTTP fetch against the minimal Nitro filesystem and asset routes, while future Tauri work will replace that implementation with IPC without changing `NoteStorage`, composables, or editor integration. Config and workspace metadata YAML parsing now happens on the client; Nitro only resolves the scoped config/meta file paths and reads or writes raw text.
+
+## D021 — 2026-04
+
+Keep the browser-served app and future Tauri desktop app on the same SPA architecture. The browser-served desktop mode continues to use the HTTP-backed `PlatformApi`, while Tauri will swap in an IPC-backed `PlatformApi` without bundling Nitro into the desktop app. Runtime detection should identify Tauri directly instead of relying on persisted browser state, and the desktop frontend should be served from static `nuxt generate` output rather than a Nuxt server.

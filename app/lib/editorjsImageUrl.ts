@@ -1,4 +1,4 @@
-export const VAULT_ASSETS_API_PREFIX = '/api/vault-assets'
+import { VAULT_ASSETS_API_PREFIX } from '~/storage/httpPlatformApi'
 
 function defaultMarkdownImageUrl(fileUrl: string): string {
   const prefix = `${VAULT_ASSETS_API_PREFIX}/`

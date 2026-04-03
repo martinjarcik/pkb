@@ -1,10 +1,5 @@
 import { expect, test, type Page } from '@playwright/test'
-import {
-  createMockNote,
-  mockAppConfigApi,
-  mockNotesApi,
-  waitForEditorReady,
-} from './helpers'
+import { createMockNote, mockNotesApi, waitForEditorReady } from './helpers'
 
 function buildAppLayoutNotes() {
   return [
@@ -24,13 +19,14 @@ async function waitForNotesListItems(page: Page): Promise<void> {
   })
 }
 
-test.beforeEach(async ({ page }) => {
-  await mockAppConfigApi(page)
+async function mockDefaultAppLayoutApi(page: Page): Promise<void> {
   await mockNotesApi(page, buildAppLayoutNotes())
-})
+}
 
 test('renders the default application layout', async ({ page }) => {
+  await mockDefaultAppLayoutApi(page)
   await page.goto('/')
+  await waitForEditorReady(page)
 
   await expect(page.getByTestId('sidebar-panel')).toBeVisible()
   await expect(page.getByTestId('notes-list-panel')).toBeVisible()
@@ -39,11 +35,13 @@ test('renders the default application layout', async ({ page }) => {
 })
 
 test('renders loaded notes in the notes list', async ({ page }) => {
+  await mockDefaultAppLayoutApi(page)
   await page.goto('/')
   await waitForNotesListItems(page)
 })
 
 test('selects the first loaded note in the list', async ({ page }) => {
+  await mockDefaultAppLayoutApi(page)
   await page.goto('/')
   await waitForNotesListItems(page)
 
@@ -56,64 +54,24 @@ test('selects the first loaded note in the list', async ({ page }) => {
 test('renders the first loaded note in the Editor.js surface', async ({
   page,
 }) => {
+  await mockDefaultAppLayoutApi(page)
   await page.goto('/')
 
   await waitForEditorReady(page)
 })
 
-test('loads the full note body after initial auto-selection', async ({
+test('loads the full note body from the initial vault read', async ({
   page,
 }) => {
-  const previewNote = createMockNote('first-note.md', 'Preview only.')
-  const fullNote = createMockNote(
-    'first-note.md',
-    'First paragraph.\n\nSecond paragraph.\n\nFull content from detail fetch.',
-  )
-
-  await page.route('**/api/folders', async (route) => {
-    if (route.request().method() !== 'GET') {
-      await route.fallback()
-      return
-    }
-
-    await route.fulfill({
-      status: 200,
-      contentType: 'application/json',
-      body: JSON.stringify([]),
-    })
-  })
-
-  await page.route(
-    (url) => {
-      const pathname = new URL(url).pathname
-
-      return pathname === '/api/notes' || pathname.startsWith('/api/notes/')
-    },
-    async (route) => {
-      const pathname = new URL(route.request().url()).pathname
-
-      if (route.request().method() !== 'GET') {
-        await route.fallback()
-        return
-      }
-
-      if (pathname === '/api/notes' || pathname === '/api/notes/') {
-        await route.fulfill({
-          status: 200,
-          contentType: 'application/json',
-          body: JSON.stringify([previewNote]),
-        })
-        return
-      }
-
-      await new Promise((resolve) => setTimeout(resolve, 250))
-
-      await route.fulfill({
-        status: 200,
-        contentType: 'application/json',
-        body: JSON.stringify(fullNote),
-      })
-    },
+  await mockNotesApi(
+    page,
+    [
+      createMockNote(
+        'first-note.md',
+        'First paragraph.\n\nSecond paragraph.\n\nFull content from vault read.',
+      ),
+    ],
+    { readAllNotesDelayMs: 250 },
   )
 
   await page.goto('/')
@@ -122,66 +80,14 @@ test('loads the full note body after initial auto-selection', async ({
   await expect(page.locator('.ce-paragraph')).toContainText([
     'First paragraph.',
     'Second paragraph.',
-    'Full content from detail fetch.',
+    'Full content from vault read.',
   ])
 })
 
-test('renders delayed note content after selecting a different list row', async ({
+test('renders the selected note content after clicking a different list row', async ({
   page,
 }) => {
-  const notes = buildAppLayoutNotes()
-
-  await page.route('**/api/folders', async (route) => {
-    if (route.request().method() !== 'GET') {
-      await route.fallback()
-      return
-    }
-
-    await route.fulfill({
-      status: 200,
-      contentType: 'application/json',
-      body: JSON.stringify([]),
-    })
-  })
-
-  await page.route(
-    (url) => {
-      const pathname = new URL(url).pathname
-
-      return pathname === '/api/notes' || pathname.startsWith('/api/notes/')
-    },
-    async (route) => {
-      const pathname = new URL(route.request().url()).pathname
-
-      if (route.request().method() !== 'GET') {
-        await route.fallback()
-        return
-      }
-
-      if (pathname === '/api/notes' || pathname === '/api/notes/') {
-        await route.fulfill({
-          status: 200,
-          contentType: 'application/json',
-          body: JSON.stringify(notes),
-        })
-        return
-      }
-
-      if (pathname.endsWith('/second-note.md')) {
-        await new Promise((resolve) => setTimeout(resolve, 250))
-      }
-
-      const noteId = decodeURIComponent(pathname.replace('/api/notes/', ''))
-      const note = notes.find((entry) => entry.id === noteId)
-
-      await route.fulfill({
-        status: note ? 200 : 404,
-        contentType: 'application/json',
-        body: JSON.stringify(note ?? { statusMessage: 'Note not found' }),
-      })
-    },
-  )
-
+  await mockDefaultAppLayoutApi(page)
   await page.goto('/')
   await waitForEditorReady(page)
   await page.getByTestId('notes-list-item').nth(1).click()
@@ -192,6 +98,7 @@ test('renders delayed note content after selecting a different list row', async 
 })
 
 test('shows the note title block in the editor', async ({ page }) => {
+  await mockDefaultAppLayoutApi(page)
   await page.goto('/')
   await waitForEditorReady(page)
 
@@ -199,6 +106,7 @@ test('shows the note title block in the editor', async ({ page }) => {
 })
 
 test('hides editor toolbar when hovering the note title', async ({ page }) => {
+  await mockDefaultAppLayoutApi(page)
   await page.goto('/')
   await waitForEditorReady(page)
 
@@ -210,6 +118,7 @@ test('hides editor toolbar when hovering the note title', async ({ page }) => {
 test('hides editor settings when the note title is focused', async ({
   page,
 }) => {
+  await mockDefaultAppLayoutApi(page)
   await page.goto('/')
   await waitForEditorReady(page)
 
@@ -221,6 +130,7 @@ test('hides editor settings when the note title is focused', async ({
 test('does not keep title toolbar visible when another block gains focus', async ({
   page,
 }) => {
+  await mockDefaultAppLayoutApi(page)
   await page.goto('/')
   await waitForEditorReady(page)
 
@@ -239,6 +149,7 @@ test('does not keep title toolbar visible when another block gains focus', async
 test('keeps the custom note title block first when moving the next block up', async ({
   page,
 }) => {
+  await mockDefaultAppLayoutApi(page)
   await page.goto('/')
   await waitForEditorReady(page)
 
@@ -254,6 +165,7 @@ test('keeps the custom note title block first when moving the next block up', as
 test('updates the active note when a different list row is clicked', async ({
   page,
 }) => {
+  await mockDefaultAppLayoutApi(page)
   await page.goto('/')
 
   await waitForEditorReady(page)
@@ -268,7 +180,30 @@ test('updates the active note when a different list row is clicked', async ({
   await expect(page.locator('.ce-block')).not.toHaveCount(0)
 })
 
+test('clicking a note does not update modifiedAt or move it to the top', async ({
+  page,
+}) => {
+  const api = await mockNotesApi(page, [
+    createMockNote('newer.md', 'Newer note.', '2026-03-24T12:00:00.000Z'),
+    createMockNote('older.md', 'Older note.', '2026-03-23T12:00:00.000Z'),
+  ])
+
+  await page.goto('/')
+  await waitForEditorReady(page)
+
+  const olderBefore = api.getNote('older.md')?.modifiedAt
+
+  await page.locator('[data-note-id="older.md"]').click()
+
+  await expect(page.getByTestId('notes-list-item').first()).toHaveAttribute(
+    'data-note-id',
+    'newer.md',
+  )
+  await expect(api.getNote('older.md')?.modifiedAt).toBe(olderBefore)
+})
+
 test('shows block conversion options for a content block', async ({ page }) => {
+  await mockDefaultAppLayoutApi(page)
   await page.goto('/')
   await waitForEditorReady(page)
   const contentBlock = page.locator('.ce-paragraph').first()

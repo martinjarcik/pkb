@@ -111,6 +111,11 @@ export function useEditorSync({
     )
 
     lastRenderedContent.value = markdown
+
+    if (markdown === content()) {
+      return
+    }
+
     emitContentChange(markdown)
   }
 

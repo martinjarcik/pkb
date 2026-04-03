@@ -1,7 +1,7 @@
 import { defineConfig, devices } from '@playwright/test'
 
 const port = process.env.PLAYWRIGHT_PORT ?? '3000'
-const baseURL = `https://localhost:${port}`
+const baseURL = `http://localhost:${port}`
 const e2eConfigPath = 'data/e2e-app-config.yaml'
 const webServerCommand = process.env.CI
   ? `sh -c 'rm -f ${e2eConfigPath} && PKB_APP_CONFIG_PATH=${e2eConfigPath} npm run build && PKB_APP_CONFIG_PATH=${e2eConfigPath} npm run preview -- --port ${port}'`
@@ -16,14 +16,12 @@ export default defineConfig({
   reporter: 'html',
   use: {
     baseURL,
-    ignoreHTTPSErrors: true,
     trace: 'on-first-retry',
   },
   projects: [{ name: 'chromium', use: { ...devices['Desktop Chrome'] } }],
   webServer: {
     command: webServerCommand,
     url: baseURL,
-    ignoreHTTPSErrors: true,
     reuseExistingServer: !process.env.CI,
   },
 })

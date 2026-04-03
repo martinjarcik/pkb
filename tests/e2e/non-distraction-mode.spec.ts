@@ -1,10 +1,5 @@
 import { expect, test, type Page } from '@playwright/test'
-import {
-  createMockNote,
-  mockAppConfigApi,
-  mockNotesApi,
-  waitForEditorReady,
-} from './helpers'
+import { createMockNote, mockNotesApi, waitForEditorReady } from './helpers'
 
 function layoutMenuTrigger(page: Page) {
   return page.getByLabel('Layout options')
@@ -15,7 +10,6 @@ function sidebarMenuItem(page: Page) {
 }
 
 test.beforeEach(async ({ page }) => {
-  await mockAppConfigApi(page)
   await mockNotesApi(page, [createMockNote('root-note.md')])
 })
 

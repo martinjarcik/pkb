@@ -1,42 +1,5 @@
-import { expect, test, type Page, type Route } from '@playwright/test'
+import { expect, test } from '@playwright/test'
 import { createMockNote, mockNotesApi } from './helpers'
-
-async function mockFoldersApi(
-  page: Page,
-  initialFolders: string[] = [],
-): Promise<{ createdFolders: string[] }> {
-  const state = { createdFolders: [...initialFolders] }
-
-  await page.route('**/api/folders', async (route: Route) => {
-    const method = route.request().method()
-
-    if (method === 'GET') {
-      await route.fulfill({
-        status: 200,
-        contentType: 'application/json',
-        body: JSON.stringify(state.createdFolders),
-      })
-      return
-    }
-
-    if (method === 'POST') {
-      const body = route.request().postDataJSON() as { name: string }
-
-      state.createdFolders.push(body.name)
-
-      await route.fulfill({
-        status: 200,
-        contentType: 'application/json',
-        body: JSON.stringify({ name: body.name }),
-      })
-      return
-    }
-
-    await route.fallback()
-  })
-
-  return state
-}
 
 test('shows Folders title in the sidebar when folders exist', async ({
   page,
@@ -45,7 +8,6 @@ test('shows Folders title in the sidebar when folders exist', async ({
     createMockNote('Work/report.md', '# Report'),
     createMockNote('inbox.md', '# Inbox'),
   ])
-  await mockFoldersApi(page)
 
   await page.goto('/')
   await expect(page.getByTestId('sidebar-folders')).toBeVisible({
@@ -65,7 +27,6 @@ test('hides create-folder icon by default and shows it on hover', async ({
     createMockNote('Work/report.md', '# Report'),
     createMockNote('inbox.md', '# Inbox'),
   ])
-  await mockFoldersApi(page)
 
   await page.goto('/')
   await expect(page.getByTestId('sidebar-folders')).toBeVisible({
@@ -93,7 +54,6 @@ test('collapses and expands the folder list with the chevron', async ({
     createMockNote('Work/report.md', '# Report'),
     createMockNote('inbox.md', '# Inbox'),
   ])
-  await mockFoldersApi(page)
 
   await page.goto('/')
   await expect(page.getByTestId('sidebar-folders')).toBeVisible({
@@ -112,12 +72,10 @@ test('collapses and expands the folder list with the chevron', async ({
 })
 
 test('opens create-folder modal and creates a folder', async ({ page }) => {
-  await mockNotesApi(page, [
+  const api = await mockNotesApi(page, [
     createMockNote('Work/report.md', '# Report'),
     createMockNote('inbox.md', '# Inbox'),
   ])
-  const foldersApi = await mockFoldersApi(page)
-
   await page.goto('/', { waitUntil: 'networkidle' })
   await expect(page.getByTestId('sidebar-folders')).toBeVisible({
     timeout: 10000,
@@ -136,7 +94,7 @@ test('opens create-folder modal and creates a folder', async ({ page }) => {
   await page.getByTestId('folder-dialog-confirm').click()
 
   await expect(page.getByTestId('folder-dialog-name-input')).toHaveCount(0)
-  expect(foldersApi.createdFolders).toContain('Projects')
+  expect(api.getExplicitFolders()).toContain('Projects')
 
   await expect(
     page.locator('[data-navigation-id="folder:Projects"]'),
@@ -144,12 +102,10 @@ test('opens create-folder modal and creates a folder', async ({ page }) => {
 })
 
 test('cancels folder creation without creating', async ({ page }) => {
-  await mockNotesApi(page, [
+  const api = await mockNotesApi(page, [
     createMockNote('Work/report.md', '# Report'),
     createMockNote('inbox.md', '# Inbox'),
   ])
-  const foldersApi = await mockFoldersApi(page)
-
   await page.goto('/', { waitUntil: 'networkidle' })
   await expect(page.getByTestId('sidebar-folders')).toBeVisible({
     timeout: 10000,
@@ -167,5 +123,5 @@ test('cancels folder creation without creating', async ({ page }) => {
   await page.getByTestId('folder-dialog-cancel').click()
 
   await expect(page.getByTestId('folder-dialog-name-input')).toHaveCount(0)
-  expect(foldersApi.createdFolders).toHaveLength(0)
+  expect(api.getExplicitFolders()).toHaveLength(0)
 })
