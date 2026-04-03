@@ -30,21 +30,21 @@ describe('filesystemStorage', () => {
     expect(written).toBe('---\nlabel: Welcome\npublished: true\n---\n# Hello')
   })
 
-  it('loads frontmatter properties from a markdown file', async () => {
+  it('loads all notes with full content and frontmatter properties', async () => {
     await writeFile(
       join(vaultPath, 'hello.md'),
       '---\nlabel: Hello\npublished: true\n---\n# Content',
       'utf-8',
     )
 
-    const [note] = await storage.loadNotesCatalog()
+    const [note] = await storage.loadAllNotes()
 
     expect(note).toMatchObject({
       id: 'hello.md',
       label: 'Hello',
       published: true,
+      content: '# Content',
     })
-    expect('content' in (note ?? {})).toBe(false)
   })
 
   it('reads modification timestamp from the file system', async () => {
@@ -55,7 +55,7 @@ describe('filesystemStorage', () => {
     const mtime = new Date('2026-03-20T12:00:00.000Z')
     await utimes(filePath, mtime, mtime)
 
-    const [note] = await storage.loadNotesCatalog()
+    const [note] = await storage.loadAllNotes()
 
     expect(note?.modifiedAt).toBe('2026-03-20T12:00:00.000Z')
   })
@@ -78,7 +78,7 @@ describe('filesystemStorage', () => {
       new Date('2026-03-20T00:00:00Z'),
     )
 
-    const notes = await storage.loadNotesCatalog()
+    const notes = await storage.loadAllNotes()
 
     expect(notes.map((n) => n.id)).toEqual(['newer.md', 'older.md'])
   })
@@ -95,15 +95,15 @@ describe('filesystemStorage', () => {
       content: '# Body',
     })
 
-    const [note] = await storage.loadNotesCatalog()
+    const [note] = await storage.loadAllNotes()
 
     expect(note).toMatchObject({
       label: 'Round Trip',
       views: 3,
       meta: { nested: true },
       tags: ['a', 'b'],
+      content: '# Body',
     })
-    expect('content' in (note ?? {})).toBe(false)
   })
 
   it('creates intermediate directories when saving a nested note', async () => {
@@ -142,7 +142,7 @@ describe('filesystemStorage', () => {
 
     await storage.deleteNote('to-delete.md')
 
-    const notes = await storage.loadNotesCatalog()
+    const notes = await storage.loadAllNotes()
 
     expect(notes).toHaveLength(0)
   })
@@ -203,7 +203,7 @@ describe('filesystemStorage', () => {
   })
 
   it('returns an empty array when the vault is empty', async () => {
-    const notes = await storage.loadNotesCatalog()
+    const notes = await storage.loadAllNotes()
 
     expect(notes).toEqual([])
   })
@@ -215,42 +215,11 @@ describe('filesystemStorage', () => {
       'utf-8',
     )
 
-    const notes = await storage.loadNotesCatalog()
+    const notes = await storage.loadAllNotes()
 
     expect(notes).toHaveLength(1)
     expect(notes[0]!.title).toBe('broken')
-    expect('content' in notes[0]!).toBe(false)
-  })
-
-  it('loads a full note by id', async () => {
-    await writeFile(
-      join(vaultPath, 'full.md'),
-      '---\nlabel: Full\n---\n# Full body',
-      'utf-8',
-    )
-
-    await expect(storage.loadNoteById('full.md')).resolves.toMatchObject({
-      id: 'full.md',
-      label: 'Full',
-      title: 'full',
-      content: '# Full body',
-    })
-  })
-
-  it('returns null when a note id is missing', async () => {
-    await expect(storage.loadNoteById('missing.md')).resolves.toBeNull()
-  })
-
-  it('omits content from catalog rows', async () => {
-    await writeFile(
-      join(vaultPath, 'emoji.md'),
-      `---\nlabel: Emoji\n---\n${'🙂'.repeat(300)}`,
-      'utf-8',
-    )
-
-    const [note] = await storage.loadNotesCatalog()
-
-    expect('content' in (note ?? {})).toBe(false)
+    expect(notes[0]!.content).toBe('# Still readable')
   })
 
   it('does not throw when deleting a non-existent note', async () => {
@@ -312,13 +281,13 @@ describe('filesystemStorage', () => {
     await storage.createFolder('Work')
     await storage.createFolder('Personal')
 
-    const folders = await storage.loadFolders()
+    const folders = await storage.loadExplicitFolders()
 
     expect(folders).toEqual(['Personal', 'Work'])
   })
 
   it('returns an empty array when no folders exist', async () => {
-    const folders = await storage.loadFolders()
+    const folders = await storage.loadExplicitFolders()
 
     expect(folders).toEqual([])
   })
@@ -361,33 +330,5 @@ describe('filesystemStorage', () => {
     const written = await readFile(join(vaultPath, 'Work', 'gone.md'), 'utf-8')
 
     expect(written).not.toContain('trashedAt')
-  })
-
-  it('purgeExpiredTrashedNotes deletes only expired trashed notes', async () => {
-    await storage.saveNote({
-      id: 'expired.md',
-      properties: {
-        hasTasks: false,
-        trashedAt: '2020-01-01T00:00:00.000Z',
-      },
-      content: '# E',
-    })
-    await storage.saveNote({
-      id: 'kept.md',
-      properties: {
-        hasTasks: false,
-        trashedAt: '2026-05-25T00:00:00.000Z',
-      },
-      content: '# K',
-    })
-
-    await storage.purgeExpiredTrashedNotes(
-      30,
-      new Date('2026-06-01T00:00:00.000Z'),
-    )
-
-    const catalog = await storage.loadNotesCatalog()
-
-    expect(catalog.map((n) => n.id).sort()).toEqual(['kept.md'])
   })
 })

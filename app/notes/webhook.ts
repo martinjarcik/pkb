@@ -1,4 +1,4 @@
-import type { Note } from '~/notes/types'
+import type { Note } from './types'
 
 const WEBHOOK_REQUEST_TIMEOUT_MS = 8000
 

@@ -120,7 +120,7 @@ describe('browserStorage', () => {
     )
   })
 
-  it('loads browser notes as flat notes with storage timestamps', async () => {
+  it('loads all notes with full content and storage timestamps', async () => {
     localStorage.setItem(
       'notes',
       JSON.stringify({
@@ -133,13 +133,14 @@ describe('browserStorage', () => {
       }),
     )
 
-    await expect(browserStorage.loadNotesCatalog()).resolves.toEqual([
+    await expect(browserStorage.loadAllNotes()).resolves.toEqual([
       {
         id: 'notes/welcome.md',
         label: 'Welcome',
         published: true,
         views: 3,
         meta: { nested: true },
+        content: '# Hello',
         createdAt: '2026-03-19T09:00:00.000Z',
         modifiedAt: '2026-03-20T11:00:00.000Z',
         title: 'welcome',
@@ -188,9 +189,9 @@ describe('browserStorage', () => {
       }),
     )
 
-    const note = await browserStorage.loadNoteById('notes/crlf.md')
+    const notes = await browserStorage.loadAllNotes()
 
-    expect(note?.content).toBe('# Hello\nworld')
+    expect(notes[0]?.content).toBe('# Hello\nworld')
   })
 
   it('normalizes CR line endings to LF when loading', async () => {
@@ -205,9 +206,9 @@ describe('browserStorage', () => {
       }),
     )
 
-    const note = await browserStorage.loadNoteById('notes/cr.md')
+    const notes = await browserStorage.loadAllNotes()
 
-    expect(note?.content).toBe('# Hello\nworld')
+    expect(notes[0]?.content).toBe('# Hello\nworld')
   })
 
   it('stores raw content without frontmatter wrapper when properties are empty', async () => {
@@ -236,9 +237,12 @@ describe('browserStorage', () => {
       }),
     )
 
-    await expect(browserStorage.loadNotesCatalog()).resolves.toEqual([
+    const notes = await browserStorage.loadAllNotes()
+
+    expect(notes).toEqual([
       {
         id: 'notes/broken.md',
+        content: '# Still readable',
         createdAt: '2026-03-19T09:00:00.000Z',
         modifiedAt: '2026-03-20T11:00:00.000Z',
         title: 'broken',
@@ -265,10 +269,13 @@ describe('browserStorage', () => {
       }),
     )
 
-    await expect(browserStorage.loadNotesCatalog()).resolves.toEqual([
+    const notes = await browserStorage.loadAllNotes()
+
+    expect(notes).toEqual([
       {
         id: 'notes/ok.md',
         label: 'Fine',
+        content: '# Body',
         createdAt: '2026-03-19T09:00:00.000Z',
         modifiedAt: '2026-03-20T11:00:00.000Z',
         title: 'ok',
@@ -276,6 +283,7 @@ describe('browserStorage', () => {
       },
       {
         id: 'notes/bad-types.md',
+        content: '42',
         createdAt: 'false',
         modifiedAt: '',
         title: 'bad-types',
@@ -301,7 +309,7 @@ describe('browserStorage', () => {
       }),
     )
 
-    const notes = await browserStorage.loadNotesCatalog()
+    const notes = await browserStorage.loadAllNotes()
 
     expect(notes.map((n) => n.id)).toEqual(['notes/newer.md', 'notes/older.md'])
   })
@@ -317,53 +325,7 @@ describe('browserStorage', () => {
 
     await browserStorage.deleteNote('notes/welcome.md')
 
-    await expect(browserStorage.loadNotesCatalog()).resolves.toEqual([])
-  })
-
-  it('loads a full note by id', async () => {
-    localStorage.setItem(
-      'notes',
-      JSON.stringify({
-        'notes/welcome.md': {
-          document: '---\nlabel: Welcome\n---\n# Full note',
-          createdAt: '2026-03-19T09:00:00.000Z',
-          modifiedAt: '2026-03-20T11:00:00.000Z',
-        },
-      }),
-    )
-
-    await expect(
-      browserStorage.loadNoteById('notes/welcome.md'),
-    ).resolves.toEqual({
-      id: 'notes/welcome.md',
-      label: 'Welcome',
-      content: '# Full note',
-      createdAt: '2026-03-19T09:00:00.000Z',
-      modifiedAt: '2026-03-20T11:00:00.000Z',
-      title: 'welcome',
-      description: '',
-    })
-  })
-
-  it('returns null when a browser note is missing', async () => {
-    await expect(browserStorage.loadNoteById('missing.md')).resolves.toBeNull()
-  })
-
-  it('omits content from catalog rows', async () => {
-    localStorage.setItem(
-      'notes',
-      JSON.stringify({
-        'notes/emoji.md': {
-          document: `---\nlabel: Emoji\n---\n${'🙂'.repeat(300)}`,
-          createdAt: '2026-03-19T09:00:00.000Z',
-          modifiedAt: '2026-03-20T11:00:00.000Z',
-        },
-      }),
-    )
-
-    const [note] = await browserStorage.loadNotesCatalog()
-
-    expect('content' in (note ?? {})).toBe(false)
+    await expect(browserStorage.loadAllNotes()).resolves.toEqual([])
   })
 
   it('renames a note title and returns the new id', async () => {
@@ -447,13 +409,13 @@ describe('browserStorage', () => {
     await browserStorage.createFolder('Work')
     await browserStorage.createFolder('Personal')
 
-    const folders = await browserStorage.loadFolders()
+    const folders = await browserStorage.loadExplicitFolders()
 
     expect(folders).toEqual(['Personal', 'Work'])
   })
 
   it('returns an empty array when no folders are stored', async () => {
-    const folders = await browserStorage.loadFolders()
+    const folders = await browserStorage.loadExplicitFolders()
 
     expect(folders).toEqual([])
   })
@@ -493,35 +455,5 @@ describe('browserStorage', () => {
 
     expect(moved.trashedAt).toBeUndefined()
     expect(readStoredNotes()['Work/t.md']!.document).not.toContain('trashedAt')
-  })
-
-  it('purgeExpiredTrashedNotes deletes only expired trashed notes', async () => {
-    vi.setSystemTime(new Date('2026-03-20T10:00:00.000Z'))
-
-    await browserStorage.saveNote({
-      id: 'expired.md',
-      properties: {
-        hasTasks: false,
-        trashedAt: '2020-01-01T00:00:00.000Z',
-      },
-      content: '# E',
-    })
-    await browserStorage.saveNote({
-      id: 'kept.md',
-      properties: {
-        hasTasks: false,
-        trashedAt: '2026-05-25T00:00:00.000Z',
-      },
-      content: '# K',
-    })
-
-    await browserStorage.purgeExpiredTrashedNotes(
-      30,
-      new Date('2026-06-01T00:00:00.000Z'),
-    )
-
-    const catalog = await browserStorage.loadNotesCatalog()
-
-    expect(catalog.map((n) => n.id).sort()).toEqual(['kept.md'])
   })
 })

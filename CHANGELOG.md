@@ -4,12 +4,15 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
-- Add whole-vault notes search in `NotesListControls`: each keystroke calls
-  `GET /api/notes/search`, the server returns matching note ids from cached
-  full-note content in desktop mode, the frontend filters the existing catalog
-  to show matching notes (including trashed notes), clears visible sidebar/tag
-  selection while search is active, and restores the previous sidebar view when
-  the query is cleared.
+- Convert the app to a client-only SPA: Nuxt SSR is disabled, startup now loads
+  full notes into in-memory client state, note search/trash purge/webhooks run on
+  the client, config/meta persistence moved behind client-side persistence
+  helpers, and Nitro now exposes only minimal filesystem proxy routes plus
+  vault asset endpoints behind the new desktop `PlatformApi` boundary.
+- Add whole-vault notes search in `NotesListControls`: each keystroke filters the
+  already loaded in-memory notes by full title and full content (including
+  trashed notes), clears visible sidebar/tag selection while search is active,
+  and restores the previous sidebar view when the query is cleared.
 - Refactor internal note-id, markdown-conversion, and config-parsing modules
   into smaller units; centralize repeated helpers; remove the unused
   `radix-vue` dependency; and align documentation with the current
@@ -24,12 +27,12 @@ All notable changes to this project will be documented in this file.
   `POST /api/vault-assets/upload`, serving files from `GET /api/vault-assets/*`,
   Markdown round-trip as `![caption](<vault-relative path>)`, configurable
   `editor.assetsFolder` (default `assets`), and exclusion of that top-level
-  folder name from the sidebar folder list (`GET /api/folders` and merged
-  catalog view).
+  folder name from the sidebar folder list.
 - Add folder emoji icons for the sidebar: optional icon per top-level folder
   via `FolderDialog` (create or edit), `emoji-picker-element` in a popover,
   hover pencil on folder rows, and persistence in workspace `meta.yaml`
-  (`GET`/`PUT` `/api/meta`, default path overridable with `PKB_META_PATH`).
+  through the desktop platform API layer (default path overridable with
+  `PKB_META_PATH`).
 - Add non-distraction mode: `NoteControls` toggle (accent `Maximize2` icon) hides
   SidebarPanel, NotesListPanel, and InspectorPanel for the session; a second
   click restores the previous panel visibility without persisting to app config.
@@ -37,7 +40,7 @@ All notable changes to this project will be documented in this file.
   centers it horizontally.
 - Add per-note webhooks: optional `webhook` Application Property (HTTPS URL
   under `app` in frontmatter), webhook icon and dialog in `NoteControls`, and
-  server-side POST to that URL after successful save (`event: updated`) or
+  client-side POST to that URL after successful save (`event: updated`) or
   trash (`event: deleted`) with a JSON body containing the full note snapshot.
 - Add note pinning: `pinned` Application Property under `app` frontmatter, pin
   control in `NoteControls` (accent when pinned, `Pin` / `PinOff` icons), pinned
@@ -59,8 +62,8 @@ All notable changes to this project will be documented in this file.
   at load/save time, excluded from frontmatter serialization, and consumed
   directly by the notes list and editor title block. The description logic
   previously embedded in `useNotes` now lives in `app/notes/noteDescriptionFromContent.ts`.
-- Load only the first 1 KiB of note Content for the notes list catalog, then
-  fetch the full note only when it becomes selected in the editor.
+- Load full note Content into client state at startup and derive notes-list rows
+  from the in-memory notes instead of fetching note bodies on selection.
 - Add an Inbox item to `SidebarNavigation`, select it by default on app open,
   and filter `NotesListPanel` to notes that live directly in the vault root.
 - Add a create-note action to `NotesListActions` that inserts a new localized

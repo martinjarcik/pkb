@@ -3,7 +3,8 @@ import { onMounted, ref } from 'vue'
 
 const { topLevelFolders, foldersExpanded, createFolder, renameFolder } =
   useSidebarNavigation()
-const { loadMeta, setFolderIcon, folderIcon } = useFolderMeta()
+const { loadMeta, renameFolderMeta, setFolderIcon, folderIcon } =
+  useFolderMeta()
 const { loadNotes } = useNotes()
 
 const showFolderDialog = ref(false)
@@ -71,11 +72,8 @@ async function handleFolderDialogConfirm(): Promise<void> {
         return
       }
 
+      await renameFolderMeta(oldName, result.folderName)
       await setFolderIcon(result.folderName, folderIconEmoji.value || undefined)
-
-      if (folderIcon(oldName) !== undefined) {
-        await setFolderIcon(oldName, undefined)
-      }
 
       await loadNotes()
     } else {

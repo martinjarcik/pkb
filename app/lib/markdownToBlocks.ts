@@ -22,6 +22,8 @@ type ParseMarkdownContext = {
   didParseNoteTitle: boolean
 }
 
+type AssetUrlResolver = (relativePath: string) => string
+
 function parseBlockCommentClasses(value: string): string[] | null {
   const match = value.trim().match(BLOCK_COMMENT_PATTERN)
   if (!match) return null
@@ -182,6 +184,7 @@ function createEmptyParagraphBlock(): EditorjsBlock {
 function blocksFromRootWithBlankLines(
   source: string,
   root: MarkdownNode,
+  resolveAssetUrl: AssetUrlResolver | undefined,
 ): EditorjsBlock[] {
   const children = root.children ?? []
   const output: EditorjsBlock[] = []
@@ -229,7 +232,7 @@ function blocksFromRootWithBlankLines(
       }
     }
 
-    const blocks = parseMarkdownNode(node, parseContext)
+    const blocks = parseMarkdownNode(node, parseContext, resolveAssetUrl)
 
     if (pendingCssClasses && blocks.length > 0) {
       blocks[0]!.cssClasses = pendingCssClasses
@@ -329,7 +332,10 @@ function createParagraphBlock(text: string): EditorjsBlock {
   }
 }
 
-function parseParagraph(node: MarkdownNode): EditorjsBlock[] {
+function parseParagraph(
+  node: MarkdownNode,
+  resolveAssetUrl: AssetUrlResolver | undefined,
+): EditorjsBlock[] {
   const children = node.children ?? []
 
   if (children.length === 1 && children[0]!.type === 'image') {
@@ -341,7 +347,9 @@ function parseParagraph(node: MarkdownNode): EditorjsBlock[] {
       {
         type: 'image',
         data: {
-          file: { url: editorDisplayUrlForMarkdownImage(rawUrl) },
+          file: {
+            url: editorDisplayUrlForMarkdownImage(rawUrl, resolveAssetUrl),
+          },
           caption,
           withBorder: false,
           withBackground: false,
@@ -456,6 +464,7 @@ function parseTable(node: MarkdownNode): EditorjsBlock {
 function parseMarkdownNode(
   node: MarkdownNode,
   context: ParseMarkdownContext,
+  resolveAssetUrl: AssetUrlResolver | undefined,
 ): EditorjsBlock[] {
   switch (node.type) {
     case 'heading': {
@@ -469,7 +478,7 @@ function parseMarkdownNode(
       return [parseHeading(node, shouldParseAsNoteTitle)]
     }
     case 'paragraph':
-      return parseParagraph(node)
+      return parseParagraph(node, resolveAssetUrl)
     case 'list':
       return [parseList(node)]
     case 'thematicBreak':
@@ -485,7 +494,10 @@ function parseMarkdownNode(
   }
 }
 
-export function markdownToEditorjsBlocks(markdown: string): EditorjsBlock[] {
+export function markdownToEditorjsBlocks(
+  markdown: string,
+  resolveAssetUrl?: AssetUrlResolver,
+): EditorjsBlock[] {
   if (markdown.length === 0) {
     return []
   }
@@ -508,5 +520,9 @@ export function markdownToEditorjsBlocks(markdown: string): EditorjsBlock[] {
     return []
   }
 
-  return blocksFromRootWithBlankLines(normalizedMarkdown, parsedMarkdown)
+  return blocksFromRootWithBlankLines(
+    normalizedMarkdown,
+    parsedMarkdown,
+    resolveAssetUrl,
+  )
 }

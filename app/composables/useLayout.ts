@@ -17,11 +17,10 @@ type LayoutVisibilitySnapshot = {
 }
 
 export function useLayout() {
+  const { saveAppConfigPatch } = useAppConfigDisk()
+
   function persistAppConfigPatch(patch: Record<string, unknown>): void {
-    $fetch('/api/app-config', {
-      method: 'PUT',
-      body: patch,
-    }).catch((error: unknown) => {
+    saveAppConfigPatch(patch).catch((error: unknown) => {
       console.error('Failed to persist app config:', error)
     })
   }

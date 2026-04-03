@@ -73,6 +73,7 @@ const emit = defineEmits<{
 const holder = ref<HTMLDivElement | null>(null)
 const editorError = ref<string | null>(null)
 const isEditorLoading = ref(true)
+const { platformApi } = usePlatformApi()
 
 const editor = ref<EditorjsInstance | null>(null)
 
@@ -241,7 +242,7 @@ onMounted(async () => {
     const Table = getDefaultExport(tableModule)
     const ImageTool = getDefaultExport(imageModule)
     const blocks = renderNoteTitleBlocks(
-      markdownToEditorjsBlocks(initialContent),
+      markdownToEditorjsBlocks(initialContent, platformApi.value?.assetUrl),
       initialTitle,
     )
 
@@ -267,17 +268,11 @@ onMounted(async () => {
         ImageTool: ImageTool as new (...args: never[]) => unknown,
         translate,
         uploadByFile(file: File) {
-          const form = new FormData()
+          if (platformApi.value === null) {
+            throw new Error('Image upload is only supported in desktop mode')
+          }
 
-          form.append('image', file)
-
-          return $fetch<{
-            success: number
-            file: { url: string }
-          }>('/api/vault-assets/upload', {
-            method: 'POST',
-            body: form,
-          })
+          return platformApi.value.uploadAsset(file)
         },
       }),
     })
@@ -287,7 +282,7 @@ onMounted(async () => {
 
     if (props.content !== initialContent || props.title !== initialTitle) {
       const latestBlocks = renderNoteTitleBlocks(
-        markdownToEditorjsBlocks(props.content),
+        markdownToEditorjsBlocks(props.content, platformApi.value?.assetUrl),
         props.title,
       )
 

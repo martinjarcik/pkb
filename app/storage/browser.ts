@@ -1,13 +1,8 @@
-import { createNoteCatalogRow } from '~/notes/catalogRow'
 import { noteDescriptionFromContent } from '~/notes/noteDescriptionFromContent'
 import { moveNoteId, resolveUniqueNoteId } from '~/notes/noteId'
 import { noteTitleFromId } from '~/notes/noteTitleFromId'
-import {
-  catalogRowIsTrashed,
-  trashExpired,
-  withoutTrashedAt,
-} from '~/notes/trash'
-import type { Note, NoteCatalogRow } from '~/notes/types'
+import { withoutTrashedAt } from '~/notes/trash'
+import type { Note } from '~/notes/types'
 import type {
   MoveNoteInput,
   NoteStorage,
@@ -120,13 +115,6 @@ function composeNote(id: string, storedNote: BrowserStoredNote): Note {
     title: noteTitleFromId(id),
     description: noteDescriptionFromContent(content),
   }
-}
-
-function composeNoteCatalogRow(
-  id: string,
-  storedNote: BrowserStoredNote,
-): NoteCatalogRow {
-  return createNoteCatalogRow(composeNote(id, storedNote))
 }
 
 function writeStoredNoteIds(ids: string[]): void {
@@ -243,26 +231,16 @@ function writeStoredFolders(folders: string[]): void {
 }
 
 export const browserStorage: NoteStorage = {
-  async loadNotesCatalog(): Promise<NoteCatalogRow[]> {
+  async loadAllNotes(): Promise<Note[]> {
     const notes = Object.entries(readStoredNotes()).map(([id, storedNote]) =>
-      composeNoteCatalogRow(id, storedNote),
+      composeNote(id, storedNote),
     )
 
     return notes.sort((a, b) => b.modifiedAt.localeCompare(a.modifiedAt))
   },
 
-  async loadFolders(): Promise<string[]> {
+  async loadExplicitFolders(): Promise<string[]> {
     return readStoredFolders().sort((left, right) => left.localeCompare(right))
-  },
-
-  async loadNoteById(id: string): Promise<Note | null> {
-    const storedNote = readStoredNote(id)
-
-    if (!storedNote) {
-      return null
-    }
-
-    return composeNote(id, storedNote)
   },
 
   async saveNote(input: SaveNoteInput): Promise<Note> {
@@ -363,12 +341,13 @@ export const browserStorage: NoteStorage = {
   },
 
   async softDeleteNote(id: string): Promise<Note> {
-    const note = await this.loadNoteById(id)
+    const storedNote = readStoredNote(id)
 
-    if (!note) {
+    if (!storedNote) {
       throw new Error(`Note not found: ${id}`)
     }
 
+    const note = composeNote(id, storedNote)
     const properties = sanitizeProperties(note)
 
     return this.saveNote({
@@ -379,23 +358,6 @@ export const browserStorage: NoteStorage = {
       },
       content: note.content,
     })
-  },
-
-  async purgeExpiredTrashedNotes(
-    retentionDays: number,
-    now: Date = new Date(),
-  ): Promise<void> {
-    const catalog = await this.loadNotesCatalog()
-    const idsToDelete = catalog
-      .filter(
-        (row) =>
-          catalogRowIsTrashed(row) &&
-          typeof row.trashedAt === 'string' &&
-          trashExpired(row.trashedAt, retentionDays, now),
-      )
-      .map((row) => row.id)
-
-    await Promise.all(idsToDelete.map(async (id) => this.deleteNote(id)))
   },
 
   async deleteNote(id: string): Promise<void> {

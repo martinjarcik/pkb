@@ -2,20 +2,19 @@ import { useState } from '#app'
 import type { Ref } from 'vue'
 import { t } from '~/composables/useTranslations'
 import type { EditorFlush } from '~/composables/useNoteSelection'
-import { createNoteCatalogRow } from '~/notes/catalogRow'
 import { resolveUniqueNoteIdForParentPath } from '~/notes/noteId'
 import { noteWithToggledFavorite } from '~/notes/noteWithToggledFavorite'
 import { noteWithToggledPinned } from '~/notes/noteWithToggledPinned'
 import { noteWithWebhookUrl } from '~/notes/noteWithWebhookUrl'
 import { buildSaveNoteInput } from '~/notes/saveNoteInput'
-import type { Note, NoteCatalogRow } from '~/notes/types'
+import { dispatchNoteWebhook } from '~/notes/webhook'
+import type { Note, NoteCatalogRow, NoteProperties } from '~/notes/types'
 
 type UseNoteMutationsArgs = {
   selectedNote: Ref<Note | null>
   replaceNote: (note: Note) => void
   replaceRenamedNote: (previousId: string, note: Note) => void
   prependNote: (note: Note) => void
-  sortNotesByModifiedAt: (notes: NoteCatalogRow[]) => NoteCatalogRow[]
   updateSelectedNoteContent: (content: string) => void
   selectNoteById: (id: string | null) => Promise<void>
 }
@@ -25,10 +24,10 @@ export function useNoteMutations({
   replaceNote,
   replaceRenamedNote,
   prependNote,
-  sortNotesByModifiedAt,
   updateSelectedNoteContent,
   selectNoteById,
 }: UseNoteMutationsArgs) {
+  const { storage } = useNoteStorage()
   const notes = useState<NoteCatalogRow[]>('notes.items', () => [])
   const selectedNoteId = useState<string | null>(
     'notes.selectedNoteId',
@@ -56,13 +55,11 @@ export function useNoteMutations({
     updateSelectedNoteContent(content)
 
     try {
-      const savedNote = await $fetch<Note>('/api/notes', {
-        method: 'PUT',
-        body: saveInput,
-      })
+      const savedNote = await storage.value.saveNote(saveInput)
 
       replaceNote(savedNote)
       selectedNoteFull.value = savedNote
+      void dispatchWebhookIfPresent(savedNote, 'updated')
     } catch (error) {
       saveError.value =
         error instanceof Error ? error.message : t('notes.errorSaveFallback')
@@ -71,7 +68,7 @@ export function useNoteMutations({
 
   async function createNote(
     parentPath: string = '',
-    initialProperties: Record<string, unknown> = {},
+    initialProperties: NoteProperties = {},
   ): Promise<Note | null> {
     const translatedDefaultTitle = t('notes.newNoteTitle').trim()
     const defaultTitle =
@@ -90,17 +87,14 @@ export function useNoteMutations({
     try {
       await editorFlush.value?.()
 
-      const createdNote = await $fetch<Note>('/api/notes', {
-        method: 'PUT',
-        body: {
-          id: resolveUniqueNoteIdForParentPath(
-            parentPath,
-            defaultTitle,
-            notes.value.map((note) => note.id),
-          ),
-          properties: initialProperties,
-          content: '',
-        },
+      const createdNote = await storage.value.saveNote({
+        id: resolveUniqueNoteIdForParentPath(
+          parentPath,
+          defaultTitle,
+          notes.value.map((note) => note.id),
+        ),
+        properties: initialProperties,
+        content: '',
       })
 
       prependNote(createdNote)
@@ -137,13 +131,10 @@ export function useNoteMutations({
     try {
       await editorFlush.value?.()
 
-      const renamedNote = await $fetch<Note>('/api/notes', {
-        method: 'PATCH',
-        body: {
-          id: currentId,
-          title: trimmedTitle,
-          existingIds: notes.value.map((note) => note.id),
-        },
+      const renamedNote = await storage.value.renameNoteTitle({
+        id: currentId,
+        title: trimmedTitle,
+        existingIds: notes.value.map((note) => note.id),
       })
 
       replaceRenamedNote(currentId, renamedNote)
@@ -177,13 +168,10 @@ export function useNoteMutations({
     try {
       await editorFlush.value?.()
 
-      const movedNote = await $fetch<Note>('/api/notes/move', {
-        method: 'POST',
-        body: {
-          id,
-          targetParentPath,
-          existingIds: notes.value.map((note) => note.id),
-        },
+      const movedNote = await storage.value.moveNote({
+        id,
+        targetParentPath,
+        existingIds: notes.value.map((note) => note.id),
       })
 
       replaceRenamedNote(id, movedNote)
@@ -219,13 +207,11 @@ export function useNoteMutations({
       const nextNote = transform(current)
       const saveInput = buildSaveNoteInput(nextNote, nextNote.content)
 
-      const savedNote = await $fetch<Note>('/api/notes', {
-        method: 'PUT',
-        body: saveInput,
-      })
+      const savedNote = await storage.value.saveNote(saveInput)
 
       replaceNote(savedNote)
       selectedNoteFull.value = savedNote
+      void dispatchWebhookIfPresent(savedNote, 'updated')
     } catch (error) {
       saveError.value =
         error instanceof Error ? error.message : t('notes.errorSaveFallback')
@@ -260,16 +246,10 @@ export function useNoteMutations({
     try {
       await editorFlush.value?.()
 
-      const trashedNote = await $fetch<Note>('/api/notes/trash', {
-        method: 'POST',
-        body: { id: noteToDelete.id },
-      })
+      const trashedNote = await storage.value.softDeleteNote(noteToDelete.id)
 
-      notes.value = sortNotesByModifiedAt(
-        notes.value.map((note) =>
-          note.id === trashedNote.id ? createNoteCatalogRow(trashedNote) : note,
-        ),
-      )
+      replaceNote(trashedNote)
+      void dispatchWebhookIfPresent(trashedNote, 'deleted')
       selectedNoteFull.value = null
       selectedNoteId.value = null
 
@@ -289,6 +269,19 @@ export function useNoteMutations({
 
       return false
     }
+  }
+
+  async function dispatchWebhookIfPresent(
+    note: Note,
+    event: 'updated' | 'deleted',
+  ): Promise<void> {
+    const hook = note.webhook
+
+    if (typeof hook !== 'string' || hook.length === 0) {
+      return
+    }
+
+    await dispatchNoteWebhook(hook, event, note)
   }
 
   return {

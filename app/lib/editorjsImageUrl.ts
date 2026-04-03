@@ -1,6 +1,6 @@
 export const VAULT_ASSETS_API_PREFIX = '/api/vault-assets'
 
-export function markdownUrlFromEditorImageFileUrl(fileUrl: string): string {
+function defaultMarkdownImageUrl(fileUrl: string): string {
   const prefix = `${VAULT_ASSETS_API_PREFIX}/`
 
   if (fileUrl.startsWith(prefix)) {
@@ -10,7 +10,21 @@ export function markdownUrlFromEditorImageFileUrl(fileUrl: string): string {
   return fileUrl
 }
 
-export function editorDisplayUrlForMarkdownImage(url: string): string {
+export function markdownUrlFromEditorImageFileUrl(
+  fileUrl: string,
+  resolveMarkdownUrl: (fileUrl: string) => string = defaultMarkdownImageUrl,
+): string {
+  return resolveMarkdownUrl(fileUrl)
+}
+
+function defaultAssetUrl(relativePath: string): string {
+  return `${VAULT_ASSETS_API_PREFIX}/${relativePath}`
+}
+
+export function editorDisplayUrlForMarkdownImage(
+  url: string,
+  resolveAssetUrl: (relativePath: string) => string = defaultAssetUrl,
+): string {
   if (
     url.startsWith('http://') ||
     url.startsWith('https://') ||
@@ -19,5 +33,5 @@ export function editorDisplayUrlForMarkdownImage(url: string): string {
     return url
   }
 
-  return `${VAULT_ASSETS_API_PREFIX}/${url}`
+  return resolveAssetUrl(url)
 }

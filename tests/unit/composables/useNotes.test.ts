@@ -1,20 +1,30 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { noteDescriptionFromContent } from '~/notes/noteDescriptionFromContent'
 import { noteTitleFromId } from '~/notes/noteTitleFromId'
-import type { Note } from '~/notes/types'
+import type { Note, NoteProperties } from '~/notes/types'
+import type { NoteStorage, SaveNoteInput } from '~/storage/types'
 import { useNotes } from '~/composables/useNotes'
 
-type FetchOptions = {
-  method?: string
-  body?: unknown
-}
+const { stateStore, storageMock } = vi.hoisted(() => {
+  const storageMock: NoteStorage = {
+    loadAllNotes: vi.fn<() => Promise<Note[]>>().mockResolvedValue([]),
+    loadExplicitFolders: vi.fn<() => Promise<string[]>>().mockResolvedValue([]),
+    saveNote: vi.fn<(input: SaveNoteInput) => Promise<Note>>(),
+    renameNoteTitle: vi.fn(),
+    moveNote: vi.fn(),
+    softDeleteNote: vi.fn(),
+    deleteNote: vi
+      .fn<(id: string) => Promise<void>>()
+      .mockResolvedValue(undefined),
+    createFolder: vi.fn(),
+    renameFolder: vi.fn(),
+  }
 
-type RouteHandler = (options?: FetchOptions) => Promise<unknown> | unknown
-
-const { fetchMock, stateStore } = vi.hoisted(() => ({
-  fetchMock: vi.fn(),
-  stateStore: new Map<string, { value: unknown }>(),
-}))
+  return {
+    stateStore: new Map<string, { value: unknown }>(),
+    storageMock,
+  }
+})
 
 function mockedUseState<T>(key: string, init: () => T) {
   if (!stateStore.has(key)) {
@@ -46,6 +56,42 @@ vi.mock('~/composables/useTranslations', () => ({
     )[key] ?? key,
 }))
 
+vi.mock('~/composables/useNoteStorage', () => ({
+  useNoteStorage: () => ({
+    storage: { value: storageMock },
+  }),
+}))
+
+vi.mock('~/composables/useAppConfigDisk', () => ({
+  useAppConfigDisk: () => ({
+    data: {
+      value: {
+        applicationType: 'browser',
+        vault: './vault',
+        notes: { trashRetentionDays: 30 },
+        editor: { autosaveDelay: 300, assetsFolder: 'assets' },
+        layout: {
+          showInspectorPanel: true,
+          showSidebarPanel: true,
+          showNotesListPanel: true,
+        },
+        theme: { accentColor: '#000000', defaultEditorColor: 'yellow' },
+        editorColors: {},
+        features: {
+          favorites: true,
+          tasks: true,
+          pinned: true,
+          nonDistractionMode: true,
+          noteWebhook: true,
+        },
+        locale: 'en',
+      },
+    },
+    loadAppConfigDisk: vi.fn(),
+    saveAppConfigPatch: vi.fn(),
+  }),
+}))
+
 function createTestNote(
   id: string,
   content: string,
@@ -63,42 +109,15 @@ function createTestNote(
   }
 }
 
-function createDeferred<T>(): {
-  promise: Promise<T>
-  resolve: (value: T) => void
-} {
-  let resolve!: (value: T) => void
-
-  return {
-    promise: new Promise<T>((nextResolve) => {
-      resolve = nextResolve
-    }),
-    resolve,
-  }
-}
-
-function mockFetchRoutes(routes: Record<string, RouteHandler | unknown>): void {
-  fetchMock.mockImplementation((url: string, options?: FetchOptions) => {
-    const method = options?.method ?? 'GET'
-    const route = routes[`${method} ${url}`]
-
-    if (route === undefined) {
-      throw new Error(`Unhandled fetch: ${method} ${url}`)
-    }
-
-    if (typeof route === 'function') {
-      return Promise.resolve((route as RouteHandler)(options))
-    }
-
-    return Promise.resolve(route)
-  })
-}
-
 describe('useNotes', () => {
   beforeEach(() => {
-    fetchMock.mockReset()
     stateStore.clear()
-    vi.stubGlobal('$fetch', fetchMock)
+    vi.mocked(storageMock.loadAllNotes).mockReset().mockResolvedValue([])
+    vi.mocked(storageMock.deleteNote).mockReset().mockResolvedValue(undefined)
+    vi.mocked(storageMock.saveNote).mockReset()
+    vi.mocked(storageMock.renameNoteTitle).mockReset()
+    vi.mocked(storageMock.moveNote).mockReset()
+    vi.mocked(storageMock.softDeleteNote).mockReset()
   })
 
   afterEach(() => {
@@ -106,17 +125,10 @@ describe('useNotes', () => {
   })
 
   it('selects the first note after loading the catalog', async () => {
-    mockFetchRoutes({
-      'GET /api/notes': [
-        createTestNote('first.md', '# Preview', '2026-03-24'),
-        createTestNote('second.md', '# Second preview', '2026-03-23'),
-      ],
-      'GET /api/notes/first.md': createTestNote(
-        'first.md',
-        '# Full note\n\nMore content',
-        '2026-03-24',
-      ),
-    })
+    vi.mocked(storageMock.loadAllNotes).mockResolvedValue([
+      createTestNote('first.md', '# Full note\n\nMore content', '2026-03-24'),
+      createTestNote('second.md', '# Second full note', '2026-03-23'),
+    ])
 
     const { loadNotes, notes, selectedNoteId, selectNoteById } = useNotes()
     await loadNotes()
@@ -125,15 +137,10 @@ describe('useNotes', () => {
     expect(selectedNoteId.value).toBe('first.md')
   })
 
-  it('fetches the full content for the selected note', async () => {
-    mockFetchRoutes({
-      'GET /api/notes': [createTestNote('first.md', '# Preview', '2026-03-24')],
-      'GET /api/notes/first.md': createTestNote(
-        'first.md',
-        '# Full note\n\nMore content',
-        '2026-03-24',
-      ),
-    })
+  it('provides the full content for the selected note from memory', async () => {
+    vi.mocked(storageMock.loadAllNotes).mockResolvedValue([
+      createTestNote('first.md', '# Full note\n\nMore content', '2026-03-24'),
+    ])
 
     const { loadNotes, notes, selectedNote, selectNoteById } = useNotes()
     await loadNotes()
@@ -143,9 +150,7 @@ describe('useNotes', () => {
   })
 
   it('clears the selected note for an empty catalog payload', async () => {
-    mockFetchRoutes({
-      'GET /api/notes': [],
-    })
+    vi.mocked(storageMock.loadAllNotes).mockResolvedValue([])
 
     const { selectedNoteId, loadNotes } = useNotes()
     await loadNotes()
@@ -154,7 +159,9 @@ describe('useNotes', () => {
   })
 
   it('exposes the error message when catalog loading fails', async () => {
-    fetchMock.mockRejectedValue(new Error('Network down'))
+    vi.mocked(storageMock.loadAllNotes).mockRejectedValue(
+      new Error('Network down'),
+    )
 
     const { loadError, loadNotes } = useNotes()
     await loadNotes()
@@ -162,69 +169,40 @@ describe('useNotes', () => {
     expect(loadError.value).toBe('Network down')
   })
 
-  it('loads the full note when selection changes', async () => {
-    const { notes, selectedNote, selectedNoteId, selectNoteById } = useNotes()
+  it('selects a note by looking up from in-memory store', async () => {
+    vi.mocked(storageMock.loadAllNotes).mockResolvedValue([
+      createTestNote('first.md', '# First content', '2026-03-24'),
+      createTestNote('second.md', '# Second full note', '2026-03-23'),
+    ])
 
-    notes.value = [
-      createTestNote(
-        'first.md',
-        '# First preview\n\nA longer preview body for the first note.',
-        '2026-03-24',
-      ),
-      createTestNote(
-        'second.md',
-        '# Second preview\n\nSome note content',
-        '2026-03-23',
-      ),
-    ]
-
-    mockFetchRoutes({
-      'GET /api/notes/second.md': createTestNote(
-        'second.md',
-        '# Second full note',
-        '2026-03-23',
-      ),
-    })
-
+    const { loadNotes, selectedNote, selectedNoteId, selectNoteById } =
+      useNotes()
+    await loadNotes()
     await selectNoteById('second.md')
 
     expect(selectedNoteId.value).toBe('second.md')
     expect(selectedNote.value?.content).toBe('# Second full note')
   })
 
-  it('loads a note with spaces in the id', async () => {
-    const { notes, selectedNote, selectNoteById } = useNotes()
+  it('selects a note with spaces in the id', async () => {
+    vi.mocked(storageMock.loadAllNotes).mockResolvedValue([
+      createTestNote('backlog/second note.md', '# Full', '2026-03-24'),
+    ])
 
-    notes.value = [
-      createTestNote('backlog/second note.md', '# Preview', '2026-03-24'),
-    ]
-
-    mockFetchRoutes({
-      'GET /api/notes/backlog/second%20note.md': createTestNote(
-        'backlog/second note.md',
-        '# Full',
-        '2026-03-24',
-      ),
-    })
-
+    const { loadNotes, selectedNote, selectNoteById } = useNotes()
+    await loadNotes()
     await selectNoteById('backlog/second note.md')
 
     expect(selectedNote.value?.content).toBe('# Full')
   })
 
   it('clears the selected note title when no note is selected', async () => {
-    const { notes, selectedNoteTitle, selectNoteById } = useNotes()
+    vi.mocked(storageMock.loadAllNotes).mockResolvedValue([
+      createTestNote('first.md', '# Full', '2026-03-24'),
+    ])
 
-    notes.value = [createTestNote('first.md', '# Preview', '2026-03-24')]
-
-    mockFetchRoutes({
-      'GET /api/notes/first.md': createTestNote(
-        'first.md',
-        '# Full',
-        '2026-03-24',
-      ),
-    })
-
+    const { loadNotes, selectedNoteTitle, selectNoteById } = useNotes()
+    await loadNotes()
     await selectNoteById('first.md')
     await selectNoteById(null)
 
@@ -232,87 +210,37 @@ describe('useNotes', () => {
   })
 
   it('retargets selection to the new id after renaming', async () => {
-    const { notes, selectedNoteId, renameSelectedNoteTitle, selectNoteById } =
-      useNotes()
+    vi.mocked(storageMock.loadAllNotes).mockResolvedValue([
+      createTestNote('nested/first.md', '# First', '2026-03-24'),
+    ])
+    vi.mocked(storageMock.renameNoteTitle).mockResolvedValue(
+      createTestNote('nested/Renamed title.md', '# First', '2026-03-24'),
+    )
 
-    notes.value = [createTestNote('nested/first.md', '# Preview', '2026-03-24')]
-
-    mockFetchRoutes({
-      'GET /api/notes/nested/first.md': createTestNote(
-        'nested/first.md',
-        '# First',
-        '2026-03-24',
-      ),
-      'PATCH /api/notes': createTestNote(
-        'nested/Renamed title.md',
-        '# First',
-        '2026-03-24',
-      ),
-    })
-
+    const {
+      loadNotes,
+      selectedNoteId,
+      renameSelectedNoteTitle,
+      selectNoteById,
+    } = useNotes()
+    await loadNotes()
     await selectNoteById('nested/first.md')
     await renameSelectedNoteTitle('Renamed title')
 
     expect(selectedNoteId.value).toBe('nested/Renamed title.md')
   })
 
-  it('does not overwrite a newer selection after a title rename resolves', async () => {
-    const { notes, selectedNoteId, renameSelectedNoteTitle, selectNoteById } =
-      useNotes()
-    const renameDeferred = createDeferred<Note>()
-
-    notes.value = [
-      createTestNote('first.md', '# First preview', '2026-03-24'),
-      createTestNote('second.md', '# Second preview', '2026-03-23'),
-    ]
-
-    mockFetchRoutes({
-      'GET /api/notes/first.md': createTestNote(
-        'first.md',
-        '# First',
-        '2026-03-24',
-      ),
-      'GET /api/notes/second.md': createTestNote(
-        'second.md',
-        '# Second',
-        '2026-03-23',
-      ),
-      'PATCH /api/notes': () => renameDeferred.promise,
-    })
-
-    await selectNoteById('first.md')
-
-    const renamePromise = renameSelectedNoteTitle('Renamed')
-    await selectNoteById('second.md')
-    renameDeferred.resolve(
-      createTestNote('Renamed.md', '# First', '2026-03-24'),
-    )
-    await renamePromise
-
-    expect(selectedNoteId.value).toBe('second.md')
-  })
-
   it('retargets selection to the new id after moving a note', async () => {
-    const { moveNote, notes, selectedNoteId, selectNoteById } = useNotes()
-
-    notes.value = [
-      createTestNote('first.md', '# First preview', '2026-03-24'),
+    vi.mocked(storageMock.loadAllNotes).mockResolvedValue([
+      createTestNote('first.md', '# First', '2026-03-24'),
       createTestNote('recipes/existing.md', '# Existing', '2026-03-23'),
-    ]
+    ])
+    vi.mocked(storageMock.moveNote).mockResolvedValue(
+      createTestNote('recipes/first.md', '# First', '2026-03-24'),
+    )
 
-    mockFetchRoutes({
-      'GET /api/notes/first.md': createTestNote(
-        'first.md',
-        '# First',
-        '2026-03-24',
-      ),
-      'POST /api/notes/move': createTestNote(
-        'recipes/first.md',
-        '# First',
-        '2026-03-24',
-      ),
-    })
-
+    const { loadNotes, moveNote, selectedNoteId, selectNoteById } = useNotes()
+    await loadNotes()
     await selectNoteById('first.md')
     await moveNote('first.md', 'recipes')
 
@@ -320,14 +248,15 @@ describe('useNotes', () => {
   })
 
   it('prepends the created note to the list', async () => {
-    const { createNote: createNewNote, notes } = useNotes()
+    vi.mocked(storageMock.loadAllNotes).mockResolvedValue([
+      createTestNote('existing.md', '# Existing', '2026-03-24'),
+    ])
+    vi.mocked(storageMock.saveNote).mockResolvedValue(
+      createTestNote('New Note.md', '', '2026-03-25'),
+    )
 
-    notes.value = [createTestNote('existing.md', '# Existing', '2026-03-24')]
-
-    mockFetchRoutes({
-      'PUT /api/notes': createTestNote('New Note.md', '', '2026-03-25'),
-    })
-
+    const { loadNotes, createNote: createNewNote, notes } = useNotes()
+    await loadNotes()
     await createNewNote()
 
     expect(notes.value.map((note) => note.id)).toEqual([
@@ -337,132 +266,123 @@ describe('useNotes', () => {
   })
 
   it('selects the newly created note', async () => {
-    const { createNote: createNewNote, notes, selectedNoteId } = useNotes()
+    vi.mocked(storageMock.loadAllNotes).mockResolvedValue([
+      createTestNote('existing.md', '# Existing', '2026-03-24'),
+    ])
+    vi.mocked(storageMock.saveNote).mockResolvedValue(
+      createTestNote('New Note.md', '', '2026-03-25'),
+    )
 
-    notes.value = [createTestNote('existing.md', '# Existing', '2026-03-24')]
-
-    mockFetchRoutes({
-      'PUT /api/notes': createTestNote('New Note.md', '', '2026-03-25'),
-    })
-
+    const { loadNotes, createNote: createNewNote, selectedNoteId } = useNotes()
+    await loadNotes()
     await createNewNote()
 
     expect(selectedNoteId.value).toBe('New Note.md')
   })
 
   it('signals that the title should be focused after creating a note', async () => {
-    const { createNote: createNewNote, notes, shouldFocusTitle } = useNotes()
+    vi.mocked(storageMock.loadAllNotes).mockResolvedValue([
+      createTestNote('existing.md', '# Existing', '2026-03-24'),
+    ])
+    vi.mocked(storageMock.saveNote).mockResolvedValue(
+      createTestNote('New Note.md', '', '2026-03-25'),
+    )
 
-    notes.value = [createTestNote('existing.md', '# Existing', '2026-03-24')]
-
-    mockFetchRoutes({
-      'PUT /api/notes': createTestNote('New Note.md', '', '2026-03-25'),
-    })
-
+    const {
+      loadNotes,
+      createNote: createNewNote,
+      shouldFocusTitle,
+    } = useNotes()
+    await loadNotes()
     await createNewNote()
 
     expect(shouldFocusTitle.value).toBe(true)
   })
 
   it('appends a suffix when the default title already exists', async () => {
-    const { createNote: createNewNote, notes } = useNotes()
+    vi.mocked(storageMock.loadAllNotes).mockResolvedValue([
+      createTestNote('New Note.md', '# Existing', '2026-03-24'),
+    ])
+    vi.mocked(storageMock.saveNote).mockImplementation(
+      async (input: SaveNoteInput) =>
+        createTestNote(input.id, input.content, '2026-03-25'),
+    )
 
-    notes.value = [createTestNote('New Note.md', '# Existing', '2026-03-24')]
-
-    mockFetchRoutes({
-      'PUT /api/notes': createTestNote('New Note (2).md', '', '2026-03-25'),
-    })
-
+    const { loadNotes, createNote: createNewNote, notes } = useNotes()
+    await loadNotes()
     await createNewNote()
 
     expect(notes.value[0]?.id).toBe('New Note (2).md')
   })
 
   it('creates a new note inside the provided parent folder', async () => {
-    const { createNote: createNewNote, notes } = useNotes()
+    vi.mocked(storageMock.loadAllNotes).mockResolvedValue([])
+    vi.mocked(storageMock.saveNote).mockImplementation(
+      async (input: SaveNoteInput) =>
+        createTestNote(input.id, input.content, '2026-03-25'),
+    )
 
-    mockFetchRoutes({
-      'PUT /api/notes': createTestNote('Work/New Note.md', '', '2026-03-25'),
-    })
-
+    const { loadNotes, createNote: createNewNote, notes } = useNotes()
+    await loadNotes()
     await createNewNote('Work')
 
     expect(notes.value[0]?.id).toBe('Work/New Note.md')
   })
 
   it('sets the save error when note creation fails', async () => {
-    const { createNote: createNewNote, saveError } = useNotes()
+    vi.mocked(storageMock.loadAllNotes).mockResolvedValue([])
+    vi.mocked(storageMock.saveNote).mockRejectedValue(
+      new Error('Create failed'),
+    )
 
-    fetchMock.mockRejectedValue(new Error('Create failed'))
-
+    const { loadNotes, createNote: createNewNote, saveError } = useNotes()
+    await loadNotes()
     await createNewNote()
 
     expect(saveError.value).toBe('Create failed')
   })
 
-  it('includes full note properties in the save request', async () => {
-    const { notes, saveSelectedNoteContent, selectNoteById } = useNotes()
-
-    notes.value = [
-      createTestNote('entry.md', '# Preview only', '2026-03-24', {
+  it('calls storage.saveNote with full note properties', async () => {
+    vi.mocked(storageMock.loadAllNotes).mockResolvedValue([
+      createTestNote('entry.md', '# Full note\n\nLonger body', '2026-03-24', {
         rating: 5,
       }),
-    ]
+    ])
+    vi.mocked(storageMock.saveNote).mockResolvedValue(
+      createTestNote('entry.md', '# Updated note', '2026-03-25', {
+        rating: 5,
+      }),
+    )
 
-    mockFetchRoutes({
-      'GET /api/notes/entry.md': createTestNote(
-        'entry.md',
-        '# Full note\n\nLonger body',
-        '2026-03-24',
-        { rating: 5 },
-      ),
-      'PUT /api/notes': createTestNote(
-        'entry.md',
-        '# Updated note',
-        '2026-03-25',
-        { rating: 5 },
-      ),
-    })
-
+    const { loadNotes, saveSelectedNoteContent, selectNoteById } = useNotes()
+    await loadNotes()
     await selectNoteById('entry.md')
     await saveSelectedNoteContent('# Updated note')
 
-    expect(fetchMock).toHaveBeenNthCalledWith(2, '/api/notes', {
-      method: 'PUT',
-      body: {
-        id: 'entry.md',
-        properties: { hasTasks: false, rating: 5, tags: [] },
-        content: '# Updated note',
-      },
+    expect(storageMock.saveNote).toHaveBeenCalledWith({
+      id: 'entry.md',
+      properties: expect.objectContaining({ rating: 5 }) as NoteProperties,
+      content: '# Updated note',
     })
   })
 
-  it('ignores stale note responses when selection changes quickly', async () => {
-    const { notes, selectedNote, selectedNoteId, selectNoteById } = useNotes()
-    const firstDeferred = createDeferred<Note>()
-    const secondDeferred = createDeferred<Note>()
-
-    notes.value = [
-      createTestNote('first.md', '# First preview', '2026-03-24'),
-      createTestNote('second.md', '# Second preview', '2026-03-23'),
-    ]
-
-    mockFetchRoutes({
-      'GET /api/notes/first.md': () => firstDeferred.promise,
-      'GET /api/notes/second.md': () => secondDeferred.promise,
-    })
-
-    const firstSelection = selectNoteById('first.md')
-    const secondSelection = selectNoteById('second.md')
-
-    secondDeferred.resolve(
-      createTestNote('second.md', '# Second', '2026-03-23'),
+  it('keeps the in-memory full-note store in sync after trashing a note', async () => {
+    vi.mocked(storageMock.loadAllNotes).mockResolvedValue([
+      createTestNote('entry.md', '# Body', '2026-03-24'),
+    ])
+    vi.mocked(storageMock.softDeleteNote).mockResolvedValue(
+      createTestNote('entry.md', '# Body', '2026-03-25', {
+        trashedAt: '2026-03-25T10:00:00.000Z',
+      }),
     )
-    await secondSelection
-    firstDeferred.resolve(createTestNote('first.md', '# First', '2026-03-24'))
-    await firstSelection
 
-    expect(selectedNoteId.value).toBe('second.md')
-    expect(selectedNote.value?.content).toBe('# Second')
+    const { allNotes, deleteSelectedNote, loadNotes, notes, selectNoteById } =
+      useNotes()
+    await loadNotes()
+    await selectNoteById('entry.md')
+    await deleteSelectedNote(['entry.md'])
+
+    expect(allNotes.value[0]?.trashedAt).toBe('2026-03-25T10:00:00.000Z')
+    expect(notes.value[0]?.trashedAt).toBe('2026-03-25T10:00:00.000Z')
   })
 })

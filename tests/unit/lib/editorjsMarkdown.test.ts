@@ -988,6 +988,18 @@ describe('editorjsMarkdown', () => {
     expect(editorjsBlocksToMarkdown(markdownToEditorjsBlocks(md))).toBe(md)
   })
 
+  it('serializes image urls with a custom platform resolver', () => {
+    const md = editorjsBlocksToMarkdown(
+      markdownToEditorjsBlocks(
+        '![](assets/photo.png)',
+        (path) => `asset://${path}`,
+      ),
+      (fileUrl) => fileUrl.replace('asset://', ''),
+    )
+
+    expect(md).toBe('![](assets/photo.png)')
+  })
+
   it('keeps a paragraph with inline image as a paragraph (image omitted from HTML)', () => {
     const blocks = markdownToEditorjsBlocks('Hello ![](assets/x.png)')
 

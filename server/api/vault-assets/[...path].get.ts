@@ -2,7 +2,7 @@ import { readFile } from 'node:fs/promises'
 import { extname, relative, resolve } from 'node:path'
 import { createError, defineEventHandler, setResponseHeader } from 'h3'
 import { mimeForExtension } from '../../imageTypes'
-import { loadServerConfig } from '../../loadServerConfig'
+import { readCurrentAppConfig } from '../../fileSystemProxy'
 
 function parsePathParam(pathParam: string | undefined): string[] {
   if (!pathParam) {
@@ -23,7 +23,7 @@ function parsePathParam(pathParam: string | undefined): string[] {
 }
 
 export default defineEventHandler(async (event) => {
-  const config = await loadServerConfig()
+  const config = await readCurrentAppConfig()
 
   if (config.applicationType !== 'desktop') {
     throw createError({
@@ -52,7 +52,7 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  if (segments[0] !== config.assetsFolder) {
+  if (segments[0] !== config.editor.assetsFolder) {
     throw createError({
       statusCode: 403,
       statusMessage: 'Asset path not allowed',
@@ -60,7 +60,7 @@ export default defineEventHandler(async (event) => {
   }
 
   const normalizedVault = resolve(config.vault)
-  const assetsRoot = resolve(normalizedVault, config.assetsFolder)
+  const assetsRoot = resolve(normalizedVault, config.editor.assetsFolder)
   const filePath = resolve(normalizedVault, ...segments)
 
   const relToAssets = relative(assetsRoot, filePath)

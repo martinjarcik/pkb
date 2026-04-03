@@ -1,6 +1,5 @@
 import {
   mkdir,
-  open,
   readdir,
   readFile,
   rename,
@@ -9,21 +8,11 @@ import {
   writeFile,
 } from 'fs/promises'
 import { dirname, relative, resolve } from 'path'
-import { createNoteCatalogRow } from '~/notes/catalogRow'
 import { noteDescriptionFromContent } from '~/notes/noteDescriptionFromContent'
 import { noteTitleFromId } from '~/notes/noteTitleFromId'
-import {
-  NOTE_CATALOG_CONTENT_BYTES,
-  type Note,
-  type NoteCatalogRow,
-  type NoteProperties,
-} from '~/notes/types'
+import type { Note, NoteProperties } from '~/notes/types'
 import { moveNoteId, resolveUniqueNoteId } from '~/notes/noteId'
-import {
-  catalogRowIsTrashed,
-  trashExpired,
-  withoutTrashedAt,
-} from '~/notes/trash'
+import { withoutTrashedAt } from '~/notes/trash'
 import type {
   MoveNoteInput,
   NoteStorage,
@@ -34,10 +23,7 @@ import {
   parseDocument,
   sanitizeProperties,
   serializeDocument,
-  truncateUtf8ByteLength,
 } from './document'
-
-const NOTE_FILE_READ_CHUNK_BYTES = 2048
 
 async function findMarkdownFiles(dir: string): Promise<string[]> {
   const entries = await readdir(dir, { recursive: true })
@@ -77,16 +63,6 @@ async function loadExistingIds(normalizedVault: string): Promise<string[]> {
   return filePaths.map((filePath) => relative(normalizedVault, filePath))
 }
 
-function hasUnclosedFrontmatter(raw: string): boolean {
-  const document = raw.replace(/\r\n?/g, '\n')
-
-  return document.startsWith('---\n') && document.indexOf('\n---\n', 4) === -1
-}
-
-function hasPreviewBytes(content: string): boolean {
-  return new TextEncoder().encode(content).length >= NOTE_CATALOG_CONTENT_BYTES
-}
-
 function composeNote(
   id: string,
   properties: NoteProperties,
@@ -105,75 +81,52 @@ function composeNote(
   }
 }
 
-async function readCatalogContent(filePath: string): Promise<{
-  properties: NoteProperties
-  content: string
-}> {
-  const fileHandle = await open(filePath, 'r')
-  const decoder = new TextDecoder()
-  let raw = ''
+async function loadNoteFromDisk(
+  vaultPath: string,
+  id: string,
+): Promise<Note | null> {
+  const filePath = assertSafeId(vaultPath, id)
 
   try {
-    while (true) {
-      const chunk = Buffer.alloc(NOTE_FILE_READ_CHUNK_BYTES)
-      const { bytesRead } = await fileHandle.read(chunk, 0, chunk.length, null)
+    const raw = await readFile(filePath, 'utf-8')
+    const fileStats = await stat(filePath)
+    const { properties, content } = parseDocument(raw)
 
-      if (bytesRead === 0) {
-        raw += decoder.decode()
-        const parsed = parseDocument(raw)
-
-        return {
-          properties: parsed.properties,
-          content: truncateUtf8ByteLength(
-            parsed.content,
-            NOTE_CATALOG_CONTENT_BYTES,
-          ),
-        }
-      }
-
-      raw += decoder.decode(chunk.subarray(0, bytesRead), { stream: true })
-
-      if (hasUnclosedFrontmatter(raw)) {
-        continue
-      }
-
-      const parsed = parseDocument(raw)
-
-      if (hasPreviewBytes(parsed.content)) {
-        return {
-          properties: parsed.properties,
-          content: truncateUtf8ByteLength(
-            parsed.content,
-            NOTE_CATALOG_CONTENT_BYTES,
-          ),
-        }
-      }
+    return composeNote(
+      id,
+      properties,
+      content,
+      fileStats.birthtime.toISOString(),
+      fileStats.mtime.toISOString(),
+    )
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
+      return null
     }
-  } finally {
-    await fileHandle.close()
+
+    throw error
   }
 }
 
 export function createFilesystemStorage(vaultPath: string): NoteStorage {
   return {
-    async loadNotesCatalog(): Promise<NoteCatalogRow[]> {
+    async loadAllNotes(): Promise<Note[]> {
       const normalizedVault = resolve(vaultPath)
       const filePaths = await findMarkdownFiles(normalizedVault)
 
       const notes = await Promise.all(
         filePaths.map(async (filePath) => {
           const fileStats = await stat(filePath)
-          const { properties, content } = await readCatalogContent(filePath)
+          const raw = await readFile(filePath, 'utf-8')
+          const { properties, content } = parseDocument(raw)
           const id = relative(normalizedVault, filePath)
 
-          return createNoteCatalogRow(
-            composeNote(
-              id,
-              properties,
-              content,
-              fileStats.birthtime.toISOString(),
-              fileStats.mtime.toISOString(),
-            ),
+          return composeNote(
+            id,
+            properties,
+            content,
+            fileStats.birthtime.toISOString(),
+            fileStats.mtime.toISOString(),
           )
         }),
       )
@@ -181,7 +134,7 @@ export function createFilesystemStorage(vaultPath: string): NoteStorage {
       return notes.sort((a, b) => b.modifiedAt.localeCompare(a.modifiedAt))
     },
 
-    async loadFolders(): Promise<string[]> {
+    async loadExplicitFolders(): Promise<string[]> {
       const normalizedVault = resolve(vaultPath)
       const entries = await readdir(normalizedVault, { withFileTypes: true })
 
@@ -189,30 +142,6 @@ export function createFilesystemStorage(vaultPath: string): NoteStorage {
         .filter((entry) => entry.isDirectory())
         .map((entry) => entry.name)
         .sort((left, right) => left.localeCompare(right))
-    },
-
-    async loadNoteById(id: string): Promise<Note | null> {
-      const filePath = assertSafeId(vaultPath, id)
-
-      try {
-        const raw = await readFile(filePath, 'utf-8')
-        const fileStats = await stat(filePath)
-        const { properties, content } = parseDocument(raw)
-
-        return composeNote(
-          id,
-          properties,
-          content,
-          fileStats.birthtime.toISOString(),
-          fileStats.mtime.toISOString(),
-        )
-      } catch (error) {
-        if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
-          return null
-        }
-
-        throw error
-      }
     },
 
     async saveNote(input: SaveNoteInput): Promise<Note> {
@@ -331,7 +260,7 @@ export function createFilesystemStorage(vaultPath: string): NoteStorage {
     },
 
     async softDeleteNote(id: string): Promise<Note> {
-      const note = await this.loadNoteById(id)
+      const note = await loadNoteFromDisk(vaultPath, id)
 
       if (!note) {
         throw new Error(`Note not found: ${id}`)
@@ -347,25 +276,6 @@ export function createFilesystemStorage(vaultPath: string): NoteStorage {
         },
         content: note.content,
       })
-    },
-
-    async purgeExpiredTrashedNotes(
-      retentionDays: number,
-      now: Date = new Date(),
-    ): Promise<void> {
-      const catalog = await this.loadNotesCatalog()
-      const idsToDelete = catalog
-        .filter(
-          (row) =>
-            catalogRowIsTrashed(row) &&
-            typeof row.trashedAt === 'string' &&
-            trashExpired(row.trashedAt, retentionDays, now),
-        )
-        .map((row) => row.id)
-
-      for (const id of idsToDelete) {
-        await this.deleteNote(id)
-      }
     },
 
     async deleteNote(id: string): Promise<void> {

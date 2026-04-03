@@ -8,12 +8,16 @@ import {
 } from '~/composables/useNoteSelection'
 import { createNoteCatalogRow } from '~/notes/catalogRow'
 import { noteDescriptionFromContent } from '~/notes/noteDescriptionFromContent'
+import { catalogRowIsTrashed, trashExpired } from '~/notes/trash'
 import type { Note, NoteCatalogRow } from '~/notes/types'
 
 const defaultEditor = loadConfig().editor
 
 export function useNotes() {
   const editorAutosaveDelay = defaultEditor.autosaveDelay
+  const { storage } = useNoteStorage()
+  const { data: appConfigDisk } = useAppConfigDisk()
+  const allNotes = useState<Note[]>('notes.allNotes', () => [])
   const notes = useState<NoteCatalogRow[]>('notes.items', () => [])
   const isLoading = useState('notes.isLoading', () => false)
   const isRenamingNoteTitle = useState('notes.isRenamingNoteTitle', () => false)
@@ -34,33 +38,38 @@ export function useNotes() {
   )
   const selectedNoteRequestId = useState('notes.selectedNoteRequestId', () => 0)
 
+  function rebuildCatalog(): void {
+    notes.value = sortNotesByModifiedAt(
+      allNotes.value.map(createNoteCatalogRow),
+    )
+  }
+
   function sortNotesByModifiedAt(
     nextNotes: NoteCatalogRow[],
   ): NoteCatalogRow[] {
     return nextNotes.sort((a, b) => b.modifiedAt.localeCompare(a.modifiedAt))
   }
 
-  function replaceNoteRow(previousId: string, nextNote: Note): void {
-    notes.value = notes.value.map((note) =>
-      note.id === previousId ? createNoteCatalogRow(nextNote) : note,
+  function replaceNoteInStore(nextNote: Note): void {
+    allNotes.value = allNotes.value.map((n) =>
+      n.id === nextNote.id ? nextNote : n,
     )
+    rebuildCatalog()
   }
 
-  function replaceNote(nextNote: Note): void {
-    replaceNoteRow(nextNote.id, nextNote)
-    notes.value = sortNotesByModifiedAt(notes.value)
+  function replaceRenamedNoteInStore(previousId: string, nextNote: Note): void {
+    allNotes.value = allNotes.value.map((n) =>
+      n.id === previousId ? nextNote : n,
+    )
+    rebuildCatalog()
   }
 
-  function replaceRenamedNote(previousId: string, nextNote: Note): void {
-    replaceNoteRow(previousId, nextNote)
-    notes.value = sortNotesByModifiedAt(notes.value)
-  }
-
-  function prependNote(nextNote: Note): void {
-    notes.value = [
-      createNoteCatalogRow(nextNote),
-      ...notes.value.filter((note) => note.id !== nextNote.id),
+  function prependNoteToStore(nextNote: Note): void {
+    allNotes.value = [
+      nextNote,
+      ...allNotes.value.filter((n) => n.id !== nextNote.id),
     ]
+    rebuildCatalog()
   }
 
   function updateSelectedNoteContent(content: string): void {
@@ -74,7 +83,16 @@ export function useNotes() {
       description: noteDescriptionFromContent(content),
     }
     selectedNoteFull.value = nextNote
-    replaceNoteRow(nextNote.id, nextNote)
+    allNotes.value = allNotes.value.map((n) =>
+      n.id === nextNote.id ? nextNote : n,
+    )
+    notes.value = notes.value.map((row) =>
+      row.id === nextNote.id ? createNoteCatalogRow(nextNote) : row,
+    )
+  }
+
+  function findNoteById(id: string): Note | null {
+    return allNotes.value.find((n) => n.id === id) ?? null
   }
 
   function registerEditorFlush(flush: EditorFlush | null): void {
@@ -92,7 +110,7 @@ export function useNotes() {
       selectedNoteId,
       selectedNoteFull,
       selectedNoteRequestId,
-      replaceNote,
+      findNoteById,
     })
 
   const {
@@ -106,10 +124,9 @@ export function useNotes() {
     deleteSelectedNote,
   } = useNoteMutations({
     selectedNote,
-    replaceNote,
-    replaceRenamedNote,
-    prependNote,
-    sortNotesByModifiedAt,
+    replaceNote: replaceNoteInStore,
+    replaceRenamedNote: replaceRenamedNoteInStore,
+    prependNote: prependNoteToStore,
     updateSelectedNoteContent,
     selectNoteById,
   })
@@ -119,12 +136,27 @@ export function useNotes() {
     loadError.value = null
 
     try {
-      const loadedNotes = await $fetch<NoteCatalogRow[]>('/api/notes')
+      const loaded = await storage.value.loadAllNotes()
+      const retentionDays = appConfigDisk.value.notes.trashRetentionDays
+      const now = new Date()
+      const expired = loaded.filter(
+        (n) =>
+          catalogRowIsTrashed(n) &&
+          typeof n.trashedAt === 'string' &&
+          trashExpired(n.trashedAt, retentionDays, now),
+      )
 
-      notes.value = loadedNotes
+      if (expired.length > 0) {
+        await Promise.all(expired.map((n) => storage.value.deleteNote(n.id)))
+      }
 
-      return loadedNotes
+      const expiredIds = new Set(expired.map((n) => n.id))
+      allNotes.value = loaded.filter((n) => !expiredIds.has(n.id))
+      rebuildCatalog()
+
+      return notes.value
     } catch (error) {
+      allNotes.value = []
       notes.value = []
       selectedNoteFull.value = null
       await selectNoteById(null)
@@ -139,6 +171,7 @@ export function useNotes() {
 
   return {
     editorAutosaveDelay,
+    allNotes,
     notes,
     isLoading,
     isRenamingNoteTitle,
@@ -150,6 +183,7 @@ export function useNotes() {
     showNoteControls,
     selectedNoteTitle,
     catalog: notes,
+    findNoteById,
     clearShouldFocusTitle,
     createNote,
     deleteSelectedNote,

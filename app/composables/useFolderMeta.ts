@@ -1,14 +1,23 @@
 import { useState } from '#app'
+import {
+  readMetaPersistence,
+  writeMetaPatchPersistence,
+} from '~/config/persistence'
 import type { FolderMeta, WorkspaceMeta } from '~/config/parseMeta'
+import { getPlatformApi } from '~/storage/platformRouter'
 
 export function useFolderMeta() {
   const meta = useState<WorkspaceMeta>('workspace.meta', () => ({
     folders: {},
   }))
+  const { data: appConfigDisk } = useAppConfigDisk()
 
   async function loadMeta(): Promise<void> {
     try {
-      const data = await $fetch<WorkspaceMeta>('/api/meta')
+      const data = await readMetaPersistence(
+        appConfigDisk.value.applicationType,
+        getPlatformApi(appConfigDisk.value.applicationType),
+      )
 
       meta.value = data
     } catch {
@@ -20,27 +29,54 @@ export function useFolderMeta() {
     return meta.value.folders[folderName]?.icon
   }
 
+  async function removeFolderMeta(folderName: string): Promise<void> {
+    meta.value = await writeMetaPatchPersistence(
+      appConfigDisk.value.applicationType,
+      getPlatformApi(appConfigDisk.value.applicationType),
+      { folders: { [folderName]: null } },
+    )
+  }
+
   async function setFolderIcon(
     folderName: string,
     icon: string | undefined,
   ): Promise<void> {
     const patch: Record<string, unknown> =
       icon === undefined || icon === ''
-        ? { folders: { [folderName]: null } }
+        ? { folders: { [folderName]: {} } }
         : { folders: { [folderName]: { icon } as FolderMeta } }
 
-    const updated = await $fetch<WorkspaceMeta>('/api/meta', {
-      method: 'PUT',
-      body: patch,
-    })
+    meta.value = await writeMetaPatchPersistence(
+      appConfigDisk.value.applicationType,
+      getPlatformApi(appConfigDisk.value.applicationType),
+      patch,
+    )
+  }
 
-    meta.value = updated
+  async function renameFolderMeta(
+    oldName: string,
+    newName: string,
+  ): Promise<void> {
+    const nextMeta = meta.value.folders[oldName] ?? {}
+
+    meta.value = await writeMetaPatchPersistence(
+      appConfigDisk.value.applicationType,
+      getPlatformApi(appConfigDisk.value.applicationType),
+      {
+        folders: {
+          [newName]: nextMeta,
+          [oldName]: null,
+        },
+      },
+    )
   }
 
   return {
     meta,
     loadMeta,
     folderIcon,
+    removeFolderMeta,
+    renameFolderMeta,
     setFolderIcon,
   }
 }

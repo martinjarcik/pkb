@@ -2,7 +2,7 @@ import { useState } from '#app'
 import { computed } from 'vue'
 import { loadConfig } from '~/config/loader'
 import { t } from '~/composables/useTranslations'
-import { filterOrderedCatalogRowsByIds } from '~/notes/noteSearch'
+import { filterOrderedCatalogRowsByIds, searchNotes } from '~/notes/noteSearch'
 import { sanitizeNoteTitleForFilename } from '~/notes/noteId'
 import {
   allTagsFromCatalog,
@@ -21,7 +21,9 @@ import type { NoteCatalogRow } from '~/notes/types'
 const defaultTheme = loadConfig().theme
 
 export function useSidebarNavigation() {
-  const { catalog, selectedNoteId, selectNoteById } = useNotes()
+  const { catalog, allNotes, selectedNoteId, selectNoteById } = useNotes()
+  const { storage } = useNoteStorage()
+  const { meta } = useFolderMeta()
   const selectedView = useState<SidebarWorkspaceView>(
     'sidebarNavigation.selectedView',
     () => ({ kind: 'inbox' }),
@@ -42,9 +44,17 @@ export function useSidebarNavigation() {
   const catalogDerivedFolders = computed(() =>
     vaultTopLevelFolderNames(catalog.value.map((row) => row.id)),
   )
+  const metaDerivedFolders = computed(() =>
+    Object.keys(meta.value.folders).sort((left, right) =>
+      left.localeCompare(right),
+    ),
+  )
   const topLevelFolders = computed(() => {
     const merged = mergeTopLevelFolders(
-      catalogDerivedFolders.value,
+      mergeTopLevelFolders(
+        catalogDerivedFolders.value,
+        metaDerivedFolders.value,
+      ),
       explicitFolders.value,
     )
     const excluded =
@@ -155,47 +165,26 @@ export function useSidebarNavigation() {
       selectedView.value.kind === 'search'
         ? selectedView.value.previousView
         : selectedView.value
-    const requestId = searchRequestId.value + 1
 
-    searchRequestId.value = requestId
+    searchRequestId.value += 1
 
-    try {
-      const matchingIds = await $fetch<string[]>('/api/notes/search', {
-        query: { q: query },
-      })
+    const matchingIds = searchNotes(allNotes.value, query)
 
-      if (searchRequestId.value !== requestId) {
-        return
-      }
-
-      selectedView.value = {
-        kind: 'search',
-        query,
-        matchingIds,
-        previousView,
-      }
-
-      await syncSelection(
-        resolveVisibleCatalogRows(catalog.value, selectedView.value),
-      )
-    } catch {
-      if (searchRequestId.value !== requestId) {
-        return
-      }
-
-      selectedView.value = {
-        kind: 'search',
-        query,
-        matchingIds: [],
-        previousView,
-      }
-      await syncSelection([])
+    selectedView.value = {
+      kind: 'search',
+      query,
+      matchingIds,
+      previousView,
     }
+
+    await syncSelection(
+      resolveVisibleCatalogRows(catalog.value, selectedView.value),
+    )
   }
 
   async function loadFolders(): Promise<void> {
     try {
-      const folders = await $fetch<string[]>('/api/folders')
+      const folders = await storage.value.loadExplicitFolders()
 
       explicitFolders.value = folders
     } catch {
@@ -227,10 +216,7 @@ export function useSidebarNavigation() {
     }
 
     try {
-      await $fetch('/api/folders', {
-        method: 'POST',
-        body: { name: sanitized },
-      })
+      await storage.value.createFolder(sanitized)
 
       explicitFolders.value = [...explicitFolders.value, sanitized]
 
@@ -259,10 +245,7 @@ export function useSidebarNavigation() {
     }
 
     try {
-      await $fetch('/api/folders', {
-        method: 'PATCH',
-        body: { oldName, newName: sanitized },
-      })
+      await storage.value.renameFolder(oldName, sanitized)
 
       explicitFolders.value = explicitFolders.value.map((f) =>
         f === oldName ? sanitized : f,

@@ -12,6 +12,8 @@ const {
   toggleSidebarPanel,
 } = useLayout()
 
+type CreateNoteInitialProperties = NonNullable<Parameters<typeof createNote>[1]>
+
 const layoutMenuOpen = ref(false)
 const layoutMenuTriggerRef = ref<HTMLElement | null>(null)
 const layoutMenuPanelRef = ref<HTMLElement | null>(null)
@@ -73,7 +75,8 @@ async function handleCreateNote(): Promise<void> {
   const view = selectedView.value
   const parentPath = view.kind === 'folder' ? view.folderName : ''
   const tags = selectedTags.value
-  const initialProperties = tags.length > 0 ? { tags } : {}
+  const initialProperties: CreateNoteInitialProperties =
+    tags.length > 0 ? { tags } : {}
 
   await createNote(parentPath, initialProperties)
 }

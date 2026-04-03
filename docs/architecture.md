@@ -32,31 +32,34 @@ five parts:
 - **Content** — rich text stored in the `content` field (Markdown with Liquid
   templating tags).
 
-`id` is always a string. On desktop (filesystem storage) it equals the file
-path within the Vault. On cloud (database storage) it is a database record
-identifier.
+`id` is always a string. On desktop (filesystem-backed storage) it equals the
+file path within the Vault. In browser mode it is the localStorage-backed note
+key.
 
-A Note catalog row is the lightweight Workspace Catalog representation of a
-Note. It keeps the same top-level fields, but its `content` value is only the
-preview slice used by the notes list, capped at 1024 UTF-8 bytes.
+A Note catalog row is the Workspace Catalog projection of a Note. It keeps the
+same top-level fields except `content`, which is omitted from the list-facing
+shape because the app now keeps full note bodies in shared client state.
 
 ## Current implementation
 
 - `app/notes/types.ts` — flat `Note` type plus `Note catalog row` for the
   Workspace Catalog payload shape.
-- `app/storage/types.ts` — `NoteStorage` adapter boundary with catalog loading,
-  note-by-id loading, and separate properties/content save inputs.
+- `app/storage/types.ts` — `NoteStorage` adapter boundary with eager full-note
+  loading plus note/folder mutation methods.
 - `app/storage/browser.ts` — browser localStorage adapter storing Markdown
-  documents with YAML frontmatter plus timestamps, then deriving catalog rows
-  from parsed notes, including `app`-namespaced Application Properties.
-- `app/storage/filesystem.ts` — filesystem adapter storing notes as Markdown
-  files with YAML frontmatter in a configurable vault directory. Timestamps
-  derived from file stats. Catalog rows are loaded in mtime-descending order
-  without reading full note bodies, while preserving `app`-namespaced
-  Application Properties.
+  documents with YAML frontmatter plus timestamps, then returning full parsed
+  notes including `app`-namespaced Application Properties.
+- `app/storage/filesystemProxy.ts` — desktop storage adapter backed by the
+  current desktop `PlatformApi` implementation. It loads all Markdown notes
+  with full content on startup, then reuses the shared document
+  serializer/parser for writes.
+- `app/storage/platformApi.ts` — raw desktop I/O contract for note files,
+  scoped config/meta text files, and vault assets.
+- `app/storage/httpPlatformApi.ts` — current `PlatformApi` implementation using
+  fetch against the minimal Nitro routes.
 - `app/storage/router.ts` — active storage selection from `applicationType`.
-- `server/loadServerConfig.ts` — shared YAML load for Nitro API handlers (vault,
-  `applicationType`, and `notes.trashRetentionDays` for trash retention).
+- `server/fileSystemProxy.ts` — Nitro-only raw filesystem access used by the
+  minimal `/api/fs/*` routes and vault asset handlers.
 - `app/config/loader.ts` — typed `AppConfig` parsed from `app/config/default.yaml`,
   including the active locale, theme settings, and `notes.trashRetentionDays`.
 - `app/app.vue` — root app shell that applies the configured accent color CSS variable.
@@ -69,8 +72,9 @@ preview slice used by the notes list, capped at 1024 UTF-8 bytes.
   tag-based note filtering.
 - `app/layouts/default.vue` — application shell composing SidebarPanel, NotesListPanel,
   page slot, and InspectorPanel in a horizontal flexbox.
-- `app/pages/index.vue` — renders `NotePanel` and, after catalog load, selects
-  the first note in the Inbox view (vault root, not trashed).
+- `app/pages/index.vue` — renders `NotePanel` and, after client-side config,
+  note, folder, and meta load, selects the first visible note in the Inbox
+  view (vault root, not trashed).
 - `SidebarPanel` (`app/components/SidebarPanel.vue`) — sidebar shell.
   - `SidebarNavigation` (`app/components/SidebarNavigation.vue`) — view-selection
     navigation.
@@ -158,14 +162,14 @@ those rules.
   code lives outside the editor. Templates are not edited inline.
 - Properties are edited separately in the InspectorPanel, not inside the editor.
 - In filesystem-backed storage, properties are serialized as YAML frontmatter.
-- `useNotes()` owns the note catalog, the active note id, and the currently
-  loaded full note in shared state. The page selects the initial note after
-  load; when a note is selected, `NoteTemplate` passes that note's title and
-  Content into `NoteEditor`.
-- After `PUT /api/notes` and after `POST /api/notes/trash`, the Nitro layer may
-  POST to the note’s `webhook` Application Property (HTTPS URL only) with a JSON
-  body `{ event, note }` where `event` is `updated` or `deleted`. Delivery is
-  best-effort and does not affect persistence.
+- `useNotes()` owns the full in-memory note store, the derived note catalog, the
+  active note id, and the selected full note in shared state. The page selects
+  the initial note after load; `NoteTemplate` passes the selected note's title
+  and Content into `NoteEditor`.
+- After save and trash operations, the client may POST to the note’s `webhook`
+  Application Property (HTTPS URL only) with a JSON body `{ event, note }`
+  where `event` is `updated` or `deleted`. Delivery is best-effort and does not
+  affect persistence.
 - `useSidebarNavigation()` owns the active sidebar view in shared state.
   The default `Inbox` view filters `NotesList` to notes whose `id` lives at the
   vault root. The `Favorites` view (when enabled in config) filters across the
@@ -259,6 +263,9 @@ produce stale views, failed saves, or overwritten files.
   full logical note documents by id, saving logical note documents, creating
   folders, and loading folder names, while hiding backend-specific
   serialization details.
+- `PlatformApi` — desktop-only raw I/O boundary under `NoteStorage` and config
+  persistence. The current implementation uses HTTP fetch; future Tauri work
+  can swap in an IPC implementation without changing the app-level contracts.
 - `app/storage/router.ts` selects the active `NoteStorage` from configuration.
 - The active storage adapter is determined by `applicationType` in
   `app/config/default.yaml`: `desktop` → filesystem adapter (default),
@@ -271,8 +278,8 @@ produce stale views, failed saves, or overwritten files.
 
 ## State management
 
-The app must support multi-user cloud deployment where SSR serves
-concurrent requests. Module-scope state leaks across requests.
+The app now runs as a client-only SPA, but shared UI state still needs one
+consistent owner per browser session.
 
 - Use Nuxt `useState()` for all shared reactive state in composables.
 - Do not use module-scope `ref()` or `reactive()` for shared state.
@@ -293,21 +300,22 @@ concurrent requests. Module-scope state leaks across requests.
   initialized from these defaults.
 - `WorkspaceMeta` (`app/config/parseMeta.ts`) — typed workspace metadata (for
   example per-folder emoji icons), persisted in `meta.yaml` at the project root
-  by default (`PKB_META_PATH` overrides the path). Loaded and updated via
-  `GET /api/meta` and `PUT /api/meta`; `useFolderMeta()` holds reactive folder
-  metadata in `useState`.
+  by default (`PKB_META_PATH` overrides the path). Loaded and updated through
+  the client-side persistence layer backed by localStorage (browser) or the
+  desktop `PlatformApi`; `useFolderMeta()` holds reactive folder metadata in
+  `useState`.
 
 ### Config sources in the running app
 
-- Disk-backed config (`useAppConfigDisk()`) currently affects layout panel
-  visibility through `app/plugins/00.config-layout.ts` and the excluded
-  `editor.assetsFolder` name in `useSidebarNavigation()`.
+- Disk-backed config (`useAppConfigDisk()`) is loaded on startup from the
+  client-side persistence layer and currently affects layout panel visibility
+  plus the excluded `editor.assetsFolder` name in `useSidebarNavigation()`.
 - Bundled defaults from `loadConfig()` still drive `theme.accentColor`,
   `theme.defaultEditorColor`, all `features.*` flags, `locale`,
   `editor.autosaveDelay`, and `editorColors`.
-- `PUT /api/app-config` accepts patches for the full `AppConfig` shape, but the
-  running client only consumes a subset of those values from disk today. Treat
-  that as an explicit design constraint unless a feature changes it.
+- Runtime config/meta writes are orchestrated in the client and persisted via
+  localStorage (browser) or the desktop `PlatformApi`, which currently resolves
+  scoped config/meta files through the minimal `/api/fs/file` route.
 
 ## Common change chains
 

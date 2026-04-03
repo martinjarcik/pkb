@@ -1,10 +1,12 @@
 import type { ApplicationType } from '~/config/loader'
 import { browserStorage } from './browser'
-import { createFilesystemStorage } from './filesystem'
+import { createFilesystemProxyStorage } from './filesystemProxy'
+import type { PlatformApi } from './platformApi'
 import type { NoteStorage } from './types'
 
 export type StorageConfig = {
   applicationType: ApplicationType
+  platformApi: PlatformApi | null
   vault: string
 }
 
@@ -13,7 +15,11 @@ export function getNoteStorage(config: StorageConfig): NoteStorage {
     case 'browser':
       return browserStorage
     case 'desktop':
-      return createFilesystemStorage(config.vault)
+      if (config.platformApi === null) {
+        throw new Error('Platform API is required for desktop storage')
+      }
+
+      return createFilesystemProxyStorage(config.platformApi, config.vault)
     default:
       throw new Error(
         `Unsupported application type: ${config.applicationType as string}`,

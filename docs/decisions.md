@@ -69,3 +69,11 @@ Replace `vue3-emoji-picker` with `emoji-picker-element` (web component, ~12.5 KB
 ## D018 — 2026-03
 
 Store per-folder sidebar customization (emoji icons) in a dedicated workspace `meta.yaml` file with `GET`/`PUT` API handlers, separate from `AppConfig` and from hidden files inside vault folders, so metadata stays app-scoped and portable alongside the project.
+
+## D019 — 2026-04
+
+Run the app as a client-only SPA: load full notes into memory at startup, keep search/trash purge/webhook dispatch/config-meta orchestration on the client, and keep Nitro only as a minimal filesystem/YAML proxy plus vault asset endpoints. Folder rows are derived from loaded note ids, with `meta.yaml` entries preserving explicitly created empty folders across reloads. Supersedes the server-driven parts of D012, D014, and D015.
+
+## D020 — 2026-04
+
+Add a `PlatformApi` boundary for desktop-only raw I/O. The current implementation uses HTTP fetch against the minimal Nitro filesystem and asset routes, while future Tauri work will replace that implementation with IPC without changing `NoteStorage`, composables, or editor integration. Config and workspace metadata YAML parsing now happens on the client; Nitro only resolves the scoped config/meta file paths and reads or writes raw text.

@@ -4,17 +4,13 @@ import { catalogRowIsTrashed } from '~/notes/trash'
 
 export type EditorFlush = () => Promise<void>
 
-function buildNoteContentPath(id: string): string {
-  return `/api/notes/${id.split('/').map(encodeURIComponent).join('/')}`
-}
-
 type UseNoteSelectionArgs = {
   notes: Ref<NoteCatalogRow[]>
   editorFlush: Ref<EditorFlush | null>
   selectedNoteId: Ref<string | null>
   selectedNoteFull: Ref<Note | null>
   selectedNoteRequestId: Ref<number>
-  replaceNote: (note: Note) => void
+  findNoteById: (id: string) => Note | null
 }
 
 export function useNoteSelection({
@@ -23,7 +19,7 @@ export function useNoteSelection({
   selectedNoteId,
   selectedNoteFull,
   selectedNoteRequestId,
-  replaceNote,
+  findNoteById,
 }: UseNoteSelectionArgs) {
   const selectedNote = computed(() =>
     selectedNoteFull.value?.id === selectedNoteId.value
@@ -72,28 +68,18 @@ export function useNoteSelection({
 
     const requestId = selectedNoteRequestId.value + 1
     selectedNoteRequestId.value = requestId
-    const loadNotePromise = $fetch<Note>(
-      buildNoteContentPath(nextSelectedNoteId),
-    )
 
     await editorFlush.value?.()
     selectedNoteId.value = nextSelectedNoteId
-    selectedNoteFull.value = null
 
-    try {
-      const loadedNote = await loadNotePromise
+    const loadedNote = findNoteById(nextSelectedNoteId)
 
-      if (selectedNoteRequestId.value !== requestId) {
-        return
-      }
-
-      selectedNoteFull.value = loadedNote
-      replaceNote(loadedNote)
-    } catch {
-      if (selectedNoteRequestId.value === requestId) {
-        selectedNoteFull.value = null
-      }
+    if (selectedNoteRequestId.value !== requestId || !loadedNote) {
+      selectedNoteFull.value = null
+      return
     }
+
+    selectedNoteFull.value = loadedNote
   }
 
   return {

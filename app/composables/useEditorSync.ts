@@ -7,6 +7,7 @@ import {
 import { renderNoteTitleBlocks } from '~/lib/editorjsTitleBlock'
 import { markdownToEditorjsBlocks } from '~/lib/markdownToBlocks'
 import type { EditorjsBlock } from '~/lib/editorjsMarkdownTypes'
+import { usePlatformApi } from './usePlatformApi'
 
 type EditorjsInstance = {
   blocks: {
@@ -36,6 +37,7 @@ export function useEditorSync({
   title,
   emitContentChange,
 }: UseEditorSyncArgs) {
+  const { platformApi } = usePlatformApi()
   const isApplyingExternalContent = ref(false)
   const lastRenderedContent = ref('')
   const lastRenderedTitle = ref('')
@@ -60,7 +62,7 @@ export function useEditorSync({
 
     try {
       const blocks = renderNoteTitleBlocks(
-        markdownToEditorjsBlocks(markdown),
+        markdownToEditorjsBlocks(markdown, platformApi.value?.assetUrl),
         nextTitle,
       )
 
@@ -103,7 +105,10 @@ export function useEditorSync({
     await editor.value.isReady
     const output = await editor.value.save()
     const blocks = normalizeSavedEditorjsBlocks(output.blocks)
-    const markdown = editorjsBlocksToMarkdown(blocks)
+    const markdown = editorjsBlocksToMarkdown(
+      blocks,
+      platformApi.value?.markdownUrlFromAssetUrl,
+    )
 
     lastRenderedContent.value = markdown
     emitContentChange(markdown)

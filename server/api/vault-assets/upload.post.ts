@@ -3,7 +3,7 @@ import { mkdir, writeFile } from 'node:fs/promises'
 import { extname, relative, resolve } from 'node:path'
 import { createError, defineEventHandler, readMultipartFormData } from 'h3'
 import { extensionFromMime, SUPPORTED_IMAGE_EXTENSIONS } from '../../imageTypes'
-import { loadServerConfig } from '../../loadServerConfig'
+import { readCurrentAppConfig } from '../../fileSystemProxy'
 
 function pickSafeExtension(
   filename: string | undefined,
@@ -28,7 +28,7 @@ function pickSafeExtension(
 }
 
 export default defineEventHandler(async (event) => {
-  const config = await loadServerConfig()
+  const config = await readCurrentAppConfig()
 
   if (config.applicationType !== 'desktop') {
     throw createError({
@@ -66,7 +66,7 @@ export default defineEventHandler(async (event) => {
   const ext = pickSafeExtension(imagePart.filename, mimeType)
   const baseName = `${Date.now()}-${randomUUID()}${ext}`
   const normalizedVault = resolve(config.vault)
-  const assetsDir = resolve(normalizedVault, config.assetsFolder)
+  const assetsDir = resolve(normalizedVault, config.editor.assetsFolder)
   const filePath = resolve(assetsDir, baseName)
   const relToAssets = relative(assetsDir, filePath)
 
@@ -80,7 +80,7 @@ export default defineEventHandler(async (event) => {
   await mkdir(assetsDir, { recursive: true })
   await writeFile(filePath, imagePart.data)
 
-  const relativePath = `${config.assetsFolder}/${baseName}`
+  const relativePath = `${config.editor.assetsFolder}/${baseName}`
 
   return {
     success: 1,

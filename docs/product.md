@@ -27,17 +27,16 @@
 Default visibility of the sidebar, note list, and inspector is set in
 `app/config/default.yaml`. The UI can override these values at runtime.
 
-When the application opens on the default route, the frontend loads the note
-catalog from `GET /api/notes`, selects the `Inbox` sidebar item, and renders
-only notes from the vault root in `NotesListPanel`. Each catalog row includes
-the note title derived from its `id`, the modified date, and only the first
-1024 UTF-8 bytes of Content for the list preview.
+When the application opens on the default route, the frontend loads all notes
+into client state, selects the `Inbox` sidebar item, and renders only notes
+from the vault root in `NotesListPanel`. Each visible row is derived from the
+loaded in-memory note, including the note title derived from its `id` and the
+modified date.
 
 After notes load, the first note in the Inbox view becomes the active note
-automatically and is highlighted in `NotesListPanel`. When a note
-becomes active, the frontend fetches the full note from `GET /api/notes/<id>`
-before rendering that note in the `NotePanel`, including the note title above
-the Editor.js surface.
+automatically and is highlighted in `NotesListPanel`. Selecting a note reuses
+the already loaded in-memory note object when rendering that note in
+`NotePanel`, including the note title above the Editor.js surface.
 
 The notes list toolbar includes a create-note action. Clicking it creates a new
 note titled `New Note` (or the next available suffixed variant such as
@@ -48,12 +47,10 @@ selected folder creates it directly in that folder.
 
 The notes list toolbar also includes a search field.
 
-- Typing into the search field calls `GET /api/notes/search?q=<query>` after
+- Typing into the search field filters the already loaded in-memory notes after
   each keystroke.
-- The server returns only matching note ids; the frontend filters the existing
-  loaded catalog to render the visible search results.
 - Search matches against the full note title and full note Content, not only
-  the catalog preview text.
+  the derived list-row fields.
 - Search spans the whole Vault, including notes that are currently in
   `Trashed`.
 - While search is active, sidebar navigation, folder rows, and tag chips do not
@@ -91,9 +88,11 @@ the file path relative to the vault root.
 - `createdAt` and `modifiedAt` are derived from file system timestamps.
 - Notes are loaded in most-recently-modified-first order.
 - The vault path is set in `app/config/default.yaml` (default: `./vault`).
-- The frontend loads a lightweight note catalog on app open and displays it in
-  `NotesListPanel`.
-- The full note body is fetched separately when a note is selected.
+- The frontend loads full notes on app open and derives `NotesListPanel` rows
+  from the in-memory notes.
+- Desktop file, config, metadata, and asset access now flows through a single
+  platform API abstraction so the current HTTP-backed runtime can later be
+  swapped for Tauri IPC without changing note behavior.
 
 #### Primary editor and files on disk
 
@@ -115,8 +114,9 @@ of the app.
   `assets`).
 - Saved note Content stores standard Markdown image syntax with a vault-relative
   path, for example `![](assets/<filename>.png)`.
-- The app serves those files at `GET /api/vault-assets/<path>` so the editor can
-  display them. Upload is available only when `applicationType` is `desktop`.
+- The current desktop runtime serves those files at
+  `GET /api/vault-assets/<path>` so the editor can display them. Upload is
+  available only when `applicationType` is `desktop`.
 - The configured `editor.assetsFolder` name is **not** listed as a Vault
   folder row in the sidebar (even if the directory exists on disk).
 
@@ -152,9 +152,13 @@ Top-level Vault folders appear below `Inbox` in `SidebarPanel`.
 - When a folder is selected, the first visible note in that folder becomes the
   active note automatically.
 - Optional **folder metadata** (currently an emoji icon) is stored in workspace
-  `meta.yaml` at the project root by default. Use the **+** control in the
-  Folders header to create a folder and pick an emoji, or hover a folder row and
-  click the pencil to edit the icon. The name field is read-only when editing;
+  `meta.yaml` at the project root by default. The same metadata preserves
+  explicitly created empty folders across reloads now that the app no longer
+  loads a dedicated folder-list API. Desktop reads and writes that file through
+  the same platform API abstraction used for note files. Use the **+** control
+  in the Folders
+  header to create a folder and pick an emoji, or hover a folder row and click
+  the pencil to edit the icon. The name field is read-only when editing;
   clearing the icon restores the default folder glyph. Override the file
   location with the `PKB_META_PATH` environment variable.
 

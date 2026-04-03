@@ -4,6 +4,8 @@ import { inlineHtmlToMarkdown } from './editorjsInlineNormalization'
 
 // This file is a conversion hotspot. Keep behavior explicit and prefer small,
 // local extractions when future changes touch one branch of the serializer.
+type MarkdownImageUrlResolver = (fileUrl: string) => string
+
 function blockRequiresBlankLineSeparator(type: string): boolean {
   return type === 'list' || type === 'image'
 }
@@ -147,7 +149,10 @@ function renderBlockComment(block: EditorjsBlock): string {
   return `<!-- block: ${block.cssClasses.join(' ')} -->\n`
 }
 
-function renderMarkdownBlock(block: EditorjsBlock): string {
+function renderMarkdownBlock(
+  block: EditorjsBlock,
+  resolveMarkdownImageUrl: MarkdownImageUrlResolver | undefined,
+): string {
   switch (block.type) {
     case 'header': {
       const level = Math.min(Math.max(Number(block.data.level ?? 1) || 1, 1), 6)
@@ -200,7 +205,10 @@ function renderMarkdownBlock(block: EditorjsBlock): string {
         file && typeof file === 'object' && file !== null && 'url' in file
           ? String((file as { url?: unknown }).url ?? '')
           : ''
-      const url = markdownUrlFromEditorImageFileUrl(fileUrl)
+      const url = markdownUrlFromEditorImageFileUrl(
+        fileUrl,
+        resolveMarkdownImageUrl,
+      )
       const caption = String(block.data.caption ?? '')
 
       return `![${caption}](${url})`
@@ -210,7 +218,10 @@ function renderMarkdownBlock(block: EditorjsBlock): string {
   }
 }
 
-export function editorjsBlocksToMarkdown(blocks: EditorjsBlock[]): string {
+export function editorjsBlocksToMarkdown(
+  blocks: EditorjsBlock[],
+  resolveMarkdownImageUrl?: MarkdownImageUrlResolver,
+): string {
   const normalizedBlocks = blocks.filter((block) => block.type !== 'noteTitle')
 
   while (
@@ -261,7 +272,7 @@ export function editorjsBlocksToMarkdown(blocks: EditorjsBlock[]): string {
 
   for (let blockIndex = 0; blockIndex < substantive.length; blockIndex += 1) {
     const block = substantive[blockIndex]!
-    const markdown = renderMarkdownBlock(block)
+    const markdown = renderMarkdownBlock(block, resolveMarkdownImageUrl)
     const comment = renderBlockComment(block)
     const blanksBefore = blanksBeforeEach[blockIndex]!
 
