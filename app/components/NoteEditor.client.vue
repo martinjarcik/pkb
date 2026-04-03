@@ -73,6 +73,7 @@ const emit = defineEmits<{
 const holder = ref<HTMLDivElement | null>(null)
 const editorError = ref<string | null>(null)
 const isEditorLoading = ref(true)
+const { t } = useTranslations()
 const { platformApi } = usePlatformApi()
 
 const editor = ref<EditorjsInstance | null>(null)
@@ -365,7 +366,7 @@ onBeforeUnmount(() => {
         data-testid="note-editor-loading"
         class="notes-list-state notes-list-state-muted absolute inset-0 z-10 bg-card/80 backdrop-blur-sm"
       >
-        {{ $t('noteEditor.loading') }}
+        {{ t('noteEditor.loading') }}
       </div>
 
       <div

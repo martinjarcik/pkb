@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { cn } from '~/lib/utils'
 
+const { t } = useTranslations()
+
 type NoteEditorHandle = {
   focusTitle(): Promise<void>
   flushContentSync(): Promise<void>
@@ -78,7 +80,7 @@ watch(shouldFocusTitle, async (nextShouldFocusTitle) => {
           data-testid="note-editor-loading"
           class="notes-list-state notes-list-state-muted min-h-0 min-w-0 flex-1"
         >
-          {{ $t('noteEditor.loading') }}
+          {{ t('noteEditor.loading') }}
         </div>
       </template>
     </ClientOnly>

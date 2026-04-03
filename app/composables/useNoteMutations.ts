@@ -1,5 +1,4 @@
-import { useState } from '#app'
-import type { Ref } from 'vue'
+import type { ComputedRef, Ref } from 'vue'
 import { t } from '~/composables/useTranslations'
 import type { EditorFlush } from '~/composables/useNoteSelection'
 import { resolveUniqueNoteIdForParentPath } from '~/notes/noteId'
@@ -9,9 +8,18 @@ import { noteWithWebhookUrl } from '~/notes/noteWithWebhookUrl'
 import { buildSaveNoteInput } from '~/notes/saveNoteInput'
 import { dispatchNoteWebhook } from '~/notes/webhook'
 import type { Note, NoteCatalogRow, NoteProperties } from '~/notes/types'
+import type { NoteStorage } from '~/storage/types'
 
 type UseNoteMutationsArgs = {
+  storage: ComputedRef<NoteStorage>
+  notes: Ref<NoteCatalogRow[]>
   selectedNote: Ref<Note | null>
+  selectedNoteId: Ref<string | null>
+  selectedNoteFull: Ref<Note | null>
+  saveError: Ref<string | null>
+  shouldFocusTitle: Ref<boolean>
+  isRenamingNoteTitle: Ref<boolean>
+  editorFlush: Ref<EditorFlush | null>
   replaceNote: (note: Note) => void
   replaceRenamedNote: (previousId: string, note: Note) => void
   prependNote: (note: Note) => void
@@ -20,31 +28,21 @@ type UseNoteMutationsArgs = {
 }
 
 export function useNoteMutations({
+  storage,
+  notes,
   selectedNote,
+  selectedNoteId,
+  selectedNoteFull,
+  saveError,
+  shouldFocusTitle,
+  isRenamingNoteTitle,
+  editorFlush,
   replaceNote,
   replaceRenamedNote,
   prependNote,
   updateSelectedNoteContent,
   selectNoteById,
 }: UseNoteMutationsArgs) {
-  const { storage } = useNoteStorage()
-  const notes = useState<NoteCatalogRow[]>('notes.items', () => [])
-  const selectedNoteId = useState<string | null>(
-    'notes.selectedNoteId',
-    () => null,
-  )
-  const selectedNoteFull = useState<Note | null>(
-    'notes.selectedNoteFull',
-    () => null,
-  )
-  const saveError = useState<string | null>('notes.saveError', () => null)
-  const shouldFocusTitle = useState('notes.shouldFocusTitle', () => false)
-  const isRenamingNoteTitle = useState('notes.isRenamingNoteTitle', () => false)
-  const editorFlush = useState<EditorFlush | null>(
-    'notes.editorFlush',
-    () => null,
-  )
-
   async function saveSelectedNoteContent(content: string): Promise<void> {
     if (!selectedNote.value) {
       return

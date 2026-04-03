@@ -3,6 +3,7 @@ import { ref } from 'vue'
 import { Smile } from 'lucide-vue-next'
 import 'emoji-picker-element'
 
+const { t } = useTranslations()
 const open = defineModel<boolean>('open', { required: true })
 const folderName = defineModel<string>('folderName', { required: true })
 const iconEmoji = defineModel<string>('iconEmoji', { required: true })
@@ -50,12 +51,12 @@ function handleConfirm(): void {
         <DialogTitle>
           {{
             props.mode === 'create'
-              ? $t('sidebarFolders.createFolder')
-              : $t('sidebarFolders.editFolder')
+              ? t('sidebarFolders.createFolder')
+              : t('sidebarFolders.editFolder')
           }}
         </DialogTitle>
         <DialogDescription class="sr-only">
-          {{ $t('sidebarFolders.folderNameLabel') }}
+          {{ t('sidebarFolders.folderNameLabel') }}
         </DialogDescription>
       </DialogHeader>
 
@@ -68,7 +69,7 @@ function handleConfirm(): void {
                 variant="outline"
                 size="icon"
                 class="h-9 w-9 shrink-0 text-lg"
-                :aria-label="$t('sidebarFolders.pickIcon')"
+                :aria-label="t('sidebarFolders.pickIcon')"
                 data-testid="folder-dialog-icon-trigger"
               >
                 <span v-if="iconEmoji.length > 0">{{ iconEmoji }}</span>
@@ -85,7 +86,7 @@ function handleConfirm(): void {
           <Input
             v-model="folderName"
             class="min-w-0 flex-1"
-            :placeholder="$t('sidebarFolders.folderNamePlaceholder')"
+            :placeholder="t('sidebarFolders.folderNamePlaceholder')"
             data-testid="folder-dialog-name-input"
             @keydown="emit('inputKeydown', $event)"
           />
@@ -99,7 +100,7 @@ function handleConfirm(): void {
             data-testid="folder-dialog-clear-icon"
             @click="clearIcon"
           >
-            {{ $t('sidebarFolders.clearIcon') }}
+            {{ t('sidebarFolders.clearIcon') }}
           </Button>
         </div>
 
@@ -118,7 +119,7 @@ function handleConfirm(): void {
           data-testid="folder-dialog-cancel"
           @click="emit('cancel')"
         >
-          {{ $t('sidebarFolders.cancel') }}
+          {{ t('sidebarFolders.cancel') }}
         </Button>
         <Button
           :disabled="props.isSubmitting"
@@ -127,8 +128,8 @@ function handleConfirm(): void {
         >
           {{
             props.mode === 'create'
-              ? $t('sidebarFolders.create')
-              : $t('sidebarFolders.saveFolder')
+              ? t('sidebarFolders.create')
+              : t('sidebarFolders.saveFolder')
           }}
         </Button>
       </DialogFooter>

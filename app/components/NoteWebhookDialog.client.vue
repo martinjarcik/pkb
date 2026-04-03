@@ -1,4 +1,5 @@
 <script setup lang="ts">
+const { t } = useTranslations()
 const open = defineModel<boolean>('open', { required: true })
 const webhookUrl = defineModel<string>('webhookUrl', { required: true })
 
@@ -16,9 +17,9 @@ const emit = defineEmits<{
   <Dialog v-model:open="open">
     <DialogContent class="sm:max-w-[400px]">
       <DialogHeader>
-        <DialogTitle>{{ $t('notes.webhookDialogTitle') }}</DialogTitle>
+        <DialogTitle>{{ t('notes.webhookDialogTitle') }}</DialogTitle>
         <DialogDescription class="sr-only">
-          {{ $t('notes.webhookUrlLabel') }}
+          {{ t('notes.webhookUrlLabel') }}
         </DialogDescription>
       </DialogHeader>
 
@@ -27,7 +28,7 @@ const emit = defineEmits<{
           v-model="webhookUrl"
           type="url"
           autocomplete="off"
-          :placeholder="$t('notes.webhookUrlPlaceholder')"
+          :placeholder="t('notes.webhookUrlPlaceholder')"
           data-testid="note-webhook-url-input"
           @keydown.enter.prevent="emit('save')"
         />
@@ -46,10 +47,10 @@ const emit = defineEmits<{
           data-testid="note-webhook-cancel"
           @click="emit('cancel')"
         >
-          {{ $t('notes.webhookCancel') }}
+          {{ t('notes.webhookCancel') }}
         </Button>
         <Button data-testid="note-webhook-save" @click="emit('save')">
-          {{ $t('notes.webhookSave') }}
+          {{ t('notes.webhookSave') }}
         </Button>
       </DialogFooter>
     </DialogContent>

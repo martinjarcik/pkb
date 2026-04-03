@@ -1,5 +1,5 @@
 import { useState } from '#app'
-import { loadConfig } from '~/config/loader'
+import { loadConfig, type AppConfig } from '~/config/loader'
 
 const defaultLayout = loadConfig().layout
 export const LAYOUT_STATE_KEYS = {
@@ -47,6 +47,12 @@ export function useLayout() {
     () => null,
   )
 
+  function syncLayoutFromConfig(layout: AppConfig['layout']): void {
+    showInspectorPanel.value = layout.showInspectorPanel
+    showSidebarPanel.value = layout.showSidebarPanel
+    showNotesListPanel.value = layout.showNotesListPanel
+  }
+
   function toggleSidebarPanel(): void {
     const next = !showSidebarPanel.value
     showSidebarPanel.value = next
@@ -88,6 +94,7 @@ export function useLayout() {
     showInspectorPanel,
     showSidebarPanel,
     showNotesListPanel,
+    syncLayoutFromConfig,
     toggleInspectorPanel,
     toggleNonDistractionMode,
     toggleSidebarPanel,

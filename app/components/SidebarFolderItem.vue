@@ -2,6 +2,8 @@
 import { computed } from 'vue'
 import { Folder, Pencil } from 'lucide-vue-next'
 
+const { t } = useTranslations()
+
 const props = defineProps<{
   folderName: string
   selected: boolean
@@ -66,7 +68,7 @@ function handleEditClick(event: MouseEvent): void {
         'text-white': selected,
         'text-foreground/80': !selected,
       }"
-      :aria-label="$t('sidebarFolders.editFolder')"
+      :aria-label="t('sidebarFolders.editFolder')"
       data-testid="sidebar-folder-edit"
       @click="handleEditClick"
     >

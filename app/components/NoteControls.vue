@@ -2,6 +2,7 @@
 import { computed, ref } from 'vue'
 import { Maximize2, Pin, PinOff, PlugZap, Star, Trash2 } from 'lucide-vue-next'
 
+const { t } = useTranslations()
 const {
   selectedNote,
   deleteSelectedNote,
@@ -106,8 +107,8 @@ function handleWebhookCancel(): void {
         nonDistractionMode ? '' : 'text-muted-foreground hover:text-foreground'
       "
       :style="nonDistractionMode ? { color: accentColor } : undefined"
-      :aria-label="$t('noteControls.nonDistraction')"
-      :title="$t('noteControls.nonDistraction')"
+      :aria-label="t('noteControls.nonDistraction')"
+      :title="t('noteControls.nonDistraction')"
       @click="handleNonDistractionClick"
     >
       <Maximize2 :size="16" />

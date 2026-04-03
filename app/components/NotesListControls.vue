@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { Search } from 'lucide-vue-next'
 
+const { t } = useTranslations()
 const { searchInput, updateSearchInput } = useSidebarNavigation()
 </script>
 
@@ -17,7 +18,7 @@ const { searchInput, updateSearchInput } = useSidebarNavigation()
       <input
         id="notes-list-search-input"
         :value="searchInput"
-        :placeholder="$t('notesListControls.searchPlaceholder')"
+        :placeholder="t('notesListControls.searchPlaceholder')"
         data-testid="notes-list-search-input"
         class="flex h-8 w-full rounded-[20px] border border-border bg-background pl-11 pr-4 text-sm text-foreground outline-none transition-colors placeholder:text-foreground/70 focus-visible:ring-2 focus-visible:ring-ring"
         type="text"

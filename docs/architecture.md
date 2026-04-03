@@ -281,7 +281,11 @@ produce stale views, failed saves, or overwritten files.
 The app now runs as a client-only SPA, but shared UI state still needs one
 consistent owner per browser session.
 
-- Use Nuxt `useState()` for all shared reactive state in composables.
+- Shared `useState()` slots are owned only by
+  `useAppConfigDisk()`, `useFolderMeta()`, `useLayout()`, `useNotes()`, and
+  `useSidebarNavigation()`.
+- Other composables must receive shared refs through arguments or consume those
+  state-owning composables; do not create duplicate `useState()` keys.
 - Do not use module-scope `ref()` or `reactive()` for shared state.
 - Do not use Pinia.
 

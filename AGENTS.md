@@ -153,6 +153,13 @@ For state management, error handling, and configuration patterns, see `docs/arch
 - Keep components focused on rendering. Extract shared state into `app/composables/`.
 - Do not import from `app/notes/`, `app/storage/`, or `app/config/` directly. Access domain data through composables.
 
+## Nuxt coupling constraints
+
+- Do not introduce new `useState` calls from `#app`; extend the existing state-owning composables instead.
+- Do not create new Nuxt plugins with `defineNuxtPlugin`; prefer direct imports or composables.
+- Do not put business logic in Nitro route handlers; keep them as transport wrappers over server modules.
+- Do not introduce `useFetch`, `useAsyncData`, `useRuntimeConfig`, or similar Nuxt data APIs for product logic.
+
 ## Testing
 
 Unit tests (`tests/unit/`):

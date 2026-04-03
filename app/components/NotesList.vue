@@ -29,6 +29,8 @@ const DRAG_PREVIEW_SCALE = 0.5
 const DEFAULT_ITEM_HEIGHT = 96
 const OVERSCAN_PX = 320
 
+const { t } = useTranslations()
+
 function toListItem(row: NotesListRow): NotesListItem {
   return {
     id: row.id,
@@ -273,7 +275,7 @@ onBeforeUnmount(() => {
     @scroll="handleScroll"
   >
     <div v-if="isLoading" class="notes-list-state notes-list-state-muted">
-      {{ $t('notesList.loading') }}
+      {{ t('notesList.loading') }}
     </div>
 
     <div v-else-if="loadError" class="notes-list-state notes-list-state-error">
@@ -285,7 +287,7 @@ onBeforeUnmount(() => {
       data-testid="notes-list-empty"
       class="notes-list-state notes-list-state-muted"
     >
-      {{ $t('notesList.empty') }}
+      {{ t('notesList.empty') }}
     </div>
 
     <div v-else class="relative" :style="{ height: `${totalHeight}px` }">

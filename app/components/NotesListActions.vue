@@ -3,6 +3,7 @@ import { ref, type CSSProperties } from 'vue'
 import { useEventListener } from '@vueuse/core'
 import { MoreVertical } from 'lucide-vue-next'
 
+const { t } = useTranslations()
 const { createNote } = useNotes()
 const { selectedView, selectedTags } = useSidebarNavigation()
 const {
@@ -98,8 +99,8 @@ function handleToggleInspector(): void {
     class="notes-list-actions-shell flex items-center gap-1"
   >
     <button
-      :aria-label="$t('notesListActions.createNote')"
-      :title="$t('notesListActions.createNote')"
+      :aria-label="t('notesListActions.createNote')"
+      :title="t('notesListActions.createNote')"
       class="inline-flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
       data-testid="notes-list-create-note"
       type="button"
@@ -123,8 +124,8 @@ function handleToggleInspector(): void {
       <button
         ref="layoutMenuTriggerRef"
         :aria-expanded="layoutMenuOpen"
-        :aria-label="$t('notesListActions.openLayoutMenu')"
-        :title="$t('notesListActions.openLayoutMenu')"
+        :aria-label="t('notesListActions.openLayoutMenu')"
+        :title="t('notesListActions.openLayoutMenu')"
         class="inline-flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         type="button"
         @click="toggleLayoutMenu"
@@ -148,8 +149,8 @@ function handleToggleInspector(): void {
             >
               {{
                 showSidebarPanel
-                  ? $t('layoutMenu.hideSidebar')
-                  : $t('layoutMenu.showSidebar')
+                  ? t('layoutMenu.hideSidebar')
+                  : t('layoutMenu.showSidebar')
               }}
             </button>
             <button
@@ -160,8 +161,8 @@ function handleToggleInspector(): void {
             >
               {{
                 showInspectorPanel
-                  ? $t('layoutMenu.hideInspector')
-                  : $t('layoutMenu.showInspector')
+                  ? t('layoutMenu.hideInspector')
+                  : t('layoutMenu.showInspector')
               }}
             </button>
           </div>
