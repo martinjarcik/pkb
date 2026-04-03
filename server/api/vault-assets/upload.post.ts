@@ -30,10 +30,10 @@ function pickSafeExtension(
 export default defineEventHandler(async (event) => {
   const config = await readCurrentAppConfig()
 
-  if (config.applicationType !== 'desktop') {
+  if (config.storageType !== 'filesystem') {
     throw createError({
       statusCode: 501,
-      statusMessage: 'Image upload is only supported in desktop mode',
+      statusMessage: 'Image upload is only supported with filesystem storage',
     })
   }
 

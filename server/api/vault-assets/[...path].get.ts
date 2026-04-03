@@ -25,10 +25,10 @@ function parsePathParam(pathParam: string | undefined): string[] {
 export default defineEventHandler(async (event) => {
   const config = await readCurrentAppConfig()
 
-  if (config.applicationType !== 'desktop') {
+  if (config.storageType !== 'filesystem') {
     throw createError({
       statusCode: 501,
-      statusMessage: 'Asset serving is only supported in desktop mode',
+      statusMessage: 'Asset serving is only supported with filesystem storage',
     })
   }
 

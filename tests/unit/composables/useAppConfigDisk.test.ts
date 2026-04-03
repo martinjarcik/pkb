@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { loadConfig } from '~/config/loader'
 import { useAppConfigDisk } from '~/composables/useAppConfigDisk'
 
@@ -15,31 +15,6 @@ function mockedUseState<T>(key: string, init: () => T) {
   }
 
   return stateStore.get(key) as { value: T }
-}
-
-function createLocalStorageMock(): Storage {
-  const store = new Map<string, string>()
-
-  return {
-    get length() {
-      return store.size
-    },
-    clear() {
-      store.clear()
-    },
-    getItem(key) {
-      return store.get(key) ?? null
-    },
-    key(index) {
-      return [...store.keys()][index] ?? null
-    },
-    removeItem(key) {
-      store.delete(key)
-    },
-    setItem(key, value) {
-      store.set(key, String(value))
-    },
-  }
 }
 
 vi.mock('#app', () => ({
@@ -64,35 +39,27 @@ describe('useAppConfigDisk', () => {
     stateStore.clear()
     readAppConfigPersistence.mockReset()
     writeAppConfigPatchPersistence.mockReset()
-    vi.stubGlobal('localStorage', createLocalStorageMock())
   })
 
-  afterEach(() => {
-    vi.unstubAllGlobals()
-  })
-
-  it('boots from the stored application type marker before reading persistence', async () => {
-    localStorage.setItem('pkb:application-type', 'browser')
-    readAppConfigPersistence.mockResolvedValue({
-      ...loadConfig(),
-      applicationType: 'browser',
-    })
+  it('reads config through persistence using the default storage type', async () => {
+    readAppConfigPersistence.mockResolvedValue(loadConfig())
 
     const { loadAppConfigDisk } = useAppConfigDisk()
     await loadAppConfigDisk()
 
-    expect(readAppConfigPersistence).toHaveBeenCalledWith('browser', null)
+    expect(readAppConfigPersistence).toHaveBeenCalledWith(
+      'filesystem',
+      expect.anything(),
+    )
   })
 
-  it('updates the stored application type marker after saving config', async () => {
-    writeAppConfigPatchPersistence.mockResolvedValue({
-      ...loadConfig(),
-      applicationType: 'browser',
-    })
+  it('updates the data ref after saving config', async () => {
+    const updatedConfig = { ...loadConfig(), locale: 'pl' }
+    writeAppConfigPatchPersistence.mockResolvedValue(updatedConfig)
 
-    const { saveAppConfigPatch } = useAppConfigDisk()
-    await saveAppConfigPatch({ applicationType: 'browser' })
+    const { data, saveAppConfigPatch } = useAppConfigDisk()
+    await saveAppConfigPatch({ locale: 'pl' })
 
-    expect(localStorage.getItem('pkb:application-type')).toBe('browser')
+    expect(data.value.locale).toBe('pl')
   })
 })

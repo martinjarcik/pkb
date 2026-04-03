@@ -24,7 +24,7 @@ function createPlatformApiMock(): PlatformApi {
 }
 
 describe('persistence', () => {
-  it('reads desktop app config through the platform api and parses YAML', async () => {
+  it('reads app config through the platform api and parses YAML', async () => {
     const platformApi = createPlatformApiMock()
     const config = loadConfig()
 
@@ -32,13 +32,13 @@ describe('persistence', () => {
       yaml.stringify(config),
     )
 
-    const loaded = await readAppConfigPersistence('desktop', platformApi)
+    const loaded = await readAppConfigPersistence('filesystem', platformApi)
 
     expect(platformApi.readScopedTextFile).toHaveBeenCalledWith('app-config')
     expect(loaded).toEqual(config)
   })
 
-  it('writes desktop app config through the platform api as YAML text', async () => {
+  it('writes app config through the platform api as YAML text', async () => {
     const platformApi = createPlatformApiMock()
     const config = loadConfig()
 
@@ -52,7 +52,7 @@ describe('persistence', () => {
     })
 
     const updated = await writeAppConfigPatchPersistence(
-      'desktop',
+      'filesystem',
       platformApi,
       { locale: 'pl' },
     )

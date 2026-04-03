@@ -58,7 +58,7 @@ function createEditorColors() {
 
 function createConfigRecord(): Record<string, unknown> {
   return {
-    applicationType: 'desktop',
+    storageType: 'filesystem',
     locale: 'en',
     vault: './vault',
     notes: {

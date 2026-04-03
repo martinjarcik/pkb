@@ -1,4 +1,4 @@
-applicationType: desktop
+storageType: filesystem
 locale: en
 vault: ./vault
 features:

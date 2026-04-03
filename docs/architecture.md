@@ -32,9 +32,8 @@ five parts:
 - **Content** — rich text stored in the `content` field (Markdown with Liquid
   templating tags).
 
-`id` is always a string. On desktop (filesystem-backed storage) it equals the
-file path within the Vault. In browser mode it is the localStorage-backed note
-key.
+`id` is always a string. With filesystem storage it equals the file path within
+the Vault.
 
 A Note catalog row is the Workspace Catalog projection of a Note. It keeps the
 same top-level fields except `content`, which is omitted from the list-facing
@@ -46,18 +45,15 @@ shape because the app now keeps full note bodies in shared client state.
   Workspace Catalog payload shape.
 - `app/storage/types.ts` — `NoteStorage` adapter boundary with eager full-note
   loading plus note/folder mutation methods.
-- `app/storage/browser.ts` — browser localStorage adapter storing Markdown
-  documents with YAML frontmatter plus timestamps, then returning full parsed
-  notes including `app`-namespaced Application Properties.
-- `app/storage/filesystemProxy.ts` — desktop storage adapter backed by the
-  current desktop `PlatformApi` implementation. It loads all Markdown notes
-  with full content on startup, then reuses the shared document
-  serializer/parser for writes.
-- `app/storage/platformApi.ts` — raw desktop I/O contract for note files,
+- `app/storage/filesystemProxy.ts` — filesystem storage adapter backed by the
+  current `PlatformApi` implementation. It loads all Markdown notes with full
+  content on startup, then reuses the shared document serializer/parser for
+  writes.
+- `app/storage/platformApi.ts` — raw I/O contract for note files,
   scoped config/meta text files, and vault assets.
 - `app/storage/httpPlatformApi.ts` — current `PlatformApi` implementation using
   fetch against the minimal Nitro routes.
-- `app/storage/router.ts` — active storage selection from `applicationType`.
+- `app/storage/router.ts` — active storage selection from `storageType`.
 - `server/fileSystemProxy.ts` — Nitro-only raw filesystem access used by the
   minimal `/api/fs/*` routes and vault asset handlers.
 - `app/config/loader.ts` — typed `AppConfig` parsed from `app/config/default.yaml`,
@@ -267,12 +263,10 @@ produce stale views, failed saves, or overwritten files.
   persistence. The current implementation uses HTTP fetch; future Tauri work
   can swap in an IPC implementation without changing the app-level contracts.
 - `app/storage/router.ts` selects the active `NoteStorage` from configuration.
-- The active storage adapter is determined by `applicationType` in
-  `app/config/default.yaml`: `desktop` → filesystem adapter (default),
-  `browser` → browser localStorage adapter.
-- Browser localStorage stores one Markdown document plus storage-owned
-  timestamps per note.
-- Expected adapters: filesystem (desktop), browser.
+- The active storage adapter is determined by `storageType` in
+  `app/config/default.yaml`: `filesystem` → filesystem adapter (default),
+  `database` → reserved for future remote database adapter.
+- Expected adapters: filesystem (current), database (future).
 - Adapter-specific caches or indexes are derived artifacts, never the source of
   truth.
 
@@ -305,9 +299,8 @@ consistent owner per browser session.
 - `WorkspaceMeta` (`app/config/parseMeta.ts`) — typed workspace metadata (for
   example per-folder emoji icons), persisted in `meta.yaml` at the project root
   by default (`PKB_META_PATH` overrides the path). Loaded and updated through
-  the client-side persistence layer backed by localStorage (browser) or the
-  desktop `PlatformApi`; `useFolderMeta()` holds reactive folder metadata in
-  `useState`.
+  the client-side persistence layer backed by the `PlatformApi`;
+  `useFolderMeta()` holds reactive folder metadata in `useState`.
 
 ### Config sources in the running app
 
@@ -318,8 +311,8 @@ consistent owner per browser session.
   `theme.defaultEditorColor`, all `features.*` flags, `locale`,
   `editor.autosaveDelay`, and `editorColors`.
 - Runtime config/meta writes are orchestrated in the client and persisted via
-  localStorage (browser) or the desktop `PlatformApi`, which currently resolves
-  scoped config/meta files through the minimal `/api/fs/file` route.
+  the `PlatformApi`, which currently resolves scoped config/meta files through
+  the minimal `/api/fs/file` route.
 
 ## Common change chains
 

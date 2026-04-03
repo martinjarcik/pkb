@@ -81,3 +81,7 @@ Add a `PlatformApi` boundary for desktop-only raw I/O. The current implementatio
 ## D021 — 2026-04
 
 Keep the browser-served app and future Tauri desktop app on the same SPA architecture. The browser-served desktop mode continues to use the HTTP-backed `PlatformApi`, while Tauri will swap in an IPC-backed `PlatformApi` without bundling Nitro into the desktop app. Runtime detection should identify Tauri directly instead of relying on persisted browser state, and the desktop frontend should be served from static `nuxt generate` output rather than a Nuxt server.
+
+## D022 — 2026-04
+
+Replace `applicationType` (`desktop` | `browser`) with `storageType` (`filesystem` | `database`) to model storage as a configurable backend instead of a deployment-mode toggle. Remove the browser localStorage adapter entirely. The Vault concept is relevant only for filesystem storage. The `database` storage type is reserved for a future remote database adapter. Supersedes the browser-specific parts of D002, D004, D012, D019, and D021.

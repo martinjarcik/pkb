@@ -66,7 +66,7 @@ vi.mock('~/composables/useAppConfigDisk', () => ({
   useAppConfigDisk: () => ({
     data: {
       value: {
-        applicationType: 'browser',
+        storageType: 'filesystem',
         vault: './vault',
         notes: { trashRetentionDays: 30 },
         editor: { autosaveDelay: 300, assetsFolder: 'assets' },

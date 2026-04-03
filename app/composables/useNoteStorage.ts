@@ -5,12 +5,12 @@ import { getPlatformApi } from '~/storage/platformRouter'
 export function useNoteStorage() {
   const { data: appConfigDisk } = useAppConfigDisk()
   const platformApi = computed(() =>
-    getPlatformApi(appConfigDisk.value.applicationType),
+    getPlatformApi(appConfigDisk.value.storageType),
   )
 
   const storage = computed(() =>
     getNoteStorage({
-      applicationType: appConfigDisk.value.applicationType,
+      storageType: appConfigDisk.value.storageType,
       platformApi: platformApi.value,
       vault: appConfigDisk.value.vault,
     }),

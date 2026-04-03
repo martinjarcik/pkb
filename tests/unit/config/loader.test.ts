@@ -57,7 +57,7 @@ function createEditorColors() {
 
 function createConfig() {
   return {
-    applicationType: 'desktop',
+    storageType: 'filesystem',
     locale: 'en',
     vault: './vault',
     notes: {
@@ -89,7 +89,7 @@ function createConfig() {
 describe('parseAppConfig', () => {
   it('accepts a non-empty locale string', () => {
     expect(parseAppConfig(createConfig())).toMatchObject({
-      applicationType: 'desktop',
+      storageType: 'filesystem',
       locale: 'en',
     })
   })

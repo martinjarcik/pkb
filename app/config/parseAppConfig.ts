@@ -1,4 +1,4 @@
-export type ApplicationType = 'desktop' | 'browser'
+export type StorageType = 'filesystem' | 'database'
 
 export type EditorColor = {
   emoji: string
@@ -10,7 +10,7 @@ export type EditorColor = {
 export type EditorColors = Record<string, EditorColor>
 
 export type AppConfig = {
-  applicationType: ApplicationType
+  storageType: StorageType
   locale: string
   vault: string
   notes: {
@@ -39,7 +39,7 @@ export type AppConfig = {
   }
 }
 
-const VALID_APPLICATION_TYPES: ApplicationType[] = ['desktop', 'browser']
+const VALID_STORAGE_TYPES: StorageType[] = ['filesystem', 'database']
 const EDITOR_COLOR_KEY_PATTERN = /^[A-Za-z0-9_-]+$/
 const DEFAULT_EDITOR_COLORS: EditorColors = {
   red: {
@@ -341,11 +341,9 @@ export function parseAppConfig(value: unknown): AppConfig {
 
   const obj = value as Record<string, unknown>
 
-  if (
-    !VALID_APPLICATION_TYPES.includes(obj.applicationType as ApplicationType)
-  ) {
+  if (!VALID_STORAGE_TYPES.includes(obj.storageType as StorageType)) {
     throw new Error(
-      `Config applicationType must be one of: ${VALID_APPLICATION_TYPES.join(', ')}`,
+      `Config storageType must be one of: ${VALID_STORAGE_TYPES.join(', ')}`,
     )
   }
 
@@ -358,7 +356,7 @@ export function parseAppConfig(value: unknown): AppConfig {
   }
 
   return {
-    applicationType: obj.applicationType as ApplicationType,
+    storageType: obj.storageType as StorageType,
     locale: obj.locale as string,
     vault: obj.vault as string,
     notes: parseNotesConfig(obj),

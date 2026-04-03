@@ -60,26 +60,26 @@ The notes list toolbar also includes a search field.
 
 ## Configuration
 
-| Key                         | Type    | Default       | Description                                                                     |
-| --------------------------- | ------- | ------------- | ------------------------------------------------------------------------------- |
-| `applicationType`           | string  | `"desktop"`   | Application mode: `browser`, `desktop`                                          |
-| `locale`                    | string  | `"en"`        | Active application locale                                                       |
-| `vault`                     | string  | `"./vault"`   | Path to the vault directory for desktop storage                                 |
-| `editor.autosaveDelay`      | number  | `2000`        | Milliseconds of idle time before content autosaves                              |
-| `editor.assetsFolder`       | string  | `"assets"`    | Top-level vault folder for uploaded note images (not shown as a sidebar folder) |
-| `layout.showInspectorPanel` | boolean | `true`        | Show the InspectorPanel                                                         |
-| `layout.showSidebarPanel`   | boolean | `true`        | Show the SidebarPanel                                                           |
-| `layout.showNotesListPanel` | boolean | `true`        | Show the NotesListPanel                                                         |
-| `theme.accentColor`         | string  | `"#3f57dfff"` | Accent color for selected nav, pinned note icon, and list tint                  |
+| Key                         | Type    | Default        | Description                                                                     |
+| --------------------------- | ------- | -------------- | ------------------------------------------------------------------------------- |
+| `storageType`               | string  | `"filesystem"` | Storage backend: `filesystem`, `database` (future)                              |
+| `locale`                    | string  | `"en"`         | Active application locale                                                       |
+| `vault`                     | string  | `"./vault"`    | Path to the vault directory for filesystem storage                              |
+| `editor.autosaveDelay`      | number  | `2000`         | Milliseconds of idle time before content autosaves                              |
+| `editor.assetsFolder`       | string  | `"assets"`     | Top-level vault folder for uploaded note images (not shown as a sidebar folder) |
+| `layout.showInspectorPanel` | boolean | `true`         | Show the InspectorPanel                                                         |
+| `layout.showSidebarPanel`   | boolean | `true`         | Show the SidebarPanel                                                           |
+| `layout.showNotesListPanel` | boolean | `true`         | Show the NotesListPanel                                                         |
+| `theme.accentColor`         | string  | `"#3f57dfff"`  | Accent color for selected nav, pinned note icon, and list tint                  |
 
 Workspace metadata (folder icons, etc.) is stored in `meta.yaml` (see Vault
 Folder Views), not in `app/config/default.yaml`.
 
 ## Features
 
-### Filesystem Storage (desktop)
+### Filesystem Storage
 
-When `applicationType` is `desktop`, notes are stored as Markdown files in the
+When `storageType` is `filesystem`, notes are stored as Markdown files in the
 configured `vault` directory. Each note is one `.md` file. The note `id` equals
 the file path relative to the vault root.
 
@@ -90,9 +90,9 @@ the file path relative to the vault root.
 - The vault path is set in `app/config/default.yaml` (default: `./vault`).
 - The frontend loads full notes on app open and derives `NotesListPanel` rows
   from the in-memory notes.
-- Desktop file, config, metadata, and asset access now flows through a single
-  platform API abstraction so the current HTTP-backed runtime can later be
-  swapped for Tauri IPC without changing note behavior.
+- File, config, metadata, and asset access flows through a single platform API
+  abstraction so the current HTTP-backed runtime can later be swapped for Tauri
+  IPC without changing note behavior.
 
 #### Primary editor and files on disk
 
@@ -116,7 +116,7 @@ of the app.
   path, for example `![](assets/<filename>.png)`.
 - The current desktop runtime serves those files at
   `GET /api/vault-assets/<path>` so the editor can display them. Upload is
-  available only when `applicationType` is `desktop`.
+  available only when `storageType` is `filesystem`.
 - The configured `editor.assetsFolder` name is **not** listed as a Vault
   folder row in the sidebar (even if the directory exists on disk).
 
@@ -193,14 +193,6 @@ catalog.
   the toolbar, the server sends a single POST request to that URL with JSON
   `{ "event": "updated" | "deleted", "note": <full note object> }`. Failed
   deliveries do not block saving or trashing.
-
-### Browser Storage
-
-When `applicationType` is `browser`, notes are stored in the browser's
-localStorage as JSON-serialized Markdown documents with YAML frontmatter.
-
-- Application Properties such as `hasTasks` are serialized under the `app`
-  frontmatter namespace and loaded back as flat top-level note fields in memory.
 
 ### Note Editor
 

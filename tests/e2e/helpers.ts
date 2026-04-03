@@ -13,7 +13,7 @@ import {
 
 const FIXED_TIMESTAMP = '2026-03-26T12:00:00.000Z'
 const DEFAULT_APP_CONFIG: AppConfig = {
-  applicationType: 'desktop',
+  storageType: 'filesystem',
   locale: 'en',
   vault: './vault',
   notes: {
