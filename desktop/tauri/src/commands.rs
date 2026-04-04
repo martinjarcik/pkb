@@ -3,8 +3,12 @@ use serde::{Deserialize, Serialize};
 use std::env;
 use std::fs;
 use std::path::{Path, PathBuf};
+use std::sync::OnceLock;
+use tauri::Manager;
 use uuid::Uuid;
 use walkdir::WalkDir;
+
+static APP_DATA_DIR: OnceLock<PathBuf> = OnceLock::new();
 
 #[derive(Deserialize, Serialize, Clone)]
 pub struct PlatformNoteFile {
@@ -99,6 +103,14 @@ fn resolve_root_path(root: &str) -> PathBuf {
         return path;
     }
 
+    if let Some(data_dir) = APP_DATA_DIR.get() {
+        let data_candidate = data_dir.join(&path);
+
+        if data_candidate.exists() {
+            return data_candidate;
+        }
+    }
+
     let current_dir = env::current_dir().unwrap_or_else(|_| PathBuf::from("."));
     let cwd_candidate = current_dir.join(&path);
 
@@ -122,6 +134,10 @@ fn resolve_root_path(root: &str) -> PathBuf {
         if exe_candidate.exists() {
             return exe_candidate;
         }
+    }
+
+    if let Some(data_dir) = APP_DATA_DIR.get() {
+        return data_dir.join(&path);
     }
 
     cwd_candidate
@@ -191,6 +207,67 @@ fn safe_extension(file_name: &str, mime_type: &str) -> Result<String, String> {
     extension_from_mime(mime_type)
         .map(|value| value.to_string())
         .ok_or_else(|| "Unsupported image type".to_string())
+}
+
+fn copy_dir_recursive(src: &Path, dst: &Path) -> Result<(), String> {
+    fs::create_dir_all(dst).map_err(|e| e.to_string())?;
+
+    for entry in WalkDir::new(src).into_iter().filter_map(Result::ok) {
+        let relative = entry
+            .path()
+            .strip_prefix(src)
+            .map_err(|e| e.to_string())?;
+        let target = dst.join(relative);
+
+        if entry.file_type().is_dir() {
+            fs::create_dir_all(&target).map_err(|e| e.to_string())?;
+        } else {
+            if let Some(parent) = target.parent() {
+                fs::create_dir_all(parent).map_err(|e| e.to_string())?;
+            }
+
+            fs::copy(entry.path(), &target).map_err(|e| e.to_string())?;
+        }
+    }
+
+    Ok(())
+}
+
+#[tauri::command]
+pub fn init_data_dir(handle: tauri::AppHandle) -> Result<String, String> {
+    let data_dir = handle
+        .path()
+        .app_data_dir()
+        .map_err(|e| e.to_string())?;
+    let vault_dir = data_dir.join("vault");
+
+    if !vault_dir.exists() {
+        let resource_dir = handle
+            .path()
+            .resource_dir()
+            .map_err(|e| e.to_string())?;
+        let bundled_vault = resource_dir.join("vault");
+
+        if bundled_vault.exists() {
+            copy_dir_recursive(&bundled_vault, &vault_dir)?;
+        } else {
+            fs::create_dir_all(&vault_dir).map_err(|e| e.to_string())?;
+        }
+
+        let bundled_meta = resource_dir.join("meta.yaml");
+        let target_meta = data_dir.join("meta.yaml");
+
+        if bundled_meta.exists() && !target_meta.exists() {
+            fs::copy(&bundled_meta, &target_meta).map_err(|e| e.to_string())?;
+        }
+    }
+
+    let _ = APP_DATA_DIR.set(data_dir.clone());
+
+    data_dir
+        .to_str()
+        .map(String::from)
+        .ok_or_else(|| "Invalid path encoding".to_string())
 }
 
 #[tauri::command]

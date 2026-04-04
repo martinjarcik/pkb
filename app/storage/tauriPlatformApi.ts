@@ -111,6 +111,9 @@ function resolveContext(vaultPath: string): Promise<ResolvedContext> {
 
   resolvePromise = (async () => {
     const core = await loadTauriCore()
+
+    await callTauri<string>('init_data_dir', {})
+
     const absoluteVault = await callTauri<string>('resolve_vault', {
       dir: vaultPath,
     })

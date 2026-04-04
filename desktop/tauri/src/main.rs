@@ -4,6 +4,7 @@ fn main() {
     tauri::Builder::default()
         .plugin(tauri_plugin_fs::init())
         .invoke_handler(tauri::generate_handler![
+            commands::init_data_dir,
             commands::resolve_vault,
             commands::read_all_notes,
             commands::write_text_file,
