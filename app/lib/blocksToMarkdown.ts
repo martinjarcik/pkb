@@ -6,6 +6,10 @@ import { inlineHtmlToMarkdown } from './editorjsInlineNormalization'
 // local extractions when future changes touch one branch of the serializer.
 type MarkdownImageUrlResolver = (fileUrl: string) => string
 
+function identityMarkdownImageUrl(fileUrl: string): string {
+  return fileUrl
+}
+
 function blockRequiresBlankLineSeparator(type: string): boolean {
   return type === 'list' || type === 'image'
 }
@@ -151,7 +155,7 @@ function renderBlockComment(block: EditorjsBlock): string {
 
 function renderMarkdownBlock(
   block: EditorjsBlock,
-  resolveMarkdownImageUrl: MarkdownImageUrlResolver | undefined,
+  resolveMarkdownImageUrl: MarkdownImageUrlResolver,
 ): string {
   switch (block.type) {
     case 'header': {
@@ -222,6 +226,8 @@ export function editorjsBlocksToMarkdown(
   blocks: EditorjsBlock[],
   resolveMarkdownImageUrl?: MarkdownImageUrlResolver,
 ): string {
+  const markdownImageUrlResolver =
+    resolveMarkdownImageUrl ?? identityMarkdownImageUrl
   const normalizedBlocks = blocks.filter((block) => block.type !== 'noteTitle')
 
   while (
@@ -272,7 +278,7 @@ export function editorjsBlocksToMarkdown(
 
   for (let blockIndex = 0; blockIndex < substantive.length; blockIndex += 1) {
     const block = substantive[blockIndex]!
-    const markdown = renderMarkdownBlock(block, resolveMarkdownImageUrl)
+    const markdown = renderMarkdownBlock(block, markdownImageUrlResolver)
     const comment = renderBlockComment(block)
     const blanksBefore = blanksBeforeEach[blockIndex]!
 

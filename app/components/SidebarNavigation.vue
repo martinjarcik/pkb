@@ -1,5 +1,10 @@
 <script setup lang="ts">
 import { Inbox, ListTodo, Star, Trash2 } from 'lucide-vue-next'
+import { useAppFeatures } from '~/composables/useAppFeatures'
+import { useNoteDropTarget } from '~/composables/useNoteDropTarget'
+import { useNotes } from '~/composables/useNotes'
+import { useSidebarNavigation } from '~/composables/useSidebarNavigation'
+import { useTranslations } from '~/composables/useTranslations'
 
 const { t } = useTranslations()
 const {

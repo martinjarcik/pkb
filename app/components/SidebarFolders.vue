@@ -1,5 +1,8 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
+import { useFolderMeta } from '~/composables/useFolderMeta'
+import { useNotes } from '~/composables/useNotes'
+import { useSidebarNavigation } from '~/composables/useSidebarNavigation'
 
 const { topLevelFolders, foldersExpanded, createFolder, renameFolder } =
   useSidebarNavigation()

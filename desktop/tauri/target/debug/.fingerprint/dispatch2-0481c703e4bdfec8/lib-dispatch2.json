@@ -1,0 +1,25 @@
+{
+  "rustc": 17940977064402226622,
+  "features": "[\"alloc\", \"block2\", \"default\", \"libc\", \"objc2\", \"std\"]",
+  "declared_features": "[\"alloc\", \"block2\", \"default\", \"libc\", \"objc2\", \"std\"]",
+  "target": 9848816153423550717,
+  "profile": 8196097686603091492,
+  "path": 9975155554989773598,
+  "deps": [
+    [5347799115402551074, "block2", false, 14125580410054118660],
+    [5711497484949304150, "objc2", false, 15072498607081534130],
+    [12111499963430175700, "libc", false, 6255971111222596711],
+    [16909888598953886583, "bitflags", false, 9868320014348151950]
+  ],
+  "local": [
+    {
+      "CheckDepInfo": {
+        "dep_info": "debug/.fingerprint/dispatch2-0481c703e4bdfec8/dep-lib-dispatch2",
+        "checksum": false
+      }
+    }
+  ],
+  "rustflags": [],
+  "config": 8247474407144887393,
+  "compile_kind": 0
+}

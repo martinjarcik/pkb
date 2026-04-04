@@ -135,7 +135,14 @@ describe('parseAppConfig', () => {
 
   it('accepts custom editor color names', () => {
     const config = createConfig()
-    config.editorColors = {
+    ;(
+      config as {
+        editorColors: Record<
+          string,
+          { emoji: string; background: string; text: string; label: string }
+        >
+      }
+    ).editorColors = {
       mint: {
         emoji: '🌿',
         background: '#E6F6F4',

@@ -1,6 +1,7 @@
 <template>
   <nav
     data-testid="inspector-navigation"
+    data-tauri-drag-region
     class="inspector-navigation-shell flex shrink-0 items-center justify-around border-b border-border"
   >
     <!-- PLACEHOLDER: inspector navigation is not implemented yet. -->

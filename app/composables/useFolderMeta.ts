@@ -1,22 +1,28 @@
-import { useState } from '#app'
+import { ref } from 'vue'
 import {
   readMetaPersistence,
   writeMetaPatchPersistence,
 } from '~/config/persistence'
+import { useAppConfigDisk } from '~/composables/useAppConfigDisk'
 import type { FolderMeta, WorkspaceMeta } from '~/config/parseMeta'
 import { getPlatformApi } from '~/storage/platformRouter'
 
+const meta = ref<WorkspaceMeta>({
+  folders: {},
+})
+
 export function useFolderMeta() {
-  const meta = useState<WorkspaceMeta>('workspace.meta', () => ({
-    folders: {},
-  }))
   const { data: appConfigDisk } = useAppConfigDisk()
 
   async function loadMeta(): Promise<void> {
     try {
       const data = await readMetaPersistence(
         appConfigDisk.value.storageType,
-        getPlatformApi(appConfigDisk.value.storageType),
+        getPlatformApi(
+          appConfigDisk.value.storageType,
+          appConfigDisk.value.vault,
+          appConfigDisk.value.editor.assetsFolder,
+        ),
       )
 
       meta.value = data
@@ -32,7 +38,11 @@ export function useFolderMeta() {
   async function removeFolderMeta(folderName: string): Promise<void> {
     meta.value = await writeMetaPatchPersistence(
       appConfigDisk.value.storageType,
-      getPlatformApi(appConfigDisk.value.storageType),
+      getPlatformApi(
+        appConfigDisk.value.storageType,
+        appConfigDisk.value.vault,
+        appConfigDisk.value.editor.assetsFolder,
+      ),
       { folders: { [folderName]: null } },
     )
   }
@@ -48,7 +58,11 @@ export function useFolderMeta() {
 
     meta.value = await writeMetaPatchPersistence(
       appConfigDisk.value.storageType,
-      getPlatformApi(appConfigDisk.value.storageType),
+      getPlatformApi(
+        appConfigDisk.value.storageType,
+        appConfigDisk.value.vault,
+        appConfigDisk.value.editor.assetsFolder,
+      ),
       patch,
     )
   }
@@ -61,7 +75,11 @@ export function useFolderMeta() {
 
     meta.value = await writeMetaPatchPersistence(
       appConfigDisk.value.storageType,
-      getPlatformApi(appConfigDisk.value.storageType),
+      getPlatformApi(
+        appConfigDisk.value.storageType,
+        appConfigDisk.value.vault,
+        appConfigDisk.value.editor.assetsFolder,
+      ),
       {
         folders: {
           [newName]: nextMeta,

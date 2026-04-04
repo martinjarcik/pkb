@@ -85,3 +85,7 @@ Keep the browser-served app and future Tauri desktop app on the same SPA archite
 ## D022 — 2026-04
 
 Replace `applicationType` (`desktop` | `browser`) with `storageType` (`filesystem` | `database`) to model storage as a configurable backend instead of a deployment-mode toggle. Remove the browser localStorage adapter entirely. The Vault concept is relevant only for filesystem storage. The `database` storage type is reserved for a future remote database adapter. Supersedes the browser-specific parts of D002, D004, D012, D019, and D021.
+
+## D023 — 2026-04
+
+Drop the Nitro proxy and Nuxt runtime for desktop delivery: the app now targets Tauri with a plain Vue + Vite frontend, keeps `PlatformApi` as the raw I/O boundary, stores scoped desktop files alongside the vault, and uses Tauri IPC for note, config, metadata, folder, and asset operations.

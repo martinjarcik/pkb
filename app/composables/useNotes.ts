@@ -1,46 +1,35 @@
-import { useState } from '#app'
+import { computed, ref } from 'vue'
 import { loadConfig } from '~/config/loader'
-import { t } from '~/composables/useTranslations'
+import { useAppConfigDisk } from '~/composables/useAppConfigDisk'
 import { useNoteMutations } from '~/composables/useNoteMutations'
-import {
-  type EditorFlush,
-  useNoteSelection,
-} from '~/composables/useNoteSelection'
-import { createNoteCatalogRow } from '~/notes/catalogRow'
+import { useNoteStorage } from '~/composables/useNoteStorage'
+import { t } from '~/composables/useTranslations'
 import { noteDescriptionFromContent } from '~/notes/noteDescriptionFromContent'
 import { catalogRowIsTrashed, trashExpired } from '~/notes/trash'
 import type { Note, NoteCatalogRow } from '~/notes/types'
 
 const defaultEditor = loadConfig().editor
+type EditorFlush = () => Promise<void>
+const allNotes = ref<Note[]>([])
+const notes = ref<NoteCatalogRow[]>([])
+const isLoading = ref(false)
+const isRenamingNoteTitle = ref(false)
+const loadError = ref<string | null>(null)
+const saveError = ref<string | null>(null)
+const editorFlush = ref<EditorFlush | null>(null)
+const shouldFocusTitle = ref(false)
+const selectedNoteId = ref<string | null>(null)
+const selectedNoteFull = ref<Note | null>(null)
+const selectedNoteRequestId = ref(0)
 
 export function useNotes() {
   const editorAutosaveDelay = defaultEditor.autosaveDelay
   const { storage } = useNoteStorage()
   const { data: appConfigDisk } = useAppConfigDisk()
-  const allNotes = useState<Note[]>('notes.allNotes', () => [])
-  const notes = useState<NoteCatalogRow[]>('notes.items', () => [])
-  const isLoading = useState('notes.isLoading', () => false)
-  const isRenamingNoteTitle = useState('notes.isRenamingNoteTitle', () => false)
-  const loadError = useState<string | null>('notes.loadError', () => null)
-  const saveError = useState<string | null>('notes.saveError', () => null)
-  const editorFlush = useState<EditorFlush | null>(
-    'notes.editorFlush',
-    () => null,
-  )
-  const shouldFocusTitle = useState('notes.shouldFocusTitle', () => false)
-  const selectedNoteId = useState<string | null>(
-    'notes.selectedNoteId',
-    () => null,
-  )
-  const selectedNoteFull = useState<Note | null>(
-    'notes.selectedNoteFull',
-    () => null,
-  )
-  const selectedNoteRequestId = useState('notes.selectedNoteRequestId', () => 0)
 
   function rebuildCatalog(): void {
     notes.value = sortNotesByModifiedAt(
-      allNotes.value.map(createNoteCatalogRow),
+      allNotes.value as unknown as NoteCatalogRow[],
     )
   }
 
@@ -51,48 +40,89 @@ export function useNotes() {
   }
 
   function replaceNoteInStore(nextNote: Note): void {
-    allNotes.value = allNotes.value.map((n) =>
-      n.id === nextNote.id ? nextNote : n,
-    )
+    const nextNotes: Note[] = []
+    const currentNotes = allNotes.value as unknown as Array<{ id: string }>
+
+    for (const note of currentNotes) {
+      if (note.id === nextNote.id) {
+        nextNotes.push(nextNote)
+      } else {
+        nextNotes.push(note as Note)
+      }
+    }
+
+    allNotes.value = nextNotes
     rebuildCatalog()
   }
 
   function replaceRenamedNoteInStore(previousId: string, nextNote: Note): void {
-    allNotes.value = allNotes.value.map((n) =>
-      n.id === previousId ? nextNote : n,
-    )
+    const nextNotes: Note[] = []
+    const currentNotes = allNotes.value as unknown as Array<{ id: string }>
+
+    for (const note of currentNotes) {
+      if (note.id === previousId) {
+        nextNotes.push(nextNote)
+      } else {
+        nextNotes.push(note as Note)
+      }
+    }
+
+    allNotes.value = nextNotes
     rebuildCatalog()
   }
 
   function prependNoteToStore(nextNote: Note): void {
-    allNotes.value = [
-      nextNote,
-      ...allNotes.value.filter((n) => n.id !== nextNote.id),
-    ]
+    const nextNotes: Note[] = [nextNote]
+    const currentNotes = allNotes.value as unknown as Array<{ id: string }>
+
+    for (const note of currentNotes) {
+      if (note.id !== nextNote.id) {
+        nextNotes.push(note as Note)
+      }
+    }
+
+    allNotes.value = nextNotes
     rebuildCatalog()
   }
 
   function updateSelectedNoteContent(content: string): void {
-    if (!selectedNote.value) {
+    const currentSelectedNote = selectedNote.value as Note | null
+
+    if (!currentSelectedNote) {
       return
     }
 
     const nextNote = {
-      ...selectedNote.value,
+      ...currentSelectedNote,
       content,
       description: noteDescriptionFromContent(content),
     }
     selectedNoteFull.value = nextNote
-    allNotes.value = allNotes.value.map((n) =>
-      n.id === nextNote.id ? nextNote : n,
-    )
-    notes.value = notes.value.map((row) =>
-      row.id === nextNote.id ? createNoteCatalogRow(nextNote) : row,
-    )
+    const nextNotes: Note[] = []
+    const currentNotes = allNotes.value as unknown as Array<{ id: string }>
+
+    for (const note of currentNotes) {
+      if (note.id === nextNote.id) {
+        nextNotes.push(nextNote)
+      } else {
+        nextNotes.push(note as Note)
+      }
+    }
+
+    allNotes.value = nextNotes
+    rebuildCatalog()
   }
 
   function findNoteById(id: string): Note | null {
-    return allNotes.value.find((n) => n.id === id) ?? null
+    const currentNotes = allNotes.value as unknown as Array<{ id: string }>
+
+    for (const note of currentNotes) {
+      if (note.id === id) {
+        return note as Note
+      }
+    }
+
+    return null
   }
 
   function registerEditorFlush(flush: EditorFlush | null): void {
@@ -103,26 +133,88 @@ export function useNotes() {
     shouldFocusTitle.value = false
   }
 
-  const { selectedNote, showNoteControls, selectedNoteTitle, selectNoteById } =
-    useNoteSelection({
-      notes,
-      editorFlush,
-      selectedNoteId,
-      selectedNoteFull,
-      selectedNoteRequestId,
-      findNoteById,
-    })
+  const selectedNote = selectedNoteFull
+  const showNoteControls = computed(() => {
+    const currentSelectedNote = selectedNote.value as Note | null
 
-  const {
-    saveSelectedNoteContent,
-    createNote,
-    renameSelectedNoteTitle,
-    moveNote,
-    toggleFavoriteSelectedNote,
-    togglePinnedSelectedNote,
-    saveWebhookForSelectedNote,
-    deleteSelectedNote,
-  } = useNoteMutations({
+    return (
+      currentSelectedNote !== null && !catalogRowIsTrashed(currentSelectedNote)
+    )
+  })
+  const selectedNoteTitle = computed(() => {
+    const currentSelectedNote = selectedNote.value as Note | null
+
+    if (currentSelectedNote) {
+      return currentSelectedNote.title
+    }
+
+    if (selectedNoteId.value) {
+      const currentCatalog = notes.value as unknown as Array<{
+        id: string
+        title: string
+      }>
+
+      for (const note of currentCatalog) {
+        if (note.id === selectedNoteId.value) {
+          return note.title
+        }
+      }
+
+      return ''
+    }
+
+    return ''
+  })
+
+  async function selectNoteById(id: string | null): Promise<void> {
+    let nextSelectedNoteId: string | null = null
+
+    if (id !== null) {
+      const currentCatalog = notes.value as unknown as Array<{ id: string }>
+
+      for (const note of currentCatalog) {
+        if (note.id === id) {
+          nextSelectedNoteId = id
+          break
+        }
+      }
+    }
+
+    const currentSelectedNote = selectedNoteFull.value as Note | null
+
+    if (
+      nextSelectedNoteId === selectedNoteId.value &&
+      (nextSelectedNoteId === null ||
+        currentSelectedNote?.id === nextSelectedNoteId)
+    ) {
+      return
+    }
+
+    if (nextSelectedNoteId === null) {
+      await editorFlush.value?.()
+      selectedNoteId.value = null
+      selectedNoteRequestId.value += 1
+      selectedNoteFull.value = null
+      return
+    }
+
+    const requestId = selectedNoteRequestId.value + 1
+    selectedNoteRequestId.value = requestId
+
+    await editorFlush.value?.()
+    selectedNoteId.value = nextSelectedNoteId
+
+    const loadedNote = findNoteById(nextSelectedNoteId)
+
+    if (selectedNoteRequestId.value !== requestId || !loadedNote) {
+      selectedNoteFull.value = null
+      return
+    }
+
+    selectedNoteFull.value = loadedNote
+  }
+
+  const noteMutationsArgs: Parameters<typeof useNoteMutations>[0] = {
     storage,
     notes,
     selectedNote,
@@ -137,7 +229,18 @@ export function useNotes() {
     prependNote: prependNoteToStore,
     updateSelectedNoteContent,
     selectNoteById,
-  })
+  }
+
+  const {
+    saveSelectedNoteContent,
+    createNote,
+    renameSelectedNoteTitle,
+    moveNote,
+    toggleFavoriteSelectedNote,
+    togglePinnedSelectedNote,
+    saveWebhookForSelectedNote,
+    deleteSelectedNote,
+  } = useNoteMutations(noteMutationsArgs)
 
   async function loadNotes(): Promise<NoteCatalogRow[]> {
     isLoading.value = true
@@ -159,10 +262,19 @@ export function useNotes() {
       }
 
       const expiredIds = new Set(expired.map((n) => n.id))
-      allNotes.value = loaded.filter((n) => !expiredIds.has(n.id))
+      const nextNotes: Note[] = []
+      const currentLoadedNotes = loaded as unknown as Array<{ id: string }>
+
+      for (const note of currentLoadedNotes) {
+        if (!expiredIds.has(note.id)) {
+          nextNotes.push(note as Note)
+        }
+      }
+
+      allNotes.value = nextNotes
       rebuildCatalog()
 
-      return notes.value
+      return notes.value as unknown as NoteCatalogRow[]
     } catch (error) {
       allNotes.value = []
       notes.value = []
@@ -171,7 +283,7 @@ export function useNotes() {
       loadError.value =
         error instanceof Error ? error.message : t('notes.errorLoadFallback')
 
-      return []
+      return [] as NoteCatalogRow[]
     } finally {
       isLoading.value = false
     }

@@ -1,5 +1,6 @@
-import { useState } from '#app'
+import { ref } from 'vue'
 import { loadConfig, type AppConfig } from '~/config/loader'
+import { useAppConfigDisk } from '~/composables/useAppConfigDisk'
 
 const defaultLayout = loadConfig().layout
 export const LAYOUT_STATE_KEYS = {
@@ -16,6 +17,12 @@ type LayoutVisibilitySnapshot = {
   showSidebarPanel: boolean
 }
 
+const showInspectorPanel = ref(defaultLayout.showInspectorPanel)
+const showSidebarPanel = ref(defaultLayout.showSidebarPanel)
+const showNotesListPanel = ref(defaultLayout.showNotesListPanel)
+const nonDistractionMode = ref(false)
+const nonDistractionSnapshot = ref<LayoutVisibilitySnapshot | null>(null)
+
 export function useLayout() {
   const { saveAppConfigPatch } = useAppConfigDisk()
 
@@ -24,28 +31,6 @@ export function useLayout() {
       console.error('Failed to persist app config:', error)
     })
   }
-
-  const showInspectorPanel = useState(
-    LAYOUT_STATE_KEYS.showInspectorPanel,
-    () => defaultLayout.showInspectorPanel,
-  )
-  const showSidebarPanel = useState(
-    LAYOUT_STATE_KEYS.showSidebarPanel,
-    () => defaultLayout.showSidebarPanel,
-  )
-  const showNotesListPanel = useState(
-    LAYOUT_STATE_KEYS.showNotesListPanel,
-    () => defaultLayout.showNotesListPanel,
-  )
-
-  const nonDistractionMode = useState(
-    LAYOUT_STATE_KEYS.nonDistractionMode,
-    () => false,
-  )
-  const nonDistractionSnapshot = useState<LayoutVisibilitySnapshot | null>(
-    LAYOUT_STATE_KEYS.nonDistractionSnapshot,
-    () => null,
-  )
 
   function syncLayoutFromConfig(layout: AppConfig['layout']): void {
     showInspectorPanel.value = layout.showInspectorPanel

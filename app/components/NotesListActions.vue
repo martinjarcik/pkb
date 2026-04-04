@@ -2,6 +2,10 @@
 import { ref, type CSSProperties } from 'vue'
 import { useEventListener } from '@vueuse/core'
 import { MoreVertical } from 'lucide-vue-next'
+import { useLayout } from '~/composables/useLayout'
+import { useNotes } from '~/composables/useNotes'
+import { useSidebarNavigation } from '~/composables/useSidebarNavigation'
+import { useTranslations } from '~/composables/useTranslations'
 
 const { t } = useTranslations()
 const { createNote } = useNotes()
@@ -49,7 +53,7 @@ function closeLayoutMenuOnEscape(event: KeyboardEvent): void {
   }
 }
 
-if (import.meta.client) {
+if (typeof document !== 'undefined') {
   useEventListener(document, 'pointerdown', closeLayoutMenuOnOutsidePointer, {
     capture: true,
   })
@@ -130,7 +134,10 @@ function handleToggleInspector(): void {
         type="button"
         @click="toggleLayoutMenu"
       >
-        <MoreVertical class="h-4 w-4" aria-hidden="true" />
+        <MoreVertical
+          class="h-4 w-4"
+          aria-hidden="true"
+        />
       </button>
       <Teleport to="body">
         <div

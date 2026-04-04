@@ -24,6 +24,10 @@ type ParseMarkdownContext = {
 
 type AssetUrlResolver = (relativePath: string) => string
 
+function identityAssetUrl(relativePath: string): string {
+  return relativePath
+}
+
 function parseBlockCommentClasses(value: string): string[] | null {
   const match = value.trim().match(BLOCK_COMMENT_PATTERN)
   if (!match) return null
@@ -336,6 +340,7 @@ function parseParagraph(
   node: MarkdownNode,
   resolveAssetUrl: AssetUrlResolver | undefined,
 ): EditorjsBlock[] {
+  const assetUrlResolver = resolveAssetUrl ?? identityAssetUrl
   const children = node.children ?? []
 
   if (children.length === 1 && children[0]!.type === 'image') {
@@ -348,7 +353,7 @@ function parseParagraph(
         type: 'image',
         data: {
           file: {
-            url: editorDisplayUrlForMarkdownImage(rawUrl, resolveAssetUrl),
+            url: editorDisplayUrlForMarkdownImage(rawUrl, assetUrlResolver),
           },
           caption,
           withBorder: false,

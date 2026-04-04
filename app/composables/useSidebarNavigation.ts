@@ -1,6 +1,9 @@
-import { useState } from '#app'
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { loadConfig } from '~/config/loader'
+import { useAppConfigDisk } from '~/composables/useAppConfigDisk'
+import { useFolderMeta } from '~/composables/useFolderMeta'
+import { useNotes } from '~/composables/useNotes'
+import { useNoteStorage } from '~/composables/useNoteStorage'
 import { t } from '~/composables/useTranslations'
 import { filterOrderedCatalogRowsByIds, searchNotes } from '~/notes/noteSearch'
 import { sanitizeNoteTitleForFilename } from '~/notes/noteId'
@@ -19,26 +22,17 @@ import {
 import type { NoteCatalogRow } from '~/notes/types'
 
 const defaultTheme = loadConfig().theme
+const selectedView = ref<SidebarWorkspaceView>({ kind: 'inbox' })
+const searchInput = ref('')
+const searchRequestId = ref(0)
+const foldersExpanded = ref(true)
+const tagsExpanded = ref(true)
+const explicitFolders = ref<string[]>([])
 
 export function useSidebarNavigation() {
   const { catalog, allNotes, selectedNoteId, selectNoteById } = useNotes()
   const { storage } = useNoteStorage()
   const { meta } = useFolderMeta()
-  const selectedView = useState<SidebarWorkspaceView>(
-    'sidebarNavigation.selectedView',
-    () => ({ kind: 'inbox' }),
-  )
-  const searchInput = useState('sidebarNavigation.searchInput', () => '')
-  const searchRequestId = useState('sidebarNavigation.searchRequestId', () => 0)
-  const foldersExpanded = useState(
-    'sidebarNavigation.foldersExpanded',
-    () => true,
-  )
-  const tagsExpanded = useState('sidebarNavigation.tagsExpanded', () => true)
-  const explicitFolders = useState<string[]>(
-    'sidebarNavigation.explicitFolders',
-    () => [],
-  )
   const { data: appConfigDisk } = useAppConfigDisk()
   const accentColor = computed(() => defaultTheme.accentColor)
   const catalogDerivedFolders = computed(() =>

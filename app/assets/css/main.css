@@ -420,9 +420,8 @@
   }
 
   .note-editor-surface .codex-editor--narrow .ce-toolbar__actions {
-    left: auto;
+    right: 100%;
     padding-right: 5px;
-    right: auto;
   }
 
   .note-editor-surface .codex-editor--narrow .ce-toolbox .ce-popover {

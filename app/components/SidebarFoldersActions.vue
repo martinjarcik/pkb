@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { useSidebarNavigation } from '~/composables/useSidebarNavigation'
+
 defineProps<{
   folderIcon: (name: string) => string | undefined
 }>()

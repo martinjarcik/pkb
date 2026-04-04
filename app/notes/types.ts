@@ -27,7 +27,7 @@ export type NotePropertyValue =
   | NotePropertyValue[]
   | { [key: string]: NotePropertyValue }
 
-export type NoteProperties = Record<string, NotePropertyValue>
+export type NoteProperties = Record<string, unknown>
 
 export const NOTE_CATALOG_CONTENT_BYTES = 1024
 

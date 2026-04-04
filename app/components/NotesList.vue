@@ -8,6 +8,9 @@ import {
   type ComponentPublicInstance,
   watch,
 } from 'vue'
+import { useNotes } from '~/composables/useNotes'
+import { useSidebarNavigation } from '~/composables/useSidebarNavigation'
+import { useTranslations } from '~/composables/useTranslations'
 
 type NotesListItem = {
   id: string
@@ -113,7 +116,7 @@ function measureVisibleRows(): void {
 }
 
 function scheduleMeasureVisibleRows(): void {
-  if (!import.meta.client) {
+  if (typeof window === 'undefined') {
     return
   }
 
@@ -274,11 +277,17 @@ onBeforeUnmount(() => {
     class="min-h-0 flex-1 overflow-y-auto"
     @scroll="handleScroll"
   >
-    <div v-if="isLoading" class="notes-list-state notes-list-state-muted">
+    <div
+      v-if="isLoading"
+      class="notes-list-state notes-list-state-muted"
+    >
       {{ t('notesList.loading') }}
     </div>
 
-    <div v-else-if="loadError" class="notes-list-state notes-list-state-error">
+    <div
+      v-else-if="loadError"
+      class="notes-list-state notes-list-state-error"
+    >
       {{ loadError }}
     </div>
 
@@ -290,7 +299,11 @@ onBeforeUnmount(() => {
       {{ t('notesList.empty') }}
     </div>
 
-    <div v-else class="relative" :style="{ height: `${totalHeight}px` }">
+    <div
+      v-else
+      class="relative"
+      :style="{ height: `${totalHeight}px` }"
+    >
       <button
         v-for="row in visibleRows"
         :key="row.item.id"
@@ -321,7 +334,10 @@ onBeforeUnmount(() => {
           >
             {{ row.item.title }}
           </p>
-          <p v-if="row.item.description" class="notes-list-item-description">
+          <p
+            v-if="row.item.description"
+            class="notes-list-item-description"
+          >
             {{ row.item.description }}
           </p>
           <p class="notes-list-item-meta">

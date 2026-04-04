@@ -91,8 +91,7 @@ the file path relative to the vault root.
 - The frontend loads full notes on app open and derives `NotesListPanel` rows
   from the in-memory notes.
 - File, config, metadata, and asset access flows through a single platform API
-  abstraction so the current HTTP-backed runtime can later be swapped for Tauri
-  IPC without changing note behavior.
+  abstraction backed by Tauri IPC without changing note behavior.
 
 #### Primary editor and files on disk
 
@@ -114,9 +113,9 @@ of the app.
   `assets`).
 - Saved note Content stores standard Markdown image syntax with a vault-relative
   path, for example `![](assets/<filename>.png)`.
-- The current desktop runtime serves those files at
-  `GET /api/vault-assets/<path>` so the editor can display them. Upload is
-  available only when `storageType` is `filesystem`.
+- The desktop runtime resolves those files to desktop-safe asset URLs through
+  the platform API so the editor can display them. Upload is available only
+  when `storageType` is `filesystem`.
 - The configured `editor.assetsFolder` name is **not** listed as a Vault
   folder row in the sidebar (even if the directory exists on disk).
 
@@ -152,15 +151,14 @@ Top-level Vault folders appear below `Inbox` in `SidebarPanel`.
 - When a folder is selected, the first visible note in that folder becomes the
   active note automatically.
 - Optional **folder metadata** (currently an emoji icon) is stored in workspace
-  `meta.yaml` at the project root by default. The same metadata preserves
+  `meta.yaml` alongside the vault. The same metadata preserves
   explicitly created empty folders across reloads now that the app no longer
   loads a dedicated folder-list API. Desktop reads and writes that file through
   the same platform API abstraction used for note files. Use the **+** control
   in the Folders
   header to create a folder and pick an emoji, or hover a folder row and click
   the pencil to edit the icon. The name field is read-only when editing;
-  clearing the icon restores the default folder glyph. Override the file
-  location with the `PKB_META_PATH` environment variable.
+  clearing the icon restores the default folder glyph.
 
 ### Tag Views
 
@@ -190,7 +188,7 @@ catalog.
   **HTTPS** URL or clear it. The value is stored as the `webhook` Application
   Property (under `app` in frontmatter).
 - When a note with a webhook URL is saved, or after it is moved to trash from
-  the toolbar, the server sends a single POST request to that URL with JSON
+  the toolbar, the app sends a single POST request to that URL with JSON
   `{ "event": "updated" | "deleted", "note": <full note object> }`. Failed
   deliveries do not block saving or trashing.
 

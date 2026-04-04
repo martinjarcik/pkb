@@ -1,0 +1,51 @@
+{
+  "rustc": 17940977064402226622,
+  "features": "[\"brotli\", \"build\", \"cargo_metadata\", \"compression\", \"html-manipulation\", \"proc-macro2\", \"quote\", \"resources\", \"schema\", \"schemars\", \"swift-rs\", \"walkdir\"]",
+  "declared_features": "[\"aes-gcm\", \"brotli\", \"build\", \"cargo_metadata\", \"compression\", \"config-json5\", \"config-toml\", \"getrandom\", \"html-manipulation\", \"isolation\", \"json5\", \"proc-macro2\", \"process-relaunch-dangerous-allow-symlink-macos\", \"quote\", \"resources\", \"schema\", \"schemars\", \"serialize-to-javascript\", \"swift-rs\", \"walkdir\"]",
+  "target": 7530130812022395703,
+  "profile": 3033921117576893,
+  "path": 4451347765073308579,
+  "deps": [
+    [1200537532907108615, "urlpattern", false, 6413181108685033568],
+    [1363051979936526615, "memchr", false, 12183651200466135949],
+    [1528297757488249563, "url", false, 11507882286944827080],
+    [1678291836268844980, "brotli", false, 17186463306622143893],
+    [2448563160050429386, "thiserror", false, 14690588262404742745],
+    [2620434475832828286, "http", false, 14058047541915523463],
+    [4289358735036141001, "proc_macro2", false, 15512283807726652408],
+    [6192426815643438542, "serde_with", false, 18298789721785615981],
+    [6606131838865521726, "ctor", false, 1204969327155352102],
+    [6913375703034175521, "schemars", false, 5928042149450393938],
+    [7170110829644101142, "json_patch", false, 3440927162734770843],
+    [9086780327361459375, "serde_untagged", false, 8108604644068719469],
+    [9293239362693504808, "glob", false, 6766757885021984952],
+    [9680020106200215617, "semver", false, 850031442049074447],
+    [10630857666389190470, "log", false, 393760314514183941],
+    [11655476559277113544, "cargo_metadata", false, 17905446659187699163],
+    [11798544947020256579, "uuid", false, 12981500131649882374],
+    [11989259058781683633, "dunce", false, 8345779660110423464],
+    [12176723955989927267, "toml", false, 3808627044917157729],
+    [12478428894219133322, "anyhow", false, 7317981261158477528],
+    [13111758008314797071, "quote", false, 12466537627798494486],
+    [13548984313718623784, "serde", false, 16494764489017003879],
+    [13795362694956882968, "serde_json", false, 11494794948065572274],
+    [14232843520438415263, "html5ever", false, 5334418161086736837],
+    [14885200901422974105, "swift_rs", false, 15922003265137388517],
+    [15088007382495681292, "kuchiki", false, 9535313779546456780],
+    [15622660310229662834, "walkdir", false, 4400602957252537323],
+    [17109794424245468765, "regex", false, 13260014329259478997],
+    [17146114186171651583, "infer", false, 4511229008103046989],
+    [17186037756130803222, "phf", false, 638257780928386230]
+  ],
+  "local": [
+    {
+      "CheckDepInfo": {
+        "dep_info": "debug/.fingerprint/tauri-utils-d0bab05ca4dc2447/dep-lib-tauri_utils",
+        "checksum": false
+      }
+    }
+  ],
+  "rustflags": [],
+  "config": 8247474407144887393,
+  "compile_kind": 0
+}

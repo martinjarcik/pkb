@@ -5,7 +5,7 @@ import type { Note, NoteProperties } from '~/notes/types'
 import type { NoteStorage, SaveNoteInput } from '~/storage/types'
 import { useNotes } from '~/composables/useNotes'
 
-const { stateStore, storageMock } = vi.hoisted(() => {
+const { storageMock } = vi.hoisted(() => {
   const storageMock: NoteStorage = {
     loadAllNotes: vi.fn<() => Promise<Note[]>>().mockResolvedValue([]),
     loadExplicitFolders: vi.fn<() => Promise<string[]>>().mockResolvedValue([]),
@@ -21,30 +21,9 @@ const { stateStore, storageMock } = vi.hoisted(() => {
   }
 
   return {
-    stateStore: new Map<string, { value: unknown }>(),
     storageMock,
   }
 })
-
-function mockedUseState<T>(key: string, init: () => T) {
-  if (!stateStore.has(key)) {
-    stateStore.set(key, { value: init() })
-  }
-
-  return stateStore.get(key) as { value: T }
-}
-
-vi.mock('#app', () => ({
-  useState: mockedUseState,
-}))
-
-vi.mock('#imports', () => ({
-  useState: mockedUseState,
-}))
-
-vi.mock('nuxt/app', () => ({
-  useState: mockedUseState,
-}))
 
 vi.mock('~/composables/useTranslations', () => ({
   t: (key: string) =>
@@ -110,14 +89,24 @@ function createTestNote(
 }
 
 describe('useNotes', () => {
-  beforeEach(() => {
-    stateStore.clear()
+  beforeEach(async () => {
     vi.mocked(storageMock.loadAllNotes).mockReset().mockResolvedValue([])
     vi.mocked(storageMock.deleteNote).mockReset().mockResolvedValue(undefined)
     vi.mocked(storageMock.saveNote).mockReset()
     vi.mocked(storageMock.renameNoteTitle).mockReset()
     vi.mocked(storageMock.moveNote).mockReset()
     vi.mocked(storageMock.softDeleteNote).mockReset()
+    const notesState = useNotes()
+    notesState.allNotes.value = []
+    notesState.notes.value = []
+    notesState.isLoading.value = false
+    notesState.isRenamingNoteTitle.value = false
+    notesState.loadError.value = null
+    notesState.saveError.value = null
+    notesState.shouldFocusTitle.value = false
+    notesState.selectedNoteId.value = null
+    notesState.registerEditorFlush(null)
+    await notesState.selectNoteById(null)
   })
 
   afterEach(() => {

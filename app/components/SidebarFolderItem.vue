@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { Folder, Pencil } from 'lucide-vue-next'
+import { useNoteDropTarget } from '~/composables/useNoteDropTarget'
+import { useNotes } from '~/composables/useNotes'
+import { useTranslations } from '~/composables/useTranslations'
 
 const { t } = useTranslations()
 
@@ -72,7 +75,10 @@ function handleEditClick(event: MouseEvent): void {
       data-testid="sidebar-folder-edit"
       @click="handleEditClick"
     >
-      <Pencil :size="12" aria-hidden="true" />
+      <Pencil
+        :size="12"
+        aria-hidden="true"
+      />
     </button>
   </div>
 </template>

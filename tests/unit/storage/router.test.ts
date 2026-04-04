@@ -6,7 +6,7 @@ describe('getNoteStorage', () => {
   it('returns a filesystem storage for filesystem storage type', () => {
     const storage = getNoteStorage({
       storageType: 'filesystem',
-      platformApi: getPlatformApi('filesystem'),
+      platformApi: getPlatformApi('filesystem', './vault', 'assets'),
       vault: './vault',
     })
 

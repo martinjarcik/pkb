@@ -1,4 +1,4 @@
-import { useState } from '#app'
+import { ref } from 'vue'
 import {
   readAppConfigPersistence,
   writeAppConfigPatchPersistence,
@@ -6,16 +6,20 @@ import {
 import { getPlatformApi } from '~/storage/platformRouter'
 import { loadConfig, type AppConfig } from '~/config/loader'
 
-export function useAppConfigDisk() {
-  const data = useState<AppConfig>('app-config-disk', () => loadConfig())
+const data = ref<AppConfig>(loadConfig())
 
+export function useAppConfigDisk() {
   async function loadAppConfigDisk(): Promise<void> {
     try {
       const storageType = data.value.storageType
 
       data.value = await readAppConfigPersistence(
         storageType,
-        getPlatformApi(storageType),
+        getPlatformApi(
+          storageType,
+          data.value.vault,
+          data.value.editor.assetsFolder,
+        ),
       )
     } catch {
       data.value = loadConfig()
@@ -27,7 +31,11 @@ export function useAppConfigDisk() {
   ): Promise<AppConfig> {
     const updated = await writeAppConfigPatchPersistence(
       data.value.storageType,
-      getPlatformApi(data.value.storageType),
+      getPlatformApi(
+        data.value.storageType,
+        data.value.vault,
+        data.value.editor.assetsFolder,
+      ),
       patch,
     )
 

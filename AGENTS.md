@@ -70,13 +70,12 @@ Right - put the function where it is used, or in the domain folder it belongs to
 
 ## Folder boundaries
 
-Nuxt auto-imported (do not add explicit imports):
+Frontend:
 
+- `app/main.ts` -> desktop Vue entry
+- `app/App.vue` -> desktop app shell
 - `app/components/` -> UI rendering
 - `app/composables/` -> shared Vue state and UI logic
-- `app/pages/` -> routes
-- `app/layouts/` -> page layouts
-- `$fetch` -> Nuxt HTTP client available globally in app code without import
 
 Explicit imports required:
 
@@ -105,9 +104,9 @@ Design:
 - `design/` -> Pencil design files (`.pen`)
 - `design/design.pen` -> canonical UI design (read via Pencil MCP tools only)
 
-Reserved (create when first needed):
+Desktop:
 
-- `desktop/tauri/` -> Tauri desktop packaging
+- `desktop/tauri/` -> Tauri desktop packaging and Rust IPC commands
 
 ## Naming conventions
 
@@ -151,18 +150,17 @@ For state management, error handling, and configuration patterns, see `docs/arch
 - Keep components focused on rendering. Extract shared state into `app/composables/`.
 - Do not import from `app/notes/`, `app/storage/`, or `app/config/` directly. Access domain data through composables.
 
-## Nuxt coupling constraints
+## Frontend runtime constraints
 
-- Do not introduce new `useState` calls from `#app`; extend the existing state-owning composables instead.
-- Do not create new Nuxt plugins with `defineNuxtPlugin`; prefer direct imports or composables.
-- Do not put business logic in Nitro route handlers; keep them as transport wrappers over server modules.
-- Do not introduce `useFetch`, `useAsyncData`, `useRuntimeConfig`, or similar Nuxt data APIs for product logic.
+- Do not introduce Nuxt runtime dependencies (`#app`, `#imports`, `NuxtPage`, `NuxtLayout`, `defineNuxtPlugin`, `useFetch`, `useAsyncData`, `useRuntimeConfig`, etc.).
+- Keep shared state in the existing state-owning composables using shared Vue refs.
+- Do not put business logic in Tauri command handlers; keep them as transport wrappers over filesystem operations.
 
 ## Testing
 
 Unit tests (`tests/unit/`):
 
-- Runner: Vitest with `@nuxt/test-utils`
+- Runner: Vitest
 - File naming: `*.test.ts`
 - Import from `vitest`: `import { describe, it, expect } from 'vitest'`
 - Test pure logic only. Do not test Vue components in unit tests.

@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { useSidebarNavigation } from '~/composables/useSidebarNavigation'
+
 const { allTags, tagsExpanded } = useSidebarNavigation()
 </script>
 

@@ -1,7 +1,9 @@
 <script setup lang="ts">
+import { nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import NoteEditor from '~/components/NoteEditor.vue'
+import { useLayout } from '~/composables/useLayout'
+import { useNotes } from '~/composables/useNotes'
 import { cn } from '~/lib/utils'
-
-const { t } = useTranslations()
 
 type NoteEditorHandle = {
   focusTitle(): Promise<void>
@@ -66,23 +68,13 @@ watch(shouldFocusTitle, async (nextShouldFocusTitle) => {
       )
     "
   >
-    <ClientOnly>
-      <NoteEditor
-        ref="noteEditor"
-        :autosave-delay="editorAutosaveDelay"
-        :content="selectedNote?.content ?? ''"
-        :title="selectedNoteTitle"
-        @content-change="handleContentChange"
-        @title-change="handleTitleChange"
-      />
-      <template #fallback>
-        <div
-          data-testid="note-editor-loading"
-          class="notes-list-state notes-list-state-muted min-h-0 min-w-0 flex-1"
-        >
-          {{ t('noteEditor.loading') }}
-        </div>
-      </template>
-    </ClientOnly>
+    <NoteEditor
+      ref="noteEditor"
+      :autosave-delay="editorAutosaveDelay"
+      :content="selectedNote?.content ?? ''"
+      :title="selectedNoteTitle"
+      @content-change="handleContentChange"
+      @title-change="handleTitleChange"
+    />
   </div>
 </template>

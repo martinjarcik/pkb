@@ -1,33 +1,18 @@
-import { VAULT_ASSETS_API_PREFIX } from '~/storage/httpPlatformApi'
-
-function defaultMarkdownImageUrl(fileUrl: string): string {
-  const prefix = `${VAULT_ASSETS_API_PREFIX}/`
-
-  if (fileUrl.startsWith(prefix)) {
-    return fileUrl.slice(prefix.length)
-  }
-
-  return fileUrl
-}
-
 export function markdownUrlFromEditorImageFileUrl(
   fileUrl: string,
-  resolveMarkdownUrl: (fileUrl: string) => string = defaultMarkdownImageUrl,
+  resolveMarkdownUrl: (fileUrl: string) => string,
 ): string {
   return resolveMarkdownUrl(fileUrl)
 }
 
-function defaultAssetUrl(relativePath: string): string {
-  return `${VAULT_ASSETS_API_PREFIX}/${relativePath}`
-}
-
 export function editorDisplayUrlForMarkdownImage(
   url: string,
-  resolveAssetUrl: (relativePath: string) => string = defaultAssetUrl,
+  resolveAssetUrl: (relativePath: string) => string,
 ): string {
   if (
     url.startsWith('http://') ||
     url.startsWith('https://') ||
+    url.startsWith('asset://') ||
     url.startsWith('/')
   ) {
     return url

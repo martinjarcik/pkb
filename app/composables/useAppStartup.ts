@@ -1,3 +1,9 @@
+import { useAppConfigDisk } from '~/composables/useAppConfigDisk'
+import { useFolderMeta } from '~/composables/useFolderMeta'
+import { useLayout } from '~/composables/useLayout'
+import { useNotes } from '~/composables/useNotes'
+import { useSidebarNavigation } from '~/composables/useSidebarNavigation'
+
 export function useAppStartup() {
   const { loadError, loadNotes } = useNotes()
   const { loadFolders, selectInbox } = useSidebarNavigation()

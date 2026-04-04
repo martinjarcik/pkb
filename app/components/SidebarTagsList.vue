@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { useSidebarNavigation } from '~/composables/useSidebarNavigation'
+
 const { accentColor, allTags, tagFilterState, cycleTag } =
   useSidebarNavigation()
 </script>

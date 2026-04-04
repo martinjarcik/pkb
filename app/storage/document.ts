@@ -57,11 +57,11 @@ function splitApplicationProperties(properties: NoteProperties): {
 
   for (const [key, value] of Object.entries(properties)) {
     if (APPLICATION_PROPERTY_KEY_SET.has(key)) {
-      applicationEntries.push([key, value])
+      applicationEntries.push([key, value as NotePropertyValue])
       continue
     }
 
-    userEntries.push([key, value])
+    userEntries.push([key, value as NotePropertyValue])
   }
 
   return {

@@ -1,6 +1,11 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { Maximize2, Pin, PinOff, PlugZap, Star, Trash2 } from 'lucide-vue-next'
+import { useAppFeatures } from '~/composables/useAppFeatures'
+import { useLayout } from '~/composables/useLayout'
+import { useNotes } from '~/composables/useNotes'
+import { useSidebarNavigation } from '~/composables/useSidebarNavigation'
+import { useTranslations } from '~/composables/useTranslations'
 
 const { t } = useTranslations()
 const {
@@ -73,6 +78,7 @@ function handleWebhookCancel(): void {
 <template>
   <div
     data-testid="note-controls"
+    data-tauri-drag-region
     class="note-controls-shell flex shrink-0 items-center justify-center gap-5 px-4"
   >
     <button
@@ -84,7 +90,10 @@ function handleWebhookCancel(): void {
       :style="isFavorite ? { color: accentColor } : undefined"
       @click="handleFavoriteClick"
     >
-      <Star :size="16" fill="none" />
+      <Star
+        :size="16"
+        fill="none"
+      />
     </button>
     <button
       v-if="selectedNote && pinnedEnabled"
@@ -95,8 +104,14 @@ function handleWebhookCancel(): void {
       :style="isPinned ? { color: accentColor } : undefined"
       @click="handlePinClick"
     >
-      <Pin v-if="isPinned" :size="16" />
-      <PinOff v-else :size="16" />
+      <Pin
+        v-if="isPinned"
+        :size="16"
+      />
+      <PinOff
+        v-else
+        :size="16"
+      />
     </button>
     <button
       v-if="selectedNote && nonDistractionModeEnabled"

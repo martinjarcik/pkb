@@ -6,7 +6,6 @@ import {
   INLINE_HIGHLIGHT_DEFAULT_COLOR,
   inlineHighlightMarkdownPrefix,
 } from '~/lib/inlineHighlight'
-import { VAULT_ASSETS_API_PREFIX } from '~/storage/httpPlatformApi'
 
 const altColor =
   Object.keys(INLINE_HIGHLIGHT_COLORS).find(
@@ -15,6 +14,8 @@ const altColor =
 
 const defaultBg = INLINE_HIGHLIGHT_COLORS[INLINE_HIGHLIGHT_DEFAULT_COLOR]!
 const altMeta = INLINE_HIGHLIGHT_COLORS[altColor]!
+const assetDisplayUrl = (path: string) => `asset://${path}`
+const markdownAssetUrl = (fileUrl: string) => fileUrl.replace('asset://', '')
 
 describe('editorjsMarkdown', () => {
   it('converts the first markdown H1 into a note title block', () => {
@@ -949,13 +950,16 @@ describe('editorjsMarkdown', () => {
   })
 
   it('parses a standalone markdown image into an Editor.js image block', () => {
-    const blocks = markdownToEditorjsBlocks('![](assets/a.png)')
+    const blocks = markdownToEditorjsBlocks(
+      '![](assets/a.png)',
+      assetDisplayUrl,
+    )
 
     expect(blocks).toEqual([
       {
         type: 'image',
         data: {
-          file: { url: `${VAULT_ASSETS_API_PREFIX}/assets/a.png` },
+          file: { url: 'asset://assets/a.png' },
           caption: '',
           withBorder: false,
           withBackground: false,
@@ -966,18 +970,21 @@ describe('editorjsMarkdown', () => {
   })
 
   it('renders an Editor.js image block as markdown', () => {
-    const md = editorjsBlocksToMarkdown([
-      {
-        type: 'image',
-        data: {
-          file: { url: `${VAULT_ASSETS_API_PREFIX}/assets/a.png` },
-          caption: '',
-          withBorder: false,
-          withBackground: false,
-          stretched: false,
+    const md = editorjsBlocksToMarkdown(
+      [
+        {
+          type: 'image',
+          data: {
+            file: { url: 'asset://assets/a.png' },
+            caption: '',
+            withBorder: false,
+            withBackground: false,
+            stretched: false,
+          },
         },
-      },
-    ])
+      ],
+      markdownAssetUrl,
+    )
 
     expect(md).toBe('![](assets/a.png)')
   })
@@ -1025,7 +1032,7 @@ describe('editorjsMarkdown', () => {
       {
         type: 'image',
         data: {
-          file: { url: `${VAULT_ASSETS_API_PREFIX}/assets/photo.png` },
+          file: { url: 'asset://assets/photo.png' },
           caption: '',
           withBorder: false,
           withBackground: false,
@@ -1034,15 +1041,15 @@ describe('editorjsMarkdown', () => {
       },
     ]
 
-    const md = editorjsBlocksToMarkdown(blocks)
+    const md = editorjsBlocksToMarkdown(blocks, markdownAssetUrl)
     expect(md).toBe('Hello world\n\n![](assets/photo.png)')
 
-    const parsed = markdownToEditorjsBlocks(md)
+    const parsed = markdownToEditorjsBlocks(md, assetDisplayUrl)
     const imageBlock = parsed.find((b) => b.type === 'image')
 
     expect(imageBlock).toBeDefined()
     expect(imageBlock!.data.file).toEqual({
-      url: `${VAULT_ASSETS_API_PREFIX}/assets/photo.png`,
+      url: 'asset://assets/photo.png',
     })
   })
 

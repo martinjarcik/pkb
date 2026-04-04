@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import { Search } from 'lucide-vue-next'
+import { useSidebarNavigation } from '~/composables/useSidebarNavigation'
+import { useTranslations } from '~/composables/useTranslations'
 
 const { t } = useTranslations()
 const { searchInput, updateSearchInput } = useSidebarNavigation()
@@ -8,9 +10,13 @@ const { searchInput, updateSearchInput } = useSidebarNavigation()
 <template>
   <div
     data-testid="notes-list-controls"
+    data-tauri-drag-region
     class="notes-list-controls-shell flex shrink-0 items-center gap-5 border-b border-border px-5"
   >
-    <label class="relative flex-1" for="notes-list-search-input">
+    <label
+      class="relative flex-1"
+      for="notes-list-search-input"
+    >
       <Search
         class="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"
         aria-hidden="true"

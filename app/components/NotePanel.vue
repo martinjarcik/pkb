@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { useNotes } from '~/composables/useNotes'
+
 const { showNoteControls } = useNotes()
 </script>
 
@@ -8,7 +10,10 @@ const { showNoteControls } = useNotes()
     class="flex h-full min-h-0 min-w-0 flex-col border-x border-border"
   >
     <NoteControls v-if="showNoteControls" />
-    <div data-testid="note-view" class="flex min-h-0 min-w-0 flex-1 flex-col">
+    <div
+      data-testid="note-view"
+      class="flex min-h-0 min-w-0 flex-1 flex-col"
+    >
       <NoteTemplate />
     </div>
   </main>

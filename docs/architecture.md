@@ -51,14 +51,15 @@ shape because the app now keeps full note bodies in shared client state.
   writes.
 - `app/storage/platformApi.ts` — raw I/O contract for note files,
   scoped config/meta text files, and vault assets.
-- `app/storage/httpPlatformApi.ts` — current `PlatformApi` implementation using
-  fetch against the minimal Nitro routes.
+- `app/storage/tauriPlatformApi.ts` — desktop `PlatformApi` implementation
+  using Tauri IPC commands plus desktop asset URLs for note images.
 - `app/storage/router.ts` — active storage selection from `storageType`.
-- `server/fileSystemProxy.ts` — Nitro-only raw filesystem access used by the
-  minimal `/api/fs/*` routes and vault asset handlers.
 - `app/config/loader.ts` — typed `AppConfig` parsed from `app/config/default.yaml`,
   including the active locale, theme settings, and `notes.trashRetentionDays`.
-- `app/app.vue` — root app shell that applies the configured accent color CSS variable.
+- `app/App.vue` — desktop app shell that applies the configured accent color
+  CSS variable, starts the app, and composes the three-panel workspace layout.
+- `app/main.ts` — plain Vue desktop entry that mounts `App.vue`.
+- `vite.config.ts` — build and alias configuration for the plain Vue frontend.
 - `app/composables/useLayout.ts` — layout panel visibility state initialized
   from config defaults, plus session-only non-distraction mode (snapshot and
   restore of the three panel flags).
@@ -66,11 +67,8 @@ shape because the app now keeps full note bodies in shared client state.
   from config defaults, including the Inbox, Tasks, Favorites (when
   `features.favorites` is true), Trashed, top-level folder note filters, and
   tag-based note filtering.
-- `app/layouts/default.vue` — application shell composing SidebarPanel, NotesListPanel,
-  page slot, and InspectorPanel in a horizontal flexbox.
-- `app/pages/index.vue` — renders `NotePanel` and, after client-side config,
-  note, folder, and meta load, selects the first visible note in the Inbox
-  view (vault root, not trashed).
+- `desktop/tauri/` — Tauri desktop host and Rust IPC commands for filesystem,
+  scoped config/meta, folder, and asset operations.
 - `SidebarPanel` (`app/components/SidebarPanel.vue`) — sidebar shell.
   - `SidebarNavigation` (`app/components/SidebarNavigation.vue`) — view-selection
     navigation.
@@ -79,7 +77,7 @@ shape because the app now keeps full note bodies in shared client state.
       (for example `Inbox`).
   - `SidebarFolders` (`app/components/SidebarFolders.vue`) — folders section
     wrapper with header, collapsible folder list, and the folder create/edit
-    dialog (`FolderDialog.client.vue`).
+    dialog (`FolderDialog.vue`).
     - `SidebarFoldersControls`
       (`app/components/SidebarFoldersControls.vue`) — folders header with
       hover-reveal "create folder" and "collapse/expand" controls.
@@ -185,13 +183,13 @@ those rules.
 
 ### Editor lifecycle contracts
 
-- `NoteEditor.client.vue` applies `patchExecCommandForInlineHighlight()` during
+- `NoteEditor.vue` applies `patchExecCommandForInlineHighlight()` during
   mount so inline highlight operations stay in sync with autosave. It must call
   `restoreExecCommand()` during `onBeforeUnmount`.
 - `BigEmojiTool` registers a capture-phase `mousedown` listener on `document`
   in its constructor. Cleanup happens through the Editor.js tool `destroy()`
   path when `NoteEditor` destroys the editor instance on unmount.
-- `useEditorSync()` owns the pending autosave timer. `NoteEditor.client.vue`
+- `useEditorSync()` owns the pending autosave timer. `NoteEditor.vue`
   must call `clearPendingContentSync()` during prop-driven re-renders and
   before unmount.
 - `useEditorTitleRepair()` uses an `isRepairingTitleBlock` guard to prevent
@@ -260,8 +258,8 @@ produce stale views, failed saves, or overwritten files.
   folders, and loading folder names, while hiding backend-specific
   serialization details.
 - `PlatformApi` — desktop-only raw I/O boundary under `NoteStorage` and config
-  persistence. The current implementation uses HTTP fetch; future Tauri work
-  can swap in an IPC implementation without changing the app-level contracts.
+  persistence. The current implementation uses Tauri IPC without changing the
+  app-level storage or editor contracts.
 - `app/storage/router.ts` selects the active `NoteStorage` from configuration.
 - The active storage adapter is determined by `storageType` in
   `app/config/default.yaml`: `filesystem` → filesystem adapter (default),
@@ -272,15 +270,13 @@ produce stale views, failed saves, or overwritten files.
 
 ## State management
 
-The app now runs as a client-only SPA, but shared UI state still needs one
-consistent owner per browser session.
+The app runs as a single-process desktop SPA, so shared state is held in
+module-scope Vue refs owned only by `useAppConfigDisk()`, `useFolderMeta()`,
+`useLayout()`, `useNotes()`, and `useSidebarNavigation()`.
 
-- Shared `useState()` slots are owned only by
-  `useAppConfigDisk()`, `useFolderMeta()`, `useLayout()`, `useNotes()`, and
-  `useSidebarNavigation()`.
 - Other composables must receive shared refs through arguments or consume those
-  state-owning composables; do not create duplicate `useState()` keys.
-- Do not use module-scope `ref()` or `reactive()` for shared state.
+  state-owning composables.
+- Do not create duplicate shared state owners.
 - Do not use Pinia.
 
 ## Error handling
@@ -297,10 +293,10 @@ consistent owner per browser session.
   configuration state (e.g. panel visibility toggles) lives in composables
   initialized from these defaults.
 - `WorkspaceMeta` (`app/config/parseMeta.ts`) — typed workspace metadata (for
-  example per-folder emoji icons), persisted in `meta.yaml` at the project root
-  by default (`PKB_META_PATH` overrides the path). Loaded and updated through
-  the client-side persistence layer backed by the `PlatformApi`;
-  `useFolderMeta()` holds reactive folder metadata in `useState`.
+  example per-folder emoji icons), persisted in `meta.yaml` alongside the
+  vault. Loaded and updated through the client-side persistence layer backed by
+  the `PlatformApi`; `useFolderMeta()` holds reactive folder metadata in shared
+  Vue refs.
 
 ### Config sources in the running app
 
@@ -311,8 +307,7 @@ consistent owner per browser session.
   `theme.defaultEditorColor`, all `features.*` flags, `locale`,
   `editor.autosaveDelay`, and `editorColors`.
 - Runtime config/meta writes are orchestrated in the client and persisted via
-  the `PlatformApi`, which currently resolves scoped config/meta files through
-  the minimal `/api/fs/file` route.
+  the `PlatformApi`, which resolves scoped desktop files alongside the vault.
 
 ## Common change chains
 

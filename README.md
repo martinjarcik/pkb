@@ -19,8 +19,8 @@ cd <repo-dir>
 npm install
 ```
 
-`npm install` automatically runs `nuxt prepare` to generate Nuxt types and
-`husky` to install git hooks.
+`npm install` installs frontend and desktop dependencies and `husky` installs
+git hooks.
 
 ### Run The App
 
@@ -28,7 +28,8 @@ npm install
 npm run dev
 ```
 
-Then open `http://localhost:3000`.
+Then open the Vite dev URL shown in the terminal, or run the app through Tauri
+once the desktop host is installed.
 
 ## Documentation
 
@@ -44,15 +45,15 @@ Then open `http://localhost:3000`.
 
 ## Scripts
 
-| Command                | Purpose                                     |
-| ---------------------- | ------------------------------------------- |
-| `npm run dev`          | Start dev server at `http://localhost:3000` |
-| `npm run build`        | Production build                            |
-| `npm run preview`      | Preview production build locally            |
-| `npm run lint`         | Check for lint errors (ESLint)              |
-| `npm run lint:fix`     | Auto-fix lint errors                        |
-| `npm run format`       | Format all files (Prettier)                 |
-| `npm run format:check` | Check formatting without writing            |
-| `npm run typecheck`    | Type-check the project (Nuxt typecheck)     |
-| `npm run test:unit`    | Run unit tests in watch mode (Vitest)       |
-| `npm run test:unit:ci` | Run unit tests once                         |
+| Command                | Purpose                               |
+| ---------------------- | ------------------------------------- |
+| `npm run dev`          | Start the Vite dev server             |
+| `npm run build`        | Production build                      |
+| `npm run preview`      | Preview production build locally      |
+| `npm run lint`         | Check for lint errors (ESLint)        |
+| `npm run lint:fix`     | Auto-fix lint errors                  |
+| `npm run format`       | Format all files (Prettier)           |
+| `npm run format:check` | Check formatting without writing      |
+| `npm run typecheck`    | Type-check the project (`vue-tsc`)    |
+| `npm run test:unit`    | Run unit tests in watch mode (Vitest) |
+| `npm run test:unit:ci` | Run unit tests once                   |

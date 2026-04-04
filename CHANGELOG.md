@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+- Start the Tauri-only desktop migration: add a plain Vue + Vite shell
+  alongside the existing Nuxt app, add the Tauri IPC `PlatformApi`
+  implementation and Rust command scaffold, remove HTTP-specific image URL
+  assumptions, and switch shared app state from Nuxt `useState()` to shared
+  Vue refs.
 - Convert the app to a client-only SPA: Nuxt SSR is disabled, startup now loads
   full notes into in-memory client state, note search/trash purge/webhooks run on
   the client, config/meta persistence moved behind client-side persistence

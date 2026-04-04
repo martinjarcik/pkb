@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import { ChevronDown, Plus } from 'lucide-vue-next'
+import { useSidebarNavigation } from '~/composables/useSidebarNavigation'
+import { useTranslations } from '~/composables/useTranslations'
 
 const { t } = useTranslations()
 const emit = defineEmits<{

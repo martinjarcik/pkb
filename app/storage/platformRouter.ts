@@ -1,11 +1,15 @@
 import type { StorageType } from '~/config/loader'
-import { httpPlatformApi } from './httpPlatformApi'
 import type { PlatformApi } from './platformApi'
+import { createTauriPlatformApi } from './tauriPlatformApi'
 
-export function getPlatformApi(storageType: StorageType): PlatformApi | null {
+export function getPlatformApi(
+  storageType: StorageType,
+  vaultPath: string,
+  assetsFolder: string,
+): PlatformApi | null {
   switch (storageType) {
     case 'filesystem':
-      return httpPlatformApi
+      return createTauriPlatformApi(vaultPath, assetsFolder)
     case 'database':
       return null
     default:

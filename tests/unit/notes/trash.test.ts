@@ -7,7 +7,7 @@ import {
 
 describe('catalogRowIsTrashed', () => {
   it('returns false when trashedAt is missing', () => {
-    expect(catalogRowIsTrashed({ trashedAt: undefined })).toBe(false)
+    expect(catalogRowIsTrashed({})).toBe(false)
   })
 
   it('returns false when trashedAt is empty string', () => {
