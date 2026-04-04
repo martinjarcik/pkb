@@ -327,12 +327,19 @@ describe('parseAppConfig', () => {
     expect(parseAppConfig(config).editor.assetsFolder).toBe('media')
   })
 
-  it('rejects editor.assetsFolder with a slash', () => {
+  it('accepts editor.assetsFolder with nested relative segments', () => {
     const config = createConfig()
-    config.editor.assetsFolder = 'a/b'
+    config.editor.assetsFolder = 'assets/images'
+
+    expect(parseAppConfig(config).editor.assetsFolder).toBe('assets/images')
+  })
+
+  it('rejects editor.assetsFolder with an empty path segment', () => {
+    const config = createConfig()
+    config.editor.assetsFolder = 'a//b'
 
     expect(() => parseAppConfig(config)).toThrow(
-      'Config editor.assetsFolder must be a single path segment',
+      'Config editor.assetsFolder must be a safe relative path',
     )
   })
 
@@ -341,7 +348,7 @@ describe('parseAppConfig', () => {
     config.editor.assetsFolder = '.'
 
     expect(() => parseAppConfig(config)).toThrow(
-      'Config editor.assetsFolder must not be "." or ".."',
+      'Config editor.assetsFolder must be a safe relative path',
     )
   })
 })

@@ -1,19 +1,9 @@
-import { DEFAULT_EDITOR_COLOR, EDITOR_COLORS } from './editorColors'
+import { getDefaultEditorColor, getEditorColors } from './editorColors'
 
 // This file is a conversion hotspot for inline highlight syntax shared by the
 // markdown parser, serializer, and Editor.js tool.
 export const INLINE_HIGHLIGHT_CLASS = 'inline-highlight'
-
-export const INLINE_HIGHLIGHT_COLORS = EDITOR_COLORS
-const INLINE_HIGHLIGHT_COLOR_NAMES = Object.keys(INLINE_HIGHLIGHT_COLORS)
-
-export const INLINE_HIGHLIGHT_DEFAULT_COLOR = (
-  INLINE_HIGHLIGHT_COLOR_NAMES.includes(DEFAULT_EDITOR_COLOR)
-    ? DEFAULT_EDITOR_COLOR
-    : INLINE_HIGHLIGHT_COLOR_NAMES[0]
-) as InlineHighlightColor
-
-export type InlineHighlightColor = keyof typeof INLINE_HIGHLIGHT_COLORS
+export type InlineHighlightColor = string
 
 export type InlineHighlightStyle = {
   textColor: InlineHighlightColor | null
@@ -27,7 +17,11 @@ function escapeHtmlAttribute(value: string): string {
 export function isInlineHighlightColor(
   value: string,
 ): value is InlineHighlightColor {
-  return value in INLINE_HIGHLIGHT_COLORS
+  return value in getEditorColors()
+}
+
+export function getInlineHighlightDefaultColor(): InlineHighlightColor {
+  return getDefaultEditorColor()
 }
 
 export function normalizeInlineHighlightColor(
@@ -37,7 +31,7 @@ export function normalizeInlineHighlightColor(
     return value
   }
 
-  return INLINE_HIGHLIGHT_DEFAULT_COLOR
+  return getInlineHighlightDefaultColor()
 }
 
 /**
@@ -57,20 +51,20 @@ export function inlineHighlightMarkdownPrefix(
   }
 
   if (!textColor && bgColor) {
-    if (bgColor === INLINE_HIGHLIGHT_DEFAULT_COLOR) {
+    if (bgColor === getInlineHighlightDefaultColor()) {
       return ''
     }
 
-    const emoji = INLINE_HIGHLIGHT_COLORS[bgColor]!.emoji
+    const emoji = getEditorColors()[bgColor]!.emoji
     return `${emoji}${emoji}`
   }
 
   if (textColor && !bgColor) {
-    return INLINE_HIGHLIGHT_COLORS[textColor]!.emoji
+    return getEditorColors()[textColor]!.emoji
   }
 
-  const bgEmoji = INLINE_HIGHLIGHT_COLORS[bgColor!]!.emoji
-  const textEmoji = INLINE_HIGHLIGHT_COLORS[textColor!]!.emoji
+  const bgEmoji = getEditorColors()[bgColor!]!.emoji
+  const textEmoji = getEditorColors()[textColor!]!.emoji
   return `${bgEmoji}${bgEmoji}${textEmoji}`
 }
 
@@ -78,7 +72,7 @@ export function parseInlineHighlightMarkdownPrefix(text: string): {
   style: InlineHighlightStyle
   content: string
 } {
-  for (const [color, meta] of Object.entries(INLINE_HIGHLIGHT_COLORS)) {
+  for (const [color, meta] of Object.entries(getEditorColors())) {
     const triplePrefix = `${meta.emoji}${meta.emoji}${meta.emoji}`
     if (text.startsWith(triplePrefix)) {
       return {
@@ -91,7 +85,7 @@ export function parseInlineHighlightMarkdownPrefix(text: string): {
     }
   }
 
-  for (const [bgColor, bgMeta] of Object.entries(INLINE_HIGHLIGHT_COLORS)) {
+  for (const [bgColor, bgMeta] of Object.entries(getEditorColors())) {
     const doublePrefix = `${bgMeta.emoji}${bgMeta.emoji}`
     if (!text.startsWith(doublePrefix)) {
       continue
@@ -99,9 +93,7 @@ export function parseInlineHighlightMarkdownPrefix(text: string): {
 
     const afterDouble = text.slice(doublePrefix.length)
 
-    for (const [textColor, textMeta] of Object.entries(
-      INLINE_HIGHLIGHT_COLORS,
-    )) {
+    for (const [textColor, textMeta] of Object.entries(getEditorColors())) {
       if (afterDouble.startsWith(textMeta.emoji)) {
         return {
           style: {
@@ -122,7 +114,7 @@ export function parseInlineHighlightMarkdownPrefix(text: string): {
     }
   }
 
-  for (const [color, meta] of Object.entries(INLINE_HIGHLIGHT_COLORS)) {
+  for (const [color, meta] of Object.entries(getEditorColors())) {
     if (text.startsWith(meta.emoji)) {
       return {
         style: {
@@ -136,7 +128,7 @@ export function parseInlineHighlightMarkdownPrefix(text: string): {
 
   return {
     style: {
-      bgColor: INLINE_HIGHLIGHT_DEFAULT_COLOR,
+      bgColor: getInlineHighlightDefaultColor(),
       textColor: null,
     },
     content: text,
@@ -154,13 +146,13 @@ export function renderInlineHighlightHtml(
 
   if (bgColor) {
     styleParts.push(
-      `background-color: ${escapeHtmlAttribute(INLINE_HIGHLIGHT_COLORS[bgColor]!.background)}`,
+      `background-color: ${escapeHtmlAttribute(getEditorColors()[bgColor]!.background)}`,
     )
   }
 
   if (textColor) {
     styleParts.push(
-      `color: ${escapeHtmlAttribute(INLINE_HIGHLIGHT_COLORS[textColor]!.text)}`,
+      `color: ${escapeHtmlAttribute(getEditorColors()[textColor]!.text)}`,
     )
   }
 

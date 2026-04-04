@@ -61,6 +61,7 @@ export function useEditorSync({
     isApplyingExternalContent.value = true
 
     try {
+      await platformApi.value?.ensureReady()
       const blocks = renderNoteTitleBlocks(
         markdownToEditorjsBlocks(markdown, platformApi.value?.assetUrl),
         nextTitle,

@@ -97,7 +97,9 @@ shape because the app now keeps full note bodies in shared client state.
   - `NotesListControls` (`app/components/NotesListControls.vue`) — within-view
     filtering and refinement controls.
     - `NotesListActions` (`app/components/NotesListActions.vue`) — list-scoped
-      actions (for example create note).
+      actions (for example create note and the layout/settings menu).
+      - `SettingsDialog` (`app/components/SettingsDialog.vue`) — app settings
+        dialog opened from the NotesListActions menu.
   - `NotesList` (`app/components/NotesList.vue`) — scrollable note list.
 - `NotePanel` (`app/components/NotePanel.vue`) — active note region.
   - `NoteControls` (`app/components/NoteControls.vue`) — note toolbar region
@@ -272,7 +274,7 @@ produce stale views, failed saves, or overwritten files.
 
 The app runs as a single-process desktop SPA, so shared state is held in
 module-scope Vue refs owned only by `useAppConfigDisk()`, `useFolderMeta()`,
-`useLayout()`, `useNotes()`, and `useSidebarNavigation()`.
+`useLayout()`, `useNotes()`, `useSettings()`, and `useSidebarNavigation()`.
 
 - Other composables must receive shared refs through arguments or consume those
   state-owning composables.
@@ -293,21 +295,24 @@ module-scope Vue refs owned only by `useAppConfigDisk()`, `useFolderMeta()`,
   configuration state (e.g. panel visibility toggles) lives in composables
   initialized from these defaults.
 - `WorkspaceMeta` (`app/config/parseMeta.ts`) — typed workspace metadata (for
-  example per-folder emoji icons), persisted in `meta.yaml` alongside the
-  vault. Loaded and updated through the client-side persistence layer backed by
+  example per-folder emoji icons), persisted in `meta.yaml` in the desktop app
+  data directory. Loaded and updated through the client-side persistence layer backed by
   the `PlatformApi`; `useFolderMeta()` holds reactive folder metadata in shared
   Vue refs.
 
 ### Config sources in the running app
 
 - Disk-backed config (`useAppConfigDisk()`) is loaded on startup from the
-  client-side persistence layer and currently affects layout panel visibility
-  plus the excluded `editor.assetsFolder` name in `useSidebarNavigation()`.
-- Bundled defaults from `loadConfig()` still drive `theme.accentColor`,
-  `theme.defaultEditorColor`, all `features.*` flags, `locale`,
-  `editor.autosaveDelay`, and `editorColors`.
+  client-side persistence layer and drives runtime settings in the app shell,
+  including `locale`, `features.*`, `notes.trashRetentionDays`,
+  `editor.autosaveDelay`, `editor.assetsFolder`, `layout.*`,
+  `theme.accentColor`, `theme.defaultEditorColor`, and `editorColors`.
+- Bundled defaults from `loadConfig()` provide the initial in-memory fallback
+  before disk load succeeds and remain the validation baseline for missing
+  scoped files.
 - Runtime config/meta writes are orchestrated in the client and persisted via
-  the `PlatformApi`, which resolves scoped desktop files alongside the vault.
+  the `PlatformApi`. Both `app-config.yaml` and `meta.yaml` live in the desktop
+  app data directory.
 
 ## Common change chains
 

@@ -1,5 +1,4 @@
 import { computed, ref } from 'vue'
-import { loadConfig } from '~/config/loader'
 import { useAppConfigDisk } from '~/composables/useAppConfigDisk'
 import { useNoteMutations } from '~/composables/useNoteMutations'
 import { useNoteStorage } from '~/composables/useNoteStorage'
@@ -8,7 +7,6 @@ import { noteDescriptionFromContent } from '~/notes/noteDescriptionFromContent'
 import { catalogRowIsTrashed, trashExpired } from '~/notes/trash'
 import type { Note, NoteCatalogRow } from '~/notes/types'
 
-const defaultEditor = loadConfig().editor
 type EditorFlush = () => Promise<void>
 const allNotes = ref<Note[]>([])
 const notes = ref<NoteCatalogRow[]>([])
@@ -23,9 +21,11 @@ const selectedNoteFull = ref<Note | null>(null)
 const selectedNoteRequestId = ref(0)
 
 export function useNotes() {
-  const editorAutosaveDelay = defaultEditor.autosaveDelay
-  const { storage } = useNoteStorage()
   const { data: appConfigDisk } = useAppConfigDisk()
+  const editorAutosaveDelay = computed(
+    () => appConfigDisk.value.editor.autosaveDelay,
+  )
+  const { storage } = useNoteStorage()
 
   function rebuildCatalog(): void {
     notes.value = sortNotesByModifiedAt(

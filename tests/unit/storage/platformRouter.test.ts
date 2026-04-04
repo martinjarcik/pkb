@@ -7,6 +7,7 @@ describe('getPlatformApi', () => {
 
     expect(platformApi).not.toBeNull()
     expect(typeof platformApi?.readAllNotes).toBe('function')
+    expect(typeof platformApi?.ensureReady).toBe('function')
     expect(typeof platformApi?.assetUrl).toBe('function')
   })
 

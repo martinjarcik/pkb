@@ -1,5 +1,5 @@
 import {
-  INLINE_HIGHLIGHT_DEFAULT_COLOR,
+  getInlineHighlightDefaultColor,
   inlineHighlightMarkdownPrefix,
   isInlineHighlightColor,
   type InlineHighlightStyle,
@@ -40,11 +40,11 @@ export function inlineHtmlToMarkdown(text: string): string {
           const bgColor =
             raw && isInlineHighlightColor(raw)
               ? raw
-              : INLINE_HIGHLIGHT_DEFAULT_COLOR
+              : getInlineHighlightDefaultColor()
           style = { bgColor, textColor: null }
         } else {
           style = {
-            bgColor: INLINE_HIGHLIGHT_DEFAULT_COLOR,
+            bgColor: getInlineHighlightDefaultColor(),
             textColor: null,
           }
         }

@@ -20,6 +20,7 @@ import {
   toggleInlineTagInsideHighlight,
 } from '~/lib/editorjsHighlightExecPatch'
 import { renderNoteTitleBlocks } from '~/lib/editorjsTitleBlock'
+import { patchEditorImageToolForLocalAssets } from '~/lib/editorjsImageTool'
 import InlineHighlightTool from '~/lib/inlineHighlightTool'
 import InlineHashtagTool from '~/lib/inlineHashtagTool'
 import { markdownToEditorjsBlocks } from '~/lib/markdownToBlocks'
@@ -228,6 +229,7 @@ onMounted(async () => {
   try {
     const initialContent = props.content
     const initialTitle = props.title
+    await platformApi.value?.ensureReady()
     const [
       editorModule,
       headerModule,
@@ -248,7 +250,9 @@ onMounted(async () => {
     const Delimiter = getDefaultExport(delimiterModule)
     const InlineCode = getDefaultExport(inlineCodeModule)
     const Table = getDefaultExport(tableModule)
-    const ImageTool = getDefaultExport(imageModule)
+    const ImageTool = patchEditorImageToolForLocalAssets(
+      getDefaultExport(imageModule) as new (...args: never[]) => unknown,
+    )
     const blocks = renderNoteTitleBlocks(
       markdownToEditorjsBlocks(initialContent, platformApi.value?.assetUrl),
       initialTitle,
@@ -273,7 +277,7 @@ onMounted(async () => {
         Delimiter: Delimiter as new (...args: never[]) => unknown,
         InlineCode: InlineCode as new (...args: never[]) => unknown,
         Table: Table as new (...args: never[]) => unknown,
-        ImageTool: ImageTool as new (...args: never[]) => unknown,
+        ImageTool,
         translate,
         async uploadByFile(file: File) {
           if (platformApi.value === null) {
@@ -299,6 +303,7 @@ onMounted(async () => {
     await nextTick()
 
     if (props.content !== initialContent || props.title !== initialTitle) {
+      await platformApi.value?.ensureReady()
       const latestBlocks = renderNoteTitleBlocks(
         markdownToEditorjsBlocks(props.content, platformApi.value?.assetUrl),
         props.title,

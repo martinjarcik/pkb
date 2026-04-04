@@ -1,5 +1,5 @@
 import { computed, type Ref } from 'vue'
-import { loadConfig } from '~/config/loader'
+import { useAppConfigDisk } from '~/composables/useAppConfigDisk'
 import en from '~/locales/en.json'
 
 type Messages = Record<string, unknown>
@@ -25,17 +25,17 @@ function resolveKey(messages: Messages, key: string): string {
   return typeof current === 'string' ? current : key
 }
 
-const activeLocale = loadConfig().locale
-
-function resolvedLocale(): string {
-  return activeLocale in localeMessages ? activeLocale : FALLBACK_LOCALE
+function resolveLocale(locale: string): string {
+  return locale in localeMessages ? locale : FALLBACK_LOCALE
 }
 
 // Keep a standalone translator for composables and editor helpers that only need
 // synchronous string lookup, not reactive locale state.
 export function t(key: string): string {
+  const { data: appConfigDisk } = useAppConfigDisk()
   const messages =
-    localeMessages[resolvedLocale()] ?? localeMessages[FALLBACK_LOCALE]
+    localeMessages[resolveLocale(appConfigDisk.value.locale)] ??
+    localeMessages[FALLBACK_LOCALE]
 
   return resolveKey(messages as Messages, key)
 }
@@ -44,7 +44,8 @@ export function useTranslations(): {
   t: (key: string) => string
   locale: Ref<string>
 } {
-  const locale = computed(() => resolvedLocale())
+  const { data: appConfigDisk } = useAppConfigDisk()
+  const locale = computed(() => resolveLocale(appConfigDisk.value.locale))
 
   return { t, locale }
 }

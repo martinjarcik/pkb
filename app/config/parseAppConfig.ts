@@ -113,19 +113,21 @@ export function parseEditorAssetsFolder(
     )
   }
 
-  const name = raw.trim()
+  const path = raw.trim()
+  const segments = path.split('/')
 
-  if (name.includes('/') || name.includes('\\')) {
-    throw new Error(
-      'Config editor.assetsFolder must be a single path segment (no slashes)',
-    )
+  for (const segment of segments) {
+    if (
+      segment.length === 0 ||
+      segment === '.' ||
+      segment === '..' ||
+      segment.includes('\\')
+    ) {
+      throw new Error('Config editor.assetsFolder must be a safe relative path')
+    }
   }
 
-  if (name === '.' || name === '..') {
-    throw new Error('Config editor.assetsFolder must not be "." or ".."')
-  }
-
-  return name
+  return path
 }
 
 function parseEditorColors(value: unknown): EditorColors {

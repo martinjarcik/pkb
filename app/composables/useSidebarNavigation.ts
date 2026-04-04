@@ -1,5 +1,4 @@
 import { computed, ref } from 'vue'
-import { loadConfig } from '~/config/loader'
 import { useAppConfigDisk } from '~/composables/useAppConfigDisk'
 import { useFolderMeta } from '~/composables/useFolderMeta'
 import { useNotes } from '~/composables/useNotes'
@@ -21,7 +20,6 @@ import {
 } from '~/notes/sidebarFilters'
 import type { NoteCatalogRow } from '~/notes/types'
 
-const defaultTheme = loadConfig().theme
 const selectedView = ref<SidebarWorkspaceView>({ kind: 'inbox' })
 const searchInput = ref('')
 const searchRequestId = ref(0)
@@ -34,7 +32,7 @@ export function useSidebarNavigation() {
   const { storage } = useNoteStorage()
   const { meta } = useFolderMeta()
   const { data: appConfigDisk } = useAppConfigDisk()
-  const accentColor = computed(() => defaultTheme.accentColor)
+  const accentColor = computed(() => appConfigDisk.value.theme.accentColor)
   const catalogDerivedFolders = computed(() =>
     vaultTopLevelFolderNames(catalog.value.map((row) => row.id)),
   )
@@ -52,8 +50,8 @@ export function useSidebarNavigation() {
       explicitFolders.value,
     )
     const excluded =
-      appConfigDisk.value?.editor.assetsFolder ??
-      loadConfig().editor.assetsFolder
+      appConfigDisk.value.editor.assetsFolder.split('/')[0] ??
+      appConfigDisk.value.editor.assetsFolder
 
     return merged.filter((name) => name !== excluded)
   })

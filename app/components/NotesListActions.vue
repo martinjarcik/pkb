@@ -4,11 +4,13 @@ import { useEventListener } from '@vueuse/core'
 import { MoreVertical } from 'lucide-vue-next'
 import { useLayout } from '~/composables/useLayout'
 import { useNotes } from '~/composables/useNotes'
+import { useSettings } from '~/composables/useSettings'
 import { useSidebarNavigation } from '~/composables/useSidebarNavigation'
 import { useTranslations } from '~/composables/useTranslations'
 
 const { t } = useTranslations()
 const { createNote } = useNotes()
+const { openSettings } = useSettings()
 const { selectedView, selectedTags } = useSidebarNavigation()
 const {
   showInspectorPanel,
@@ -95,6 +97,11 @@ function handleToggleInspector(): void {
   toggleInspectorPanel()
   layoutMenuOpen.value = false
 }
+
+function handleOpenSettings(): void {
+  openSettings()
+  layoutMenuOpen.value = false
+}
 </script>
 
 <template>
@@ -172,9 +179,19 @@ function handleToggleInspector(): void {
                   : t('layoutMenu.showInspector')
               }}
             </button>
+            <Separator class="my-1" />
+            <button
+              class="w-full rounded-sm px-2 py-1.5 text-left text-sm transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              role="menuitem"
+              type="button"
+              @click="handleOpenSettings"
+            >
+              {{ t('layoutMenu.settings') }}
+            </button>
           </div>
         </div>
       </Teleport>
     </div>
+    <SettingsDialog />
   </div>
 </template>

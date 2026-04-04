@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+- Move persisted `app-config.yaml` and `meta.yaml` storage into the desktop app
+  data directory, and add legacy fallback reads from the old next-to-vault
+  locations.
+- Add a Settings dialog opened from the `NotesListActions` menu, persist its
+  changes to the scoped desktop `app-config.yaml`, and make locale, feature
+  flags, layout defaults, editor timing, accent color, and editor color
+  defaults react to disk-backed config at runtime.
 - Start the Tauri-only desktop migration: add a plain Vue + Vite shell
   alongside the existing Nuxt app, add the Tauri IPC `PlatformApi`
   implementation and Rust command scaffold, remove HTTP-specific image URL

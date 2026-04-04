@@ -1,12 +1,12 @@
 import type { API, SanitizerConfig } from '@editorjs/editorjs'
 import {
   INLINE_HIGHLIGHT_CLASS,
-  INLINE_HIGHLIGHT_COLORS,
-  INLINE_HIGHLIGHT_DEFAULT_COLOR,
+  getInlineHighlightDefaultColor,
   isInlineHighlightColor,
   type InlineHighlightColor,
   type InlineHighlightStyle,
 } from './inlineHighlight'
+import { getEditorColors } from './editorColors'
 import { backgroundSwatchIcon } from './editorColorSwatch'
 import { ICON_CLEAR } from './editorIcons'
 import { unwrapInlineTag } from './editorjsInlineToolUtils'
@@ -87,7 +87,7 @@ export default class InlineHighlightTool {
     }
 
     const defaultStyle: InlineHighlightStyle = {
-      bgColor: INLINE_HIGHLIGHT_DEFAULT_COLOR,
+      bgColor: getInlineHighlightDefaultColor(),
       textColor: null,
     }
     const nextMark = this.wrap(range, defaultStyle)
@@ -183,7 +183,7 @@ export default class InlineHighlightTool {
     })
     row.append(clearButton)
 
-    for (const [color, meta] of Object.entries(INLINE_HIGHLIGHT_COLORS)) {
+    for (const [color, meta] of Object.entries(getEditorColors())) {
       const button = document.createElement('button')
 
       button.type = 'button'
@@ -328,7 +328,7 @@ export default class InlineHighlightTool {
       return { bgColor: colorRaw, textColor: null }
     }
 
-    return { bgColor: INLINE_HIGHLIGHT_DEFAULT_COLOR, textColor: null }
+    return { bgColor: getInlineHighlightDefaultColor(), textColor: null }
   }
 
   private wrap(range: Range, style: InlineHighlightStyle): HTMLElement | null {
@@ -353,7 +353,7 @@ export default class InlineHighlightTool {
     if (style.bgColor) {
       element.dataset.bg = style.bgColor
       element.style.backgroundColor =
-        INLINE_HIGHLIGHT_COLORS[style.bgColor]!.background
+        getEditorColors()[style.bgColor]!.background
     } else {
       delete element.dataset.bg
       element.style.backgroundColor = ''
@@ -361,7 +361,7 @@ export default class InlineHighlightTool {
 
     if (style.textColor) {
       element.dataset.text = style.textColor
-      element.style.color = INLINE_HIGHLIGHT_COLORS[style.textColor]!.text
+      element.style.color = getEditorColors()[style.textColor]!.text
     } else {
       delete element.dataset.text
       element.style.color = ''

@@ -1,6 +1,6 @@
 import type { API, BlockAPI } from '@editorjs/editorjs'
 import {
-  BLOCK_BACKGROUND_COLORS,
+  getBlockBackgroundColors,
   isBlockBackgroundColor,
   type BlockBackgroundColor,
 } from './editorjsBlockBackground'
@@ -63,16 +63,18 @@ export default class EditorjsBlockBackgroundTune {
             toggle: 'block-background-color',
             closeOnActivate: true,
           },
-          ...Object.entries(BLOCK_BACKGROUND_COLORS).map(([color, meta]) => ({
-            icon: backgroundSwatchIcon(meta.background),
-            title: meta.label,
-            onActivate: () => {
-              this.setColor(color as BlockBackgroundColor)
-            },
-            isActive: this.color === color,
-            toggle: 'block-background-color',
-            closeOnActivate: true,
-          })),
+          ...Object.entries(getBlockBackgroundColors()).map(
+            ([color, meta]) => ({
+              icon: backgroundSwatchIcon(meta.background),
+              title: meta.label,
+              onActivate: () => {
+                this.setColor(color as BlockBackgroundColor)
+              },
+              isActive: this.color === color,
+              toggle: 'block-background-color',
+              closeOnActivate: true,
+            }),
+          ),
         ],
       },
     }
@@ -111,7 +113,7 @@ export default class EditorjsBlockBackgroundTune {
     this.element.dataset.blockBackgroundColor = this.color
     this.element.style.setProperty(
       '--editor-block-background-color',
-      BLOCK_BACKGROUND_COLORS[this.color]!.background,
+      getBlockBackgroundColors()[this.color]!.background,
     )
   }
 }

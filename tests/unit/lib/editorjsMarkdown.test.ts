@@ -1,19 +1,21 @@
 import { describe, expect, it } from 'vitest'
 import { editorjsBlocksToMarkdown } from '~/lib/blocksToMarkdown'
+import { getEditorColors } from '~/lib/editorColors'
 import { markdownToEditorjsBlocks } from '~/lib/markdownToBlocks'
 import {
-  INLINE_HIGHLIGHT_COLORS,
-  INLINE_HIGHLIGHT_DEFAULT_COLOR,
+  getInlineHighlightDefaultColor,
   inlineHighlightMarkdownPrefix,
 } from '~/lib/inlineHighlight'
 
+const inlineHighlightColors = getEditorColors()
+const inlineHighlightDefaultColor = getInlineHighlightDefaultColor()
 const altColor =
-  Object.keys(INLINE_HIGHLIGHT_COLORS).find(
-    (color) => color !== INLINE_HIGHLIGHT_DEFAULT_COLOR,
-  ) ?? INLINE_HIGHLIGHT_DEFAULT_COLOR
+  Object.keys(inlineHighlightColors).find(
+    (color) => color !== inlineHighlightDefaultColor,
+  ) ?? inlineHighlightDefaultColor
 
-const defaultBg = INLINE_HIGHLIGHT_COLORS[INLINE_HIGHLIGHT_DEFAULT_COLOR]!
-const altMeta = INLINE_HIGHLIGHT_COLORS[altColor]!
+const defaultBg = inlineHighlightColors[inlineHighlightDefaultColor]!
+const altMeta = inlineHighlightColors[altColor]!
 const assetDisplayUrl = (path: string) => `asset://${path}`
 const markdownAssetUrl = (fileUrl: string) => fileUrl.replace('asset://', '')
 
@@ -492,7 +494,7 @@ describe('editorjsMarkdown', () => {
       {
         type: 'paragraph',
         data: {
-          text: `Use <mark class="inline-highlight" data-bg="${INLINE_HIGHLIGHT_DEFAULT_COLOR}" style="background-color: ${defaultBg.background}">important</mark> text.`,
+          text: `Use <mark class="inline-highlight" data-bg="${inlineHighlightDefaultColor}" style="background-color: ${defaultBg.background}">important</mark> text.`,
         },
       },
     ])
@@ -531,7 +533,7 @@ describe('editorjsMarkdown', () => {
   })
 
   it('parses combined bg+text highlight (three emojis) to editor HTML', () => {
-    const bgColor = INLINE_HIGHLIGHT_DEFAULT_COLOR
+    const bgColor = inlineHighlightDefaultColor
     const textColor = altColor
     const prefix = inlineHighlightMarkdownPrefix({
       bgColor,
@@ -587,7 +589,7 @@ describe('editorjsMarkdown', () => {
         {
           type: 'paragraph',
           data: {
-            text: `Use <mark class="inline-highlight" data-bg="${INLINE_HIGHLIGHT_DEFAULT_COLOR}" style="background-color: ${defaultBg.background}">important</mark> text.`,
+            text: `Use <mark class="inline-highlight" data-bg="${inlineHighlightDefaultColor}" style="background-color: ${defaultBg.background}">important</mark> text.`,
           },
         },
       ]),
@@ -626,7 +628,7 @@ describe('editorjsMarkdown', () => {
         {
           type: 'paragraph',
           data: {
-            text: `Use <mark class="inline-highlight" data-bg="${INLINE_HIGHLIGHT_DEFAULT_COLOR}" data-text="${altColor}" style="background-color: ${defaultBg.background}; color: ${altMeta.text}">styled</mark> text.`,
+            text: `Use <mark class="inline-highlight" data-bg="${inlineHighlightDefaultColor}" data-text="${altColor}" style="background-color: ${defaultBg.background}; color: ${altMeta.text}">styled</mark> text.`,
           },
         },
       ]),
@@ -721,7 +723,7 @@ describe('editorjsMarkdown', () => {
 
   it('round-trips combined bg+text highlight markdown', () => {
     const prefix = inlineHighlightMarkdownPrefix({
-      bgColor: INLINE_HIGHLIGHT_DEFAULT_COLOR,
+      bgColor: inlineHighlightDefaultColor,
       textColor: altColor,
     })
     const markdown = `Use ==${prefix}styled== text.`
@@ -1072,7 +1074,7 @@ describe('editorjsMarkdown', () => {
         {
           type: 'paragraph',
           data: {
-            text: `Use <b><mark class="inline-highlight" data-bg="${INLINE_HIGHLIGHT_DEFAULT_COLOR}" style="background-color: ${defaultBg.background}">important</mark></b> text.`,
+            text: `Use <b><mark class="inline-highlight" data-bg="${inlineHighlightDefaultColor}" style="background-color: ${defaultBg.background}">important</mark></b> text.`,
           },
         },
       ]),
@@ -1085,7 +1087,7 @@ describe('editorjsMarkdown', () => {
         {
           type: 'paragraph',
           data: {
-            text: `Use <i><mark class="inline-highlight" data-bg="${INLINE_HIGHLIGHT_DEFAULT_COLOR}" style="background-color: ${defaultBg.background}">important</mark></i> text.`,
+            text: `Use <i><mark class="inline-highlight" data-bg="${inlineHighlightDefaultColor}" style="background-color: ${defaultBg.background}">important</mark></i> text.`,
           },
         },
       ]),
@@ -1098,7 +1100,7 @@ describe('editorjsMarkdown', () => {
         {
           type: 'paragraph',
           data: {
-            text: `Use <mark class="inline-highlight" data-bg="${INLINE_HIGHLIGHT_DEFAULT_COLOR}" style="background-color: ${defaultBg.background}"><b>important</b></mark> text.`,
+            text: `Use <mark class="inline-highlight" data-bg="${inlineHighlightDefaultColor}" style="background-color: ${defaultBg.background}"><b>important</b></mark> text.`,
           },
         },
       ]),

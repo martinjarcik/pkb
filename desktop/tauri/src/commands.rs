@@ -168,15 +168,33 @@ fn path_to_note_id(root: &Path, path: &Path) -> Result<String, String> {
     Ok(relative.to_string_lossy().replace('\\', "/"))
 }
 
-fn scoped_file_path(vault_path: &str, scope: &str) -> Result<PathBuf, String> {
+fn legacy_app_config_path(vault_path: &str) -> Result<PathBuf, String> {
     let vault = resolve_root_path(vault_path);
     let vault_parent = vault
         .parent()
         .ok_or_else(|| "Vault path must have a parent directory".to_string())?;
 
+    Ok(vault_parent.join("app-config.yaml"))
+}
+
+fn legacy_meta_path(vault_path: &str) -> Result<PathBuf, String> {
+    let vault = resolve_root_path(vault_path);
+    let vault_parent = vault
+        .parent()
+        .ok_or_else(|| "Vault path must have a parent directory".to_string())?;
+
+    Ok(vault_parent.join("meta.yaml"))
+}
+
+fn scoped_file_path(handle: &tauri::AppHandle, _vault_path: &str, scope: &str) -> Result<PathBuf, String> {
+    let data_dir = APP_DATA_DIR
+        .get()
+        .cloned()
+        .unwrap_or(handle.path().app_data_dir().map_err(|e| e.to_string())?);
+
     match scope {
-        "app-config" => Ok(vault_parent.join("app-config.yaml")),
-        "meta" => Ok(vault_parent.join("meta.yaml")),
+        "app-config" => Ok(data_dir.join("app-config.yaml")),
+        "meta" => Ok(data_dir.join("meta.yaml")),
         _ => Err("Invalid file scope".to_string()),
     }
 }
@@ -367,10 +385,28 @@ pub fn rename_directory(dir: String, old_path: String, new_path: String) -> Resu
 }
 
 #[tauri::command]
-pub fn read_scoped_text_file(vault_path: String, scope: String) -> Result<Option<PlatformTextFile>, String> {
-    let path = scoped_file_path(&vault_path, &scope)?;
+pub fn read_scoped_text_file(
+    handle: tauri::AppHandle,
+    vault_path: String,
+    scope: String,
+) -> Result<Option<PlatformTextFile>, String> {
+    let path = scoped_file_path(&handle, &vault_path, &scope)?;
 
     if !path.exists() {
+        if scope == "app-config" {
+            let legacy_path = legacy_app_config_path(&vault_path)?;
+
+            if legacy_path.exists() {
+                return Ok(Some(text_file_with_stats(&legacy_path)?));
+            }
+        } else if scope == "meta" {
+            let legacy_path = legacy_meta_path(&vault_path)?;
+
+            if legacy_path.exists() {
+                return Ok(Some(text_file_with_stats(&legacy_path)?));
+            }
+        }
+
         return Ok(None);
     }
 
@@ -379,11 +415,12 @@ pub fn read_scoped_text_file(vault_path: String, scope: String) -> Result<Option
 
 #[tauri::command]
 pub fn write_scoped_text_file(
+    handle: tauri::AppHandle,
     vault_path: String,
     scope: String,
     content: String,
 ) -> Result<PlatformTextFile, String> {
-    let path = scoped_file_path(&vault_path, &scope)?;
+    let path = scoped_file_path(&handle, &vault_path, &scope)?;
 
     if let Some(parent) = path.parent() {
         fs::create_dir_all(parent).map_err(|error| error.to_string())?;

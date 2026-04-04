@@ -55,6 +55,7 @@ function parseErrorMessage(error: unknown): string {
 }
 
 let tauriCore: TauriCoreModule | null = null
+let initDataDirPromise: Promise<string> | null = null
 
 async function loadTauriCore(): Promise<TauriCoreModule> {
   if (tauriCore !== null) {
@@ -79,6 +80,12 @@ async function callTauri<T>(
   }
 }
 
+async function ensureDataDirInitialized(): Promise<string> {
+  initDataDirPromise ??= callTauri<string>('init_data_dir', {})
+
+  return initDataDirPromise
+}
+
 async function writeFileViaPlugin(
   absolutePath: string,
   data: Uint8Array,
@@ -93,35 +100,42 @@ type ResolvedContext = {
   convertFileSrc: (path: string) => string
 }
 
-let resolvedCtx: ResolvedContext | null = null
-let resolvePromise: Promise<ResolvedContext> | null = null
+const resolvedCtxByVault = new Map<string, ResolvedContext>()
+const resolvePromiseByVault = new Map<string, Promise<ResolvedContext>>()
 
 function isTauriEnvironment(): boolean {
   return typeof window !== 'undefined' && '__TAURI_INTERNALS__' in window
 }
 
 function resolveContext(vaultPath: string): Promise<ResolvedContext> {
-  if (resolvedCtx !== null) {
-    return Promise.resolve(resolvedCtx)
+  const cached = resolvedCtxByVault.get(vaultPath)
+
+  if (cached !== undefined) {
+    return Promise.resolve(cached)
   }
 
-  if (resolvePromise !== null) {
-    return resolvePromise
+  const pending = resolvePromiseByVault.get(vaultPath)
+
+  if (pending !== undefined) {
+    return pending
   }
 
-  resolvePromise = (async () => {
+  const resolvePromise = (async () => {
     const core = await loadTauriCore()
 
-    await callTauri<string>('init_data_dir', {})
+    await ensureDataDirInitialized()
 
     const absoluteVault = await callTauri<string>('resolve_vault', {
       dir: vaultPath,
     })
 
-    resolvedCtx = { absoluteVault, convertFileSrc: core.convertFileSrc }
+    const resolvedCtx = { absoluteVault, convertFileSrc: core.convertFileSrc }
+    resolvedCtxByVault.set(vaultPath, resolvedCtx)
+    resolvePromiseByVault.delete(vaultPath)
 
     return resolvedCtx
   })()
+  resolvePromiseByVault.set(vaultPath, resolvePromise)
 
   return resolvePromise
 }
@@ -171,6 +185,14 @@ export function createTauriPlatformApi(
   }
 
   return {
+    async ensureReady(): Promise<void> {
+      if (!isTauriEnvironment()) {
+        return
+      }
+
+      await resolveContext(vaultPath)
+    },
+
     async readAllNotes(dir: string): Promise<PlatformNoteFile[]> {
       return callTauri<PlatformNoteFile[]>('read_all_notes', { dir })
     },
@@ -214,6 +236,8 @@ export function createTauriPlatformApi(
     async readScopedTextFile(
       scope: PlatformFileScope,
     ): Promise<string | undefined> {
+      await ensureDataDirInitialized()
+
       const file = await callTauri<PlatformTextFile | null>(
         'read_scoped_text_file',
         {
@@ -229,6 +253,8 @@ export function createTauriPlatformApi(
       scope: PlatformFileScope,
       content: string,
     ): Promise<PlatformTextFile> {
+      await ensureDataDirInitialized()
+
       return callTauri<PlatformTextFile>('write_scoped_text_file', {
         scope,
         content,
@@ -263,7 +289,9 @@ export function createTauriPlatformApi(
     },
 
     assetUrl(relativePath: string): string {
-      if (resolvedCtx === null) {
+      const resolvedCtx = resolvedCtxByVault.get(vaultPath)
+
+      if (resolvedCtx === undefined) {
         return relativePath
       }
 
@@ -280,7 +308,9 @@ export function createTauriPlatformApi(
         return cached
       }
 
-      if (resolvedCtx === null) {
+      const resolvedCtx = resolvedCtxByVault.get(vaultPath)
+
+      if (resolvedCtx === undefined) {
         return fileUrl
       }
 

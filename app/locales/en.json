@@ -23,7 +23,96 @@
     "hideSidebar": "Hide Sidebar",
     "showSidebar": "Show Sidebar",
     "hideInspector": "Hide Inspector",
-    "showInspector": "Show Inspector"
+    "showInspector": "Show Inspector",
+    "settings": "Settings"
+  },
+  "settings": {
+    "title": "Settings",
+    "description": "Configure the workspace, features, editing behavior, and theme.",
+    "categories": {
+      "general": "General",
+      "generalDescription": "Workspace paths",
+      "features": "Features",
+      "featuresDescription": "Feature flags and panels",
+      "editing": "Editing",
+      "editingDescription": "Notes, editor, and colors",
+      "theme": "Theme",
+      "themeDescription": "Accent color"
+    },
+    "actions": {
+      "chooseDirectory": "Choose directory"
+    },
+    "sections": {
+      "features": "Workspace features",
+      "layout": "Panel visibility"
+    },
+    "fields": {
+      "vault": {
+        "label": "Vault",
+        "placeholder": "./vault",
+        "description": "Choose the local directory used for filesystem note storage."
+      },
+      "trashRetentionDays": {
+        "label": "Trash retention days",
+        "description": "Automatically delete trashed notes after this many days."
+      },
+      "autosaveDelay": {
+        "label": "Autosave delay (ms)",
+        "description": "Controls how long the editor waits before saving content changes."
+      },
+      "editorColors": {
+        "label": "Editor colors",
+        "description": "Preview the configured highlight and block background palette."
+      },
+      "accentColor": {
+        "label": "Accent color",
+        "description": "Used for primary highlights across the app."
+      },
+      "defaultEditorColor": {
+        "label": "Default editor color",
+        "placeholder": "Select a default editor color",
+        "description": "Used as the default highlight and background color for supported editor tools."
+      },
+      "features": {
+        "favorites": {
+          "label": "Favorites",
+          "description": "Show the Favorites workspace view and favorite note actions."
+        },
+        "tasks": {
+          "label": "Tasks",
+          "description": "Show the Tasks workspace view for notes with open checklist items."
+        },
+        "pinned": {
+          "label": "Pinned notes",
+          "description": "Allow notes to be pinned to the top of the current list."
+        },
+        "nonDistractionMode": {
+          "label": "Non-distraction mode",
+          "description": "Allow the note view to enter the focused writing layout."
+        },
+        "noteWebhook": {
+          "label": "Note webhook",
+          "description": "Allow notes to store and trigger outbound webhook URLs."
+        }
+      },
+      "layout": {
+        "showSidebarPanel": {
+          "label": "SidebarPanel",
+          "description": "Show the left workspace navigation panel by default."
+        },
+        "showNotesListPanel": {
+          "label": "NotesListPanel",
+          "description": "Show the center note list panel by default."
+        },
+        "showInspectorPanel": {
+          "label": "InspectorPanel",
+          "description": "Show the right properties panel by default."
+        }
+      }
+    },
+    "errors": {
+      "saveFailed": "Failed to save settings."
+    }
   },
   "notes": {
     "newNoteTitle": "New Note",

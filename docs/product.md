@@ -58,22 +58,43 @@ The notes list toolbar also includes a search field.
 - Clearing the search query restores the previously selected sidebar view and
   its normal filtered note list.
 
+The `NotesListActions` menu also includes a `Settings` action. It opens a
+centered dialog with four categories:
+
+- `General` — vault path.
+- `Features` — feature flags and default panel visibility.
+- `Editing` — trash retention, autosave delay, default editor color, and editor
+  color preview.
+- `Theme` — accent color.
+
+Settings are persisted in the desktop app settings directory as
+`app-config.yaml` and applied at runtime. Changing the vault path reloads the
+workspace with the updated configuration. Workspace metadata also uses
+`meta.yaml` in the same desktop app settings directory.
+
 ## Configuration
 
-| Key                         | Type    | Default        | Description                                                                     |
-| --------------------------- | ------- | -------------- | ------------------------------------------------------------------------------- |
-| `storageType`               | string  | `"filesystem"` | Storage backend: `filesystem`, `database` (future)                              |
-| `locale`                    | string  | `"en"`         | Active application locale                                                       |
-| `vault`                     | string  | `"./vault"`    | Path to the vault directory for filesystem storage                              |
-| `editor.autosaveDelay`      | number  | `2000`         | Milliseconds of idle time before content autosaves                              |
-| `editor.assetsFolder`       | string  | `"assets"`     | Top-level vault folder for uploaded note images (not shown as a sidebar folder) |
-| `layout.showInspectorPanel` | boolean | `true`         | Show the InspectorPanel                                                         |
-| `layout.showSidebarPanel`   | boolean | `true`         | Show the SidebarPanel                                                           |
-| `layout.showNotesListPanel` | boolean | `true`         | Show the NotesListPanel                                                         |
-| `theme.accentColor`         | string  | `"#3f57dfff"`  | Accent color for selected nav, pinned note icon, and list tint                  |
+| Key                           | Type    | Default        | Description                                                                                            |
+| ----------------------------- | ------- | -------------- | ------------------------------------------------------------------------------------------------------ |
+| `storageType`                 | string  | `"filesystem"` | Storage backend: `filesystem`, `database` (future)                                                     |
+| `locale`                      | string  | `"en"`         | Active application locale                                                                              |
+| `vault`                       | string  | `"./vault"`    | Path to the vault directory for filesystem storage                                                     |
+| `features.favorites`          | boolean | `true`         | Show Favorites in SidebarNavigation and note favorite controls                                         |
+| `features.tasks`              | boolean | `true`         | Show Tasks in SidebarNavigation                                                                        |
+| `features.pinned`             | boolean | `true`         | Enable note pinning controls and pinned note ordering                                                  |
+| `features.nonDistractionMode` | boolean | `true`         | Enable the non-distraction mode control in NoteControls                                                |
+| `features.noteWebhook`        | boolean | `true`         | Enable note webhook controls                                                                           |
+| `notes.trashRetentionDays`    | number  | `30`           | Days to keep trashed notes before permanent deletion                                                   |
+| `editor.autosaveDelay`        | number  | `2000`         | Milliseconds of idle time before content autosaves                                                     |
+| `editor.assetsFolder`         | string  | `"assets"`     | Vault-relative folder path for uploaded note images (its top-level segment is hidden from the sidebar) |
+| `layout.showInspectorPanel`   | boolean | `true`         | Show the InspectorPanel                                                                                |
+| `layout.showSidebarPanel`     | boolean | `true`         | Show the SidebarPanel                                                                                  |
+| `layout.showNotesListPanel`   | boolean | `true`         | Show the NotesListPanel                                                                                |
+| `theme.accentColor`           | string  | `"#3f57dfff"`  | Accent color for selected nav, pinned note icon, and list tint                                         |
+| `theme.defaultEditorColor`    | string  | `"yellow"`     | Default editor highlight/background color key                                                          |
 
-Workspace metadata (folder icons, etc.) is stored in `meta.yaml` (see Vault
-Folder Views), not in `app/config/default.yaml`.
+Workspace metadata (folder icons, etc.) is stored in `meta.yaml` in the desktop
+app settings directory (see Vault Folder Views), not in `app/config/default.yaml`.
 
 ## Features
 
@@ -109,15 +130,16 @@ of the app.
 #### Images in notes (desktop)
 
 - The note editor includes an **Image** block (`@editorjs/image`). Uploads are
-  stored as files under `{vault}/{editor.assetsFolder}/` (default folder name
+  stored as files under `{vault}/{editor.assetsFolder}/` (default path
   `assets`).
 - Saved note Content stores standard Markdown image syntax with a vault-relative
   path, for example `![](assets/<filename>.png)`.
 - The desktop runtime resolves those files to desktop-safe asset URLs through
   the platform API so the editor can display them. Upload is available only
   when `storageType` is `filesystem`.
-- The configured `editor.assetsFolder` name is **not** listed as a Vault
-  folder row in the sidebar (even if the directory exists on disk).
+- The configured `editor.assetsFolder` path is stored relative to the Vault and
+  must stay inside it. The top-level folder segment of that path is **not**
+  listed as a Vault folder row in the sidebar.
 
 ### Inbox View
 
@@ -151,7 +173,7 @@ Top-level Vault folders appear below `Inbox` in `SidebarPanel`.
 - When a folder is selected, the first visible note in that folder becomes the
   active note automatically.
 - Optional **folder metadata** (currently an emoji icon) is stored in workspace
-  `meta.yaml` alongside the vault. The same metadata preserves
+  `meta.yaml` in the desktop app settings directory. The same metadata preserves
   explicitly created empty folders across reloads now that the app no longer
   loads a dedicated folder-list API. Desktop reads and writes that file through
   the same platform API abstraction used for note files. Use the **+** control
@@ -233,6 +255,6 @@ The note content area uses Editor.js as the editing surface.
 The application uses the custom `useTranslations` composable for UI translations.
 
 - English (`en`) is the default and currently the only bundled locale.
-- The active locale is selected through `app/config/default.yaml` via the `locale` key.
+- The active locale is selected through the persisted `AppConfig` (`app/config/default.yaml` defaults, overridden by scoped desktop `app-config.yaml`).
 - User-facing UI strings and Editor.js labels are sourced from `app/locales/en.json`.
 - Adding another language requires a new locale file and an updated config value.

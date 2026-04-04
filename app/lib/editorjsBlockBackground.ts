@@ -1,11 +1,14 @@
-import { EDITOR_COLORS } from './editorColors'
+import { getEditorColors } from './editorColors'
 import type { EditorjsBlock } from './editorjsMarkdownTypes'
 
-export const BLOCK_BACKGROUND_COLORS = EDITOR_COLORS
 export const BLOCK_BACKGROUND_TUNE_NAME = 'backgroundColor'
 export const BLOCK_BACKGROUND_CLASS_PREFIX = 'editor-background-'
 
-export type BlockBackgroundColor = keyof typeof BLOCK_BACKGROUND_COLORS
+export type BlockBackgroundColor = string
+
+export function getBlockBackgroundColors() {
+  return getEditorColors()
+}
 
 function isBlockBackgroundClass(value: string): boolean {
   return value.startsWith(BLOCK_BACKGROUND_CLASS_PREFIX)
@@ -18,7 +21,7 @@ function blockBackgroundCssClass(color: BlockBackgroundColor): string {
 export function isBlockBackgroundColor(
   value: string | undefined,
 ): value is BlockBackgroundColor {
-  return Boolean(value && value in BLOCK_BACKGROUND_COLORS)
+  return Boolean(value && value in getEditorColors())
 }
 
 export function extractBlockBackgroundColorFromCssClasses(

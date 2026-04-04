@@ -1,13 +1,16 @@
-import { loadConfig } from '~/config/loader'
-
-const defaultFeatures = loadConfig().features
+import { computed } from 'vue'
+import { useAppConfigDisk } from '~/composables/useAppConfigDisk'
 
 export function useAppFeatures() {
+  const { data: appConfigDisk } = useAppConfigDisk()
+
   return {
-    favorites: defaultFeatures.favorites,
-    tasks: defaultFeatures.tasks,
-    pinned: defaultFeatures.pinned,
-    nonDistractionMode: defaultFeatures.nonDistractionMode,
-    noteWebhook: defaultFeatures.noteWebhook,
+    favorites: computed(() => appConfigDisk.value.features.favorites),
+    tasks: computed(() => appConfigDisk.value.features.tasks),
+    pinned: computed(() => appConfigDisk.value.features.pinned),
+    nonDistractionMode: computed(
+      () => appConfigDisk.value.features.nonDistractionMode,
+    ),
+    noteWebhook: computed(() => appConfigDisk.value.features.noteWebhook),
   }
 }

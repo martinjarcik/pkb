@@ -36,7 +36,7 @@ vi.mock('~/composables/useAppConfigDisk', () => ({
     data: {
       value: {
         editor: {
-          assetsFolder: 'assets',
+          assetsFolder: 'assets/images',
         },
       },
     },
@@ -49,6 +49,7 @@ vi.mock('~/composables/useFolderMeta', () => ({
       folders: {
         Projects: {},
         assets: {},
+        Keep: {},
       },
     }),
   }),
@@ -60,6 +61,6 @@ describe('useSidebarNavigation', () => {
 
     await loadFolders()
 
-    expect(topLevelFolders.value).toEqual(['Projects'])
+    expect(topLevelFolders.value).toEqual(['Keep', 'Projects'])
   })
 })

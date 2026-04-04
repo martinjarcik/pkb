@@ -1,10 +1,13 @@
-import { loadConfig } from '~/config/loader'
-
-const defaultTheme = loadConfig().theme
+import { computed } from 'vue'
+import { useAppConfigDisk } from '~/composables/useAppConfigDisk'
 
 export function useAppTheme() {
+  const { data: appConfigDisk } = useAppConfigDisk()
+
   return {
-    accentColor: defaultTheme.accentColor,
-    defaultEditorColor: defaultTheme.defaultEditorColor,
+    accentColor: computed(() => appConfigDisk.value.theme.accentColor),
+    defaultEditorColor: computed(
+      () => appConfigDisk.value.theme.defaultEditorColor,
+    ),
   }
 }

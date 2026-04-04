@@ -60,7 +60,7 @@ Deliver per-note webhooks from the Nitro server only: accept HTTPS URLs, POST JS
 
 ## D016 — 2026-03
 
-Store note images as files under a configurable top-level vault folder (`editor.assetsFolder`, default `assets`), expose Nitro `POST /api/vault-assets/upload` and `GET /api/vault-assets/*`, persist Markdown as `![caption](<relative path>)`, and hide the configured folder name from sidebar folder lists so asset storage does not appear as a navigable folder view.
+Store note images as files under a configurable vault-relative folder path (`editor.assetsFolder`, default `assets`), expose Nitro `POST /api/vault-assets/upload` and `GET /api/vault-assets/*`, persist Markdown as `![caption](<relative path>)`, and hide the configured top-level folder segment from sidebar folder lists so asset storage does not appear as a navigable folder view.
 
 ## D017 — 2026-03
 
@@ -89,3 +89,7 @@ Replace `applicationType` (`desktop` | `browser`) with `storageType` (`filesyste
 ## D023 — 2026-04
 
 Drop the Nitro proxy and Nuxt runtime for desktop delivery: the app now targets Tauri with a plain Vue + Vite frontend, keeps `PlatformApi` as the raw I/O boundary, stores scoped desktop files alongside the vault, and uses Tauri IPC for note, config, metadata, folder, and asset operations.
+
+## D024 — 2026-04
+
+Expose persisted `AppConfig` editing through a centralized Settings dialog opened from `NotesListActions`, and keep runtime UI state bound to disk-backed config refs instead of bundled defaults.

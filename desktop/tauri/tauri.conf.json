@@ -39,6 +39,6 @@
       "icons/icon.icns",
       "icons/icon.ico"
     ],
-    "resources": ["../../vault/", "../../meta.yaml"]
+    "resources": ["../../meta.yaml"]
   }
 }

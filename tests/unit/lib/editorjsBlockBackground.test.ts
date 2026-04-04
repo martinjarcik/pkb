@@ -1,13 +1,13 @@
 import { describe, expect, it } from 'vitest'
 import type { EditorjsBlock } from '~/lib/editorjsMarkdownTypes'
 import {
-  BLOCK_BACKGROUND_COLORS,
+  getBlockBackgroundColors,
   normalizeSavedEditorjsBlocks,
   prepareEditorjsBlocksForEditor,
 } from '~/lib/editorjsBlockBackground'
 
 const [primaryColor, secondaryColor = primaryColor] = Object.keys(
-  BLOCK_BACKGROUND_COLORS,
+  getBlockBackgroundColors(),
 )
 
 describe('editorjsBlockBackground', () => {

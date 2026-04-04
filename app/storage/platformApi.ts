@@ -44,6 +44,7 @@ export type PlatformApi = {
     scope: PlatformFileScope,
     content: string,
   ): Promise<PlatformTextFile>
+  ensureReady(): Promise<void>
   uploadAsset(file: File): Promise<PlatformAssetUploadResult>
   assetUrl(relativePath: string): string
   markdownUrlFromAssetUrl(fileUrl: string): string
