@@ -1,4 +1,4 @@
-import type { StorageType } from '~/config/loader'
+import type { StorageType } from '~/config/parseAppConfig'
 import { createFilesystemProxyStorage } from './filesystemProxy'
 import type { PlatformApi } from './platformApi'
 import type { NoteStorage } from './types'

@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useEditorSync } from '~/composables/useEditorSync'
+import { useNoteStorage } from '~/composables/useNoteStorage'
 import { useEditorTitleRepair } from '~/composables/useEditorTitleRepair'
-import { usePlatformApi } from '~/composables/usePlatformApi'
 import { useTranslations } from '~/composables/useTranslations'
 import type { EditorjsBlock } from '~/lib/editorjsMarkdownTypes'
 import { prepareEditorjsBlocksForEditor } from '~/lib/editorjsBlockBackground'
@@ -81,7 +81,7 @@ const holder = ref<HTMLDivElement | null>(null)
 const editorError = ref<string | null>(null)
 const isEditorLoading = ref(true)
 const { t } = useTranslations()
-const { platformApi } = usePlatformApi()
+const { platformApi } = useNoteStorage()
 
 const editor = ref<EditorjsInstance | null>(null)
 let dragDropHandle: ReturnType<typeof initEditorjsDragDrop> | null = null

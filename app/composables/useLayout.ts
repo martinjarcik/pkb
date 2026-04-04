@@ -1,5 +1,6 @@
 import { ref } from 'vue'
-import { loadConfig, type AppConfig } from '~/config/loader'
+import { loadConfig } from '~/config/loader'
+import type { AppConfig } from '~/config/parseAppConfig'
 import { useAppConfigDisk } from '~/composables/useAppConfigDisk'
 
 const defaultLayout = loadConfig().layout

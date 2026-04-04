@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { parseAppConfig } from '~/config/loader'
+import { parseAppConfig } from '~/config/parseAppConfig'
 
 function createEditorColors() {
   return {
@@ -170,29 +170,6 @@ describe('parseAppConfig', () => {
         text: '#E06050',
         label: 'Coral',
       },
-    })
-  })
-
-  it('accepts legacy editorBackgroundColors and hex keys', () => {
-    const config = createConfig() as Record<string, unknown>
-    config.editorBackgroundColors = {
-      red: { emoji: '🔴', hex: '#111111', text: '#C0594E', label: 'Red' },
-      pink: { emoji: '🩷', hex: '#222222', text: '#EB445A', label: 'Pink' },
-      mint: { emoji: '🟢', hex: '#333333', text: '#5AC5B3', label: 'Mint' },
-      yellow: { emoji: '🟡', hex: '#444444', text: '#C39647', label: 'Yellow' },
-      blue: { emoji: '🔵', hex: '#555555', text: '#3B86F7', label: 'Blue' },
-      orange: { emoji: '🟠', hex: '#666666', text: '#F09343', label: 'Orange' },
-      purple: { emoji: '🟣', hex: '#777777', text: '#BB3ED9', label: 'Purple' },
-      grey: { emoji: '⚪️', hex: '#888888', text: '#7C7A76', label: 'Grey' },
-      brown: { emoji: '🟤', hex: '#999999', text: '#99785E', label: 'Brown' },
-    }
-    delete config.editorColors
-
-    expect(parseAppConfig(config).editorColors.pink).toEqual({
-      emoji: '🩷',
-      background: '#222222',
-      text: '#EB445A',
-      label: 'Pink',
     })
   })
 

@@ -56,9 +56,9 @@ shape because the app now keeps full note bodies in shared client state.
 - `app/storage/router.ts` — active storage selection from `storageType`.
 - `app/config/loader.ts` — typed `AppConfig` parsed from `app/config/default.yaml`,
   including the active locale, theme settings, and `notes.trashRetentionDays`.
-- `app/App.vue` — desktop app shell that applies the configured accent color
+- `app/AppRoot.vue` — desktop app shell that applies the configured accent color
   CSS variable, starts the app, and composes the three-panel workspace layout.
-- `app/main.ts` — plain Vue desktop entry that mounts `App.vue`.
+- `app/main.ts` — plain Vue desktop entry that mounts `AppRoot.vue`.
 - `vite.config.ts` — build and alias configuration for the plain Vue frontend.
 - `app/composables/useLayout.ts` — layout panel visibility state initialized
   from config defaults, plus session-only non-distraction mode (snapshot and

@@ -3,8 +3,9 @@ import {
   readAppConfigPersistence,
   writeAppConfigPatchPersistence,
 } from '~/config/persistence'
+import { loadConfig } from '~/config/loader'
+import type { AppConfig } from '~/config/parseAppConfig'
 import { getPlatformApi } from '~/storage/platformRouter'
-import { loadConfig, type AppConfig } from '~/config/loader'
 
 const data = ref<AppConfig>(loadConfig())
 

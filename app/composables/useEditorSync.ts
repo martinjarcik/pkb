@@ -7,7 +7,7 @@ import {
 import { renderNoteTitleBlocks } from '~/lib/editorjsTitleBlock'
 import { markdownToEditorjsBlocks } from '~/lib/markdownToBlocks'
 import type { EditorjsBlock } from '~/lib/editorjsMarkdownTypes'
-import { usePlatformApi } from './usePlatformApi'
+import { useNoteStorage } from './useNoteStorage'
 
 type EditorjsInstance = {
   blocks: {
@@ -37,7 +37,7 @@ export function useEditorSync({
   title,
   emitContentChange,
 }: UseEditorSyncArgs) {
-  const { platformApi } = usePlatformApi()
+  const { platformApi } = useNoteStorage()
   const isApplyingExternalContent = ref(false)
   const lastRenderedContent = ref('')
   const lastRenderedTitle = ref('')

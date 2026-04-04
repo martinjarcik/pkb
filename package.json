@@ -8,9 +8,7 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "generate": "vite build",
     "preview": "vite preview",
-    "postinstall": "echo \"No postinstall step\"",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "lint": "eslint app tests eslint.config.mjs vite.config.ts vitest.config.ts",

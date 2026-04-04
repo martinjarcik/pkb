@@ -68,7 +68,7 @@ Right - put the function where it is used, or in the domain folder it belongs to
 Frontend:
 
 - `app/main.ts` -> desktop Vue entry
-- `app/App.vue` -> desktop app shell
+- `app/AppRoot.vue` -> desktop app shell
 - `app/components/` -> UI rendering
 - `app/composables/` -> shared Vue state and UI logic
 
@@ -107,7 +107,7 @@ Desktop:
 
 - Vue components: `PascalCase.vue` (for example `NotesListPanel.vue`)
 - Composables: `useXxx.ts` (for example `useNotes.ts`)
-- Domain and storage files: `camelCase.ts` (for example `browser.ts`)
+- Domain and storage files: `camelCase.ts` (for example `document.ts`)
 - Unit test files: `*.test.ts`
 - Import alias: `~/` from app root (for example `import { Note } from '~/notes/types'`)
 - Use relative imports (`./`) within the same folder
@@ -132,7 +132,7 @@ Allowed imports:
 Forbidden imports:
 
 - `vue`, `#app`, `#imports`, `nuxt/app`, any `@vue/*` package
-- anything from `app/components/`, `app/composables/`, `app/pages/`, `app/layouts/`
+- anything from `app/components/`, `app/composables/`
 
 For state management, error handling, and configuration patterns, see `docs/architecture.md`.
 

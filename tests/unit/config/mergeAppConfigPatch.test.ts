@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { parseAppConfig } from '~/config/loader'
+import { parseAppConfig } from '~/config/parseAppConfig'
 import { deepMergeAppConfig } from '~/config/mergeAppConfigPatch'
 
 function createEditorColors() {

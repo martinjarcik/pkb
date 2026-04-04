@@ -1,4 +1,4 @@
-import type { StorageType } from '~/config/loader'
+import type { StorageType } from '~/config/parseAppConfig'
 import type { PlatformApi } from './platformApi'
 import { createTauriPlatformApi } from './tauriPlatformApi'
 

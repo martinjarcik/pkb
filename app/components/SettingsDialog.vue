@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
-import type { AppConfig } from '~/config/loader'
+import type { AppConfig } from '~/config/parseAppConfig'
 import { useAppConfigDisk } from '~/composables/useAppConfigDisk'
 import { useAppStartup } from '~/composables/useAppStartup'
 import { useLayout } from '~/composables/useLayout'

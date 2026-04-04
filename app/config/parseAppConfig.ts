@@ -365,9 +365,7 @@ export function parseAppConfig(value: unknown): AppConfig {
     editor: parseEditorConfig(obj),
     layout: parseLayoutConfig(obj),
     theme: parseThemeConfig(obj),
-    editorColors: parseEditorColors(
-      obj.editorColors ?? obj.editorBackgroundColors,
-    ),
+    editorColors: parseEditorColors(obj.editorColors),
     features: parseFeaturesConfig(obj),
   }
 }
