@@ -391,6 +391,18 @@
     margin-left: 0;
   }
 
+  .note-editor-surface .ce-block--drop-above {
+    border-top: 2px solid hsl(var(--primary));
+  }
+
+  .note-editor-surface .ce-block--drop-below {
+    border-bottom: 2px solid hsl(var(--primary));
+  }
+
+  .note-editor-surface .ce-block--dragging {
+    opacity: 0.4;
+  }
+
   .note-editor-surface .ce-block:has([data-note-title]) {
     pointer-events: none;
   }
@@ -668,6 +680,10 @@
     font-size: var(--app-font-size-2xs);
   }
 }
+.ct {
+  display: none !important;
+}
+
 .ce-toolbar__content,
 .ce-block__content {
   max-width: calc(100% - 50px) !important;

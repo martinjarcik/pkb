@@ -21,7 +21,7 @@ type TauriCoreModule = {
 }
 
 function normalizeSlashes(path: string): string {
-  return path.replace(/\\/g, '/')
+  return path.replace(/\\/g, '/').replace(/\/\.\//g, '/')
 }
 
 function decodeAssetPathname(pathname: string): string {
@@ -160,6 +160,13 @@ export function createTauriPlatformApi(
     void resolveContext(vaultPath)
   }
 
+  const displayUrlToRelative = new Map<string, string>()
+
+  function trackDisplayUrl(displayUrl: string, relativePath: string): string {
+    displayUrlToRelative.set(displayUrl, relativePath)
+    return displayUrl
+  }
+
   return {
     async readAllNotes(dir: string): Promise<PlatformNoteFile[]> {
       return callTauri<PlatformNoteFile[]>('read_all_notes', { dir })
@@ -242,11 +249,13 @@ export function createTauriPlatformApi(
 
       await writeFileViaPlugin(pathResult.absolute_path, new Uint8Array(buffer))
 
+      const displayUrl = toAssetUrl(ctx, pathResult.absolute_path)
+
+      trackDisplayUrl(displayUrl, pathResult.relative_path)
+
       return {
         success: 1,
-        file: {
-          url: toAssetUrl(ctx, pathResult.absolute_path),
-        },
+        file: { url: displayUrl },
       }
     },
 
@@ -255,10 +264,19 @@ export function createTauriPlatformApi(
         return relativePath
       }
 
-      return assetUrlForRelative(resolvedCtx, relativePath)
+      return trackDisplayUrl(
+        assetUrlForRelative(resolvedCtx, relativePath),
+        relativePath,
+      )
     },
 
     markdownUrlFromAssetUrl(fileUrl: string): string {
+      const cached = displayUrlToRelative.get(fileUrl)
+
+      if (cached !== undefined) {
+        return cached
+      }
+
       if (resolvedCtx === null) {
         return fileUrl
       }

@@ -143,6 +143,11 @@ export function createEditorToolsConfig({
       class: ImageTool,
       tunes: blockTuneTools,
       config: {
+        features: {
+          caption: false,
+          border: false,
+          background: false,
+        },
         uploader: {
           uploadByFile,
         },

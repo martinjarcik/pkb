@@ -62,8 +62,12 @@ export function inlineHtmlToMarkdown(text: string): string {
       (_match, content) => `\`${content}\``,
     ],
     [
+      /<strong\b[^>]*\binline-big-emoji\b[^>]*>([\s\S]*?)<\/strong>(?=<(?:strong|b)\b)/gi,
+      (_match, content) => `**${content}**\u200C`,
+    ],
+    [
       /<strong\b[^>]*\binline-big-emoji\b[^>]*>([\s\S]*?)<\/strong>/gi,
-      (_match, content) => `__${content}__`,
+      (_match, content) => `**${content}**`,
     ],
     [
       /<(i|em)\b[^>]*>([\s\S]*?)<\/\1>/gi,

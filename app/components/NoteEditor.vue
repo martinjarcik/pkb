@@ -23,6 +23,7 @@ import { renderNoteTitleBlocks } from '~/lib/editorjsTitleBlock'
 import InlineHighlightTool from '~/lib/inlineHighlightTool'
 import InlineHashtagTool from '~/lib/inlineHashtagTool'
 import { markdownToEditorjsBlocks } from '~/lib/markdownToBlocks'
+import { initEditorjsDragDrop } from '~/lib/editorjsDragDrop'
 import { t as translate } from '~/composables/useTranslations'
 
 type EditorjsInstance = {
@@ -82,6 +83,7 @@ const { t } = useTranslations()
 const { platformApi } = usePlatformApi()
 
 const editor = ref<EditorjsInstance | null>(null)
+let dragDropHandle: ReturnType<typeof initEditorjsDragDrop> | null = null
 
 function getDefaultExport(module: unknown): unknown {
   if (typeof module === 'object' && module !== null && 'default' in module) {
@@ -288,6 +290,12 @@ onMounted(async () => {
     })
 
     await editor.value.isReady
+
+    dragDropHandle = initEditorjsDragDrop(holder.value, {
+      getBlocksCount: () => editor.value!.blocks.getBlocksCount(),
+      move: (to, from) => editor.value!.blocks.move(to, from),
+    })
+
     await nextTick()
 
     if (props.content !== initialContent || props.title !== initialTitle) {
@@ -353,6 +361,8 @@ onBeforeUnmount(() => {
   holder.value?.removeEventListener('keydown', handleHolderKeydown, true)
   holder.value?.removeEventListener('keyup', handleHolderKeyup)
   restoreExecCommand()
+  dragDropHandle?.destroy()
+  dragDropHandle = null
   isApplyingExternalContent.value = true
   editor.value?.destroy()
   editor.value = null

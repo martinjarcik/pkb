@@ -73,6 +73,25 @@ fn repo_root_fallback() -> Option<PathBuf> {
         .map(Path::to_path_buf)
 }
 
+fn exe_dir_fallback() -> Option<PathBuf> {
+    let exe = env::current_exe().ok()?;
+    let exe_dir = exe.parent()?;
+
+    // macOS .app bundle: binary is at Notes.app/Contents/MacOS/Notes
+    // Walk up to the directory that contains the .app bundle.
+    for ancestor in exe_dir.ancestors().skip(1) {
+        if ancestor
+            .file_name()
+            .and_then(|n| n.to_str())
+            .map_or(false, |n| n.ends_with(".app"))
+        {
+            return ancestor.parent().map(Path::to_path_buf);
+        }
+    }
+
+    Some(exe_dir.to_path_buf())
+}
+
 fn resolve_root_path(root: &str) -> PathBuf {
     let path = PathBuf::from(root);
 
@@ -94,6 +113,14 @@ fn resolve_root_path(root: &str) -> PathBuf {
             if repo_candidate.exists() {
                 return repo_candidate;
             }
+        }
+    }
+
+    if let Some(exe_dir) = exe_dir_fallback() {
+        let exe_candidate = exe_dir.join(&path);
+
+        if exe_candidate.exists() {
+            return exe_candidate;
         }
     }
 
