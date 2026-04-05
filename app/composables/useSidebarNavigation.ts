@@ -20,8 +20,8 @@ import {
   sortCatalogRowsPinnedFirstByModifiedAt,
 } from '~/notes/sidebarViewFilters'
 import {
+  activeTagsFromView,
   applyTagCycle,
-  selectedTagsFromView,
   tagFilterState as resolveTagFilterState,
 } from '~/notes/tagFilterMachine'
 
@@ -120,7 +120,7 @@ export function useSidebarNavigation() {
     buildFolderTree(allFolderPaths.value),
   )
   const allTags = computed(() => allTagsFromCatalog(notes.value))
-  const selectedTags = computed(() => selectedTagsFromView(selectedView.value))
+  const selectedTags = computed(() => activeTagsFromView(selectedView.value))
   const tagFilterState = (tag: string): TagFilterState =>
     resolveTagFilterState(selectedView.value, tag)
 

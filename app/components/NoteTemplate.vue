@@ -15,6 +15,7 @@ const {
   renameSelectedNoteTitle,
   saveSelectedNoteContent,
   selectedNote,
+  selectedNoteId,
   selectedNoteTitle,
   shouldFocusTitle,
 } = useNotes()
@@ -65,6 +66,7 @@ watch(shouldFocusTitle, async (nextShouldFocusTitle) => {
       ref="noteEditor"
       :autosave-delay="editorAutosaveDelay"
       :content="selectedNote?.content ?? ''"
+      :scroll-reset-key="selectedNoteId"
       :title="selectedNoteTitle"
       :wide="isWide"
       @content-change="handleContentChange"

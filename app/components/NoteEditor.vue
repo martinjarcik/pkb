@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import {
   useEditorLifecycle,
   type EditorjsInstance,
@@ -24,12 +24,14 @@ const props = withDefaults(
   defineProps<{
     autosaveDelay?: number
     content?: string
+    scrollResetKey?: string | null
     title?: string
     wide?: boolean
   }>(),
   {
     autosaveDelay: 2000,
     content: '',
+    scrollResetKey: null,
     title: '',
     wide: false,
   },
@@ -41,6 +43,7 @@ const emit = defineEmits<{
 }>()
 
 const holder = ref<HTMLDivElement | null>(null)
+const surface = ref<HTMLDivElement | null>(null)
 const { t } = useTranslations()
 const { platformApi } = useNoteStorage()
 const editor = ref<EditorjsInstance | null>(null)
@@ -156,6 +159,18 @@ onMounted(async () => {
 })
 
 watch(
+  () => props.scrollResetKey,
+  async () => {
+    await nextTick()
+    const el = surface.value
+
+    if (el) {
+      el.scrollTop = 0
+    }
+  },
+)
+
+watch(
   () => [props.content, props.title] as const,
   ([nextContent, nextTitle]) => {
     clearPendingContentSync()
@@ -199,6 +214,7 @@ onBeforeUnmount(() => {
 
     <div
       v-else
+      ref="surface"
       class="note-editor-surface relative min-h-0 min-w-0 flex-1"
     >
       <div

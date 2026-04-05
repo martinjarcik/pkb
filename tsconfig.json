@@ -24,6 +24,7 @@
     "app/**/*.vue",
     "tests/unit/**/*.ts",
     "vite.config.ts",
-    "vitest.config.ts"
+    "vitest.config.ts",
+    "editorjs-tools.d.ts"
   ]
 }

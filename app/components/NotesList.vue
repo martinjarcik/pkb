@@ -1,6 +1,8 @@
 <script setup lang="ts">
+import { Pin } from 'lucide-vue-next'
 import { computed, onBeforeUnmount, ref } from 'vue'
 import { useNotes } from '~/composables/useNotes'
+import { useNotesListArrowNavigation } from '~/composables/useNotesListArrowNavigation'
 import { useSidebarNavigation } from '~/composables/useSidebarNavigation'
 import { useTranslations } from '~/composables/useTranslations'
 import { useVirtualList } from '~/composables/useVirtualList'
@@ -153,8 +155,18 @@ const {
   visibleRows,
   handleScroll,
   registerRowElement,
+  scrollItemIdIntoView,
 } = useVirtualList({
   items: listItems,
+})
+
+const orderedListIds = computed(() => listItems.value.map((item) => item.id))
+
+const { onNotesListKeydown } = useNotesListArrowNavigation({
+  orderedIds: orderedListIds,
+  selectedNoteId,
+  selectNote: handleSelectNote,
+  scrollItemIdIntoView,
 })
 
 function bindDocumentPointerDrag(): void {
@@ -282,21 +294,13 @@ async function handleSelectNote(id: string): Promise<void> {
   await selectNoteById(id)
 }
 
-function getRowStyle(
-  itemId: string,
-  pinned: boolean,
-): { [key: string]: string } | undefined {
+function getRowStyle(itemId: string): { [key: string]: string } | undefined {
   const isSelected = itemId === selectedNoteId.value
   const style: { [key: string]: string } = {}
 
   if (isSelected) {
     style['--notes-list-item-selected-border-color'] =
       'var(--app-config-accent-color)'
-  }
-
-  if (pinned && !isSelected) {
-    style.backgroundColor =
-      'color-mix(in srgb, var(--app-config-accent-color) 5%, transparent)'
   }
 
   return Object.keys(style).length > 0 ? style : undefined
@@ -317,8 +321,10 @@ function getVirtualRowStyle(offset: number): Record<string, string> {
   <div
     ref="listViewport"
     data-testid="notes-list"
-    class="min-h-0 flex-1 overflow-y-auto"
+    tabindex="0"
+    class="min-h-0 flex-1 overflow-y-auto outline-none"
     @scroll="handleScroll"
+    @keydown="onNotesListKeydown"
   >
     <div
       v-if="isLoading"
@@ -361,13 +367,15 @@ function getVirtualRowStyle(offset: number): Record<string, string> {
           'notes-list-item-selected': row.item.id === selectedNoteId,
           'notes-list-item-pinned': row.item.pinned,
         }"
-        :style="[
-          getVirtualRowStyle(row.offset),
-          getRowStyle(row.item.id, row.item.pinned),
-        ]"
+        :style="[getVirtualRowStyle(row.offset), getRowStyle(row.item.id)]"
         @click="handleSelectNote(row.item.id)"
         @pointerdown="onNotePointerDown($event, row.item.id)"
       >
+        <Pin
+          v-if="row.item.pinned"
+          :size="15"
+          class="notes-list-item-pin-icon"
+        />
         <div class="notes-list-item-content">
           <p
             data-testid="notes-list-item-title"

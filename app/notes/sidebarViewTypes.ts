@@ -1,4 +1,4 @@
-export type TagFilterState = 'idle' | 'active' | 'pinned'
+export type TagFilterState = 'idle' | 'selected' | 'excluded'
 
 export type SidebarWorkspaceView =
   | SidebarNonSearchView
@@ -15,4 +15,4 @@ export type SidebarNonSearchView =
   | { kind: 'favorites' }
   | { kind: 'trashed' }
   | { kind: 'folder'; folderPath: string }
-  | { kind: 'tags'; activeTags: string[]; pinnedTags: string[] }
+  | { kind: 'tags'; selectedTags: string[]; excludedTags: string[] }

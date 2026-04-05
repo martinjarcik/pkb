@@ -2,7 +2,6 @@ import { isDirectChildOfFolder, isVaultRootNote } from './noteFilters'
 import { catalogRowIsTrashed } from './trash'
 import type { Note, NoteCatalogRow } from './types'
 import type { SidebarWorkspaceView } from './sidebarViewTypes'
-import { selectedTagsFromView } from './tagFilterMachine'
 
 const UNCHECKED_TASK_ITEM = /^\s*[-*+]\s+\[ \]\s+/mu
 
@@ -29,17 +28,20 @@ export function allTagsFromCatalog(rows: readonly NoteCatalogRow[]): string[] {
   )
 }
 
-export function filterCatalogBySelectedTags(
+export function filterCatalogByTags(
   rows: readonly NoteCatalogRow[],
   selectedTags: readonly string[],
+  excludedTags: readonly string[],
 ): readonly NoteCatalogRow[] {
-  if (selectedTags.length === 0) {
+  if (selectedTags.length === 0 && excludedTags.length === 0) {
     return rows
   }
 
   return rows.filter((row) => {
     const tags = new Set(rowTags(row))
-    return selectedTags.every((tag) => tags.has(tag))
+    const hasAllSelected = selectedTags.every((tag) => tags.has(tag))
+    const hasNoExcluded = excludedTags.every((tag) => !tags.has(tag))
+    return hasAllSelected && hasNoExcluded
   })
 }
 
@@ -75,9 +77,10 @@ export function filterCatalogForSidebarView(
   }
 
   if (view.kind === 'tags') {
-    return filterCatalogBySelectedTags(
+    return filterCatalogByTags(
       rows.filter((row) => !catalogRowIsTrashed(row)),
-      selectedTagsFromView(view),
+      view.selectedTags,
+      view.excludedTags,
     )
   }
 

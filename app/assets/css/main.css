@@ -258,7 +258,7 @@
 
   .sidebar-tag-item-shell {
     background: rgba(0, 0, 0, 0.04);
-    border: 0;
+    border: 1px solid transparent;
     border-radius: 3px;
     color: var(--app-config-sidebar-text-color, var(--app-sidebar-text));
     cursor: pointer;
@@ -270,13 +270,16 @@
     opacity: 0.6;
   }
 
-  .sidebar-tag-item-pinned,
   .sidebar-tag-item-selected {
+    border-color: transparent;
     opacity: 1;
   }
 
-  .sidebar-tag-item-pinned {
-    font-weight: 700;
+  .sidebar-tag-item-excluded {
+    background: transparent;
+    border: 1px solid;
+    opacity: 1;
+    text-decoration: line-through;
   }
 
   .notes-list-controls-shell {
@@ -613,12 +616,121 @@
     font-size: 0.74rem;
   }
 
-  /* @editorjs/image enables the caption tune when block data contains a
-     non-empty caption, even with features.caption:false. Force-hide the
-     caption element so it stays invisible while still preserving its
-     innerHTML for round-trip to markdown. */
+  /* Vendored @editorjs/image styles (upstream injects via JS; we include
+     them here since we vendor the TypeScript source directly). */
+  .note-editor-surface .image-tool {
+    --bg-color: #cdd1e0;
+    --front-color: #388ae5;
+    --border-color: #e8e8eb;
+  }
+
+  .note-editor-surface .image-tool__image {
+    border-radius: 3px;
+    overflow: hidden;
+    margin-bottom: 10px;
+    padding-bottom: 0;
+  }
+
+  .note-editor-surface .image-tool__image-picture {
+    max-width: 100%;
+    vertical-align: bottom;
+    display: block;
+  }
+
+  .note-editor-surface .image-tool__image-preloader {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background-size: cover;
+    margin: auto;
+    position: relative;
+    background-color: var(--bg-color);
+    background-position: center center;
+  }
+
+  .note-editor-surface .image-tool__image-preloader::after {
+    content: '';
+    position: absolute;
+    z-index: 3;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    border: 2px solid var(--bg-color);
+    border-top-color: var(--front-color);
+    left: 50%;
+    top: 50%;
+    margin-top: -30px;
+    margin-left: -30px;
+    animation: image-preloader-spin 2s infinite linear;
+    box-sizing: border-box;
+  }
+
   .note-editor-surface .image-tool__caption {
-    display: none !important;
+    visibility: hidden;
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    margin-bottom: 10px;
+  }
+
+  .note-editor-surface .image-tool--empty .image-tool__image,
+  .note-editor-surface .image-tool--empty .image-tool__image-preloader {
+    display: none;
+  }
+
+  .note-editor-surface .image-tool--empty .image-tool__caption,
+  .note-editor-surface .image-tool--uploading .image-tool__caption {
+    visibility: hidden !important;
+  }
+
+  .note-editor-surface .image-tool .cdx-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .note-editor-surface .image-tool .cdx-button svg {
+    height: auto;
+    margin: 0 6px 0 0;
+  }
+
+  .note-editor-surface .image-tool--filled .cdx-button,
+  .note-editor-surface .image-tool--filled .image-tool__image-preloader {
+    display: none;
+  }
+
+  .note-editor-surface .image-tool--uploading .image-tool__image {
+    min-height: 200px;
+    display: flex;
+    border: 1px solid var(--border-color);
+    background-color: #fff;
+  }
+
+  .note-editor-surface .image-tool--uploading .image-tool__image-picture,
+  .note-editor-surface .image-tool--uploading .cdx-button {
+    display: none;
+  }
+
+  .note-editor-surface .image-tool--withBorder .image-tool__image {
+    border: 1px solid var(--border-color);
+  }
+
+  .note-editor-surface .image-tool--withBackground .image-tool__image {
+    padding: 15px;
+    background: var(--bg-color);
+  }
+
+  .note-editor-surface .image-tool--withBackground .image-tool__image-picture {
+    max-width: 60%;
+    margin: 0 auto;
+  }
+
+  .note-editor-surface .image-tool--stretched .image-tool__image-picture {
+    width: 100%;
+  }
+
+  .note-editor-surface .image-tool--caption .image-tool__caption {
+    visibility: visible;
   }
 
   .note-editor-surface .image-tool--caption {
@@ -649,16 +761,19 @@
     background: transparent;
     border: 0;
     border-bottom: 1px solid hsl(var(--border));
-    border-left: var(--app-notes-list-item-accent-width) solid transparent;
     cursor: grab;
-    padding: var(--app-space-xl) var(--app-space-xl) var(--app-space-xl)
-      calc(var(--app-space-xl) - var(--app-notes-list-item-accent-width));
+    padding: 20px 30px;
+    position: relative;
     text-align: left;
     width: 100%;
   }
 
-  .notes-list-item:hover {
-    background: hsl(var(--accent) / 0.5);
+  .notes-list-item-pin-icon {
+    color: var(--app-config-accent-color);
+    position: absolute;
+    right: 10px;
+    top: 10px;
+    transform: rotate(45deg);
   }
 
   .notes-list-item:active {
@@ -670,12 +785,17 @@
     outline-offset: -2px;
   }
 
-  .notes-list-item-selected {
-    background: hsl(var(--accent));
-    border-left-color: var(
-      --notes-list-item-selected-border-color,
-      hsl(var(--primary))
+  .notes-list-item-selected,
+  .notes-list-item:hover {
+    background: color-mix(
+      in srgb,
+      var(--app-config-accent-color) 5%,
+      transparent
     );
+  }
+
+  .notes-list-item-pinned:not(.notes-list-item-selected) {
+    background: rgba(0, 0, 0, 0.05);
   }
 
   .notes-list-item-pointer-dragging {
@@ -765,4 +885,13 @@
 
 .tc-table {
   z-index: 0;
+}
+
+@keyframes image-preloader-spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }

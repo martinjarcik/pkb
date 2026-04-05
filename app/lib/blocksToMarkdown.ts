@@ -145,12 +145,24 @@ function renderTableMarkdown(data: Record<string, unknown>): string {
   ].join('\n')
 }
 
+function collectBlockCommentTokens(block: EditorjsBlock): string[] {
+  const tokens = block.cssClasses ? [...block.cssClasses] : []
+
+  if (block.type === 'image' && block.data.stretched === true) {
+    tokens.push('image-stretch')
+  }
+
+  return tokens
+}
+
 function renderBlockComment(block: EditorjsBlock): string {
-  if (!block.cssClasses || block.cssClasses.length === 0) {
+  const tokens = collectBlockCommentTokens(block)
+
+  if (tokens.length === 0) {
     return ''
   }
 
-  return `<!-- block: ${block.cssClasses.join(' ')} -->\n`
+  return `<!-- block: ${tokens.join(' ')} -->\n`
 }
 
 function renderMarkdownBlock(

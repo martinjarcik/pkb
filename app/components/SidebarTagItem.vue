@@ -12,11 +12,17 @@ const emit = defineEmits<{
   click: []
 }>()
 
-const isHighlighted = computed(() => props.state !== 'idle')
+const highlightStyle = computed(() => {
+  if (props.state === 'selected') {
+    return { backgroundColor: props.accentColor, color: '#fff' }
+  }
 
-const highlightStyle = computed(() =>
-  isHighlighted.value ? { color: props.accentColor } : undefined,
-)
+  if (props.state === 'excluded') {
+    return { borderColor: props.accentColor, color: props.accentColor }
+  }
+
+  return undefined
+})
 
 function handleClick(): void {
   emit('click')
@@ -31,8 +37,8 @@ function handleClick(): void {
     data-testid="sidebar-tag-item"
     class="sidebar-tag-item-shell"
     :class="{
-      'sidebar-tag-item-selected': isHighlighted,
-      'sidebar-tag-item-pinned': state === 'pinned',
+      'sidebar-tag-item-selected': state === 'selected',
+      'sidebar-tag-item-excluded': state === 'excluded',
     }"
     :style="highlightStyle"
     @click="handleClick"

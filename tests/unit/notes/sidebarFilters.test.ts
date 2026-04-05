@@ -1,15 +1,15 @@
 import { describe, expect, it } from 'vitest'
 import type { Note, NoteCatalogRow } from '~/notes/types'
 import {
+  activeTagsFromView,
   allTagsFromCatalog,
   applyTagCycle,
   cycleTagState,
-  filterCatalogBySelectedTags,
+  filterCatalogByTags,
   filterCatalogForSidebarView,
   filterNotesWithTasks,
   mergeTopLevelFolders,
   orderedCatalogRowsForSidebarView,
-  selectedTagsFromView,
   sortCatalogRowsPinnedFirstByModifiedAt,
   type SidebarWorkspaceView,
 } from '~/notes/sidebarFilters'
@@ -57,7 +57,7 @@ describe('allTagsFromCatalog', () => {
   })
 })
 
-describe('filterCatalogBySelectedTags', () => {
+describe('filterCatalogByTags', () => {
   it('filters notes by selected tags using AND logic', () => {
     const rows = [
       createCatalogRow('a.md', ['engineering', 'idea']),
@@ -66,10 +66,46 @@ describe('filterCatalogBySelectedTags', () => {
     ]
 
     expect(
-      filterCatalogBySelectedTags(rows, ['engineering', 'idea']).map(
+      filterCatalogByTags(rows, ['engineering', 'idea'], []).map(
         (row) => row.id,
       ),
     ).toEqual(['a.md'])
+  })
+
+  it('excludes notes that have any excluded tag', () => {
+    const rows = [
+      createCatalogRow('a.md', ['engineering', 'idea']),
+      createCatalogRow('b.md', ['engineering', 'dream']),
+      createCatalogRow('c.md', ['idea']),
+    ]
+
+    expect(
+      filterCatalogByTags(rows, [], ['engineering']).map((row) => row.id),
+    ).toEqual(['c.md'])
+  })
+
+  it('combines selected and excluded tags', () => {
+    const rows = [
+      createCatalogRow('a.md', ['engineering', 'idea']),
+      createCatalogRow('b.md', ['engineering', 'dream']),
+      createCatalogRow('c.md', ['idea']),
+    ]
+
+    expect(
+      filterCatalogByTags(rows, ['idea'], ['engineering']).map((row) => row.id),
+    ).toEqual(['c.md'])
+  })
+
+  it('returns all rows when no tags are specified', () => {
+    const rows = [
+      createCatalogRow('a.md', ['engineering']),
+      createCatalogRow('b.md', ['idea']),
+    ]
+
+    expect(filterCatalogByTags(rows, [], []).map((row) => row.id)).toEqual([
+      'a.md',
+      'b.md',
+    ])
   })
 })
 
@@ -121,93 +157,107 @@ describe('mergeTopLevelFolders', () => {
 })
 
 describe('cycleTagState', () => {
-  it('returns active for an idle tag', () => {
-    expect(cycleTagState('idle')).toBe('active')
+  it('returns selected for an idle tag', () => {
+    expect(cycleTagState('idle')).toBe('selected')
   })
 
-  it('returns pinned for an active tag', () => {
-    expect(cycleTagState('active')).toBe('pinned')
+  it('returns excluded for a selected tag', () => {
+    expect(cycleTagState('selected')).toBe('excluded')
   })
 
-  it('returns idle for a pinned tag', () => {
-    expect(cycleTagState('pinned')).toBe('idle')
+  it('returns idle for an excluded tag', () => {
+    expect(cycleTagState('excluded')).toBe('idle')
   })
 })
 
 describe('applyTagCycle', () => {
-  it('activating an idle tag demotes the previously active tag', () => {
+  it('selecting an idle tag adds it to selectedTags', () => {
     const view: SidebarWorkspaceView = {
       kind: 'tags',
-      activeTags: ['idea'],
-      pinnedTags: [],
+      selectedTags: ['idea'],
+      excludedTags: [],
     }
 
     expect(applyTagCycle(view, 'engineering')).toEqual({
       kind: 'tags',
-      activeTags: ['engineering'],
-      pinnedTags: [],
+      selectedTags: ['engineering', 'idea'],
+      excludedTags: [],
     })
   })
 
-  it('activating a tag preserves pinned tags', () => {
+  it('excluding a selected tag moves it to excludedTags', () => {
     const view: SidebarWorkspaceView = {
       kind: 'tags',
-      activeTags: ['idea'],
-      pinnedTags: ['dream'],
+      selectedTags: ['engineering'],
+      excludedTags: [],
     }
 
     expect(applyTagCycle(view, 'engineering')).toEqual({
       kind: 'tags',
-      activeTags: ['engineering'],
-      pinnedTags: ['dream'],
+      selectedTags: [],
+      excludedTags: ['engineering'],
     })
   })
 
-  it('pinning an active tag moves it to pinnedTags', () => {
+  it('deselecting an excluded tag removes it', () => {
     const view: SidebarWorkspaceView = {
       kind: 'tags',
-      activeTags: ['engineering'],
-      pinnedTags: [],
+      selectedTags: ['idea'],
+      excludedTags: ['engineering'],
     }
 
     expect(applyTagCycle(view, 'engineering')).toEqual({
       kind: 'tags',
-      activeTags: [],
-      pinnedTags: ['engineering'],
-    })
-  })
-
-  it('unpinning a pinned tag removes it', () => {
-    const view: SidebarWorkspaceView = {
-      kind: 'tags',
-      activeTags: ['idea'],
-      pinnedTags: ['engineering'],
-    }
-
-    expect(applyTagCycle(view, 'engineering')).toEqual({
-      kind: 'tags',
-      activeTags: ['idea'],
-      pinnedTags: [],
+      selectedTags: ['idea'],
+      excludedTags: [],
     })
   })
 
   it('returns null when no tags remain', () => {
     const view: SidebarWorkspaceView = {
       kind: 'tags',
-      activeTags: [],
-      pinnedTags: ['engineering'],
+      selectedTags: [],
+      excludedTags: ['engineering'],
     }
 
     expect(applyTagCycle(view, 'engineering')).toBeNull()
   })
 
-  it('activating from inbox view creates a tags view', () => {
+  it('selecting from inbox view creates a tags view', () => {
     const view: SidebarWorkspaceView = { kind: 'inbox' }
 
     expect(applyTagCycle(view, 'engineering')).toEqual({
       kind: 'tags',
-      activeTags: ['engineering'],
-      pinnedTags: [],
+      selectedTags: ['engineering'],
+      excludedTags: [],
+    })
+  })
+
+  it('preserves other selected tags when excluding one', () => {
+    const view: SidebarWorkspaceView = {
+      kind: 'tags',
+      selectedTags: ['dream', 'engineering'],
+      excludedTags: [],
+    }
+
+    expect(applyTagCycle(view, 'engineering')).toEqual({
+      kind: 'tags',
+      selectedTags: ['dream'],
+      excludedTags: ['engineering'],
+    })
+  })
+
+  it('preserves excluded tags when selecting a new tag', () => {
+    const view: SidebarWorkspaceView = {
+      kind: 'tags',
+      selectedTags: [],
+      excludedTags: ['dream'],
+    }
+
+    expect(applyTagCycle(view, 'engineering')).toEqual({
+      kind: 'tags',
+      selectedTags: ['engineering'],
+      excludedTags: ['dream'],
     })
   })
 })
@@ -336,18 +386,18 @@ describe('orderedCatalogRowsForSidebarView', () => {
   })
 })
 
-describe('selectedTagsFromView', () => {
-  it('returns sorted union of activeTags and pinnedTags', () => {
+describe('activeTagsFromView', () => {
+  it('returns sorted selectedTags from a tags view', () => {
     const view: SidebarWorkspaceView = {
       kind: 'tags',
-      activeTags: ['idea'],
-      pinnedTags: ['engineering'],
+      selectedTags: ['idea', 'engineering'],
+      excludedTags: ['dream'],
     }
 
-    expect(selectedTagsFromView(view)).toEqual(['engineering', 'idea'])
+    expect(activeTagsFromView(view)).toEqual(['engineering', 'idea'])
   })
 
   it('returns empty array for non-tags views', () => {
-    expect(selectedTagsFromView({ kind: 'inbox' })).toEqual([])
+    expect(activeTagsFromView({ kind: 'inbox' })).toEqual([])
   })
 })

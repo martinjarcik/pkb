@@ -2,7 +2,7 @@ import { nextTick, onBeforeUnmount, onMounted, ref, type Ref } from 'vue'
 import type { ComputedRef } from 'vue'
 import { prepareEditorjsBlocksForEditor } from '~/lib/editorjsBlockBackground'
 import { initEditorjsDragDrop } from '~/lib/editorjsDragDrop'
-import { patchEditorImageToolForLocalAssets } from '~/lib/editorjsImageTool'
+import { ImageTool } from '~/lib/editorjsImageTool'
 import {
   blockTuneTools,
   createEditorToolsConfig,
@@ -42,7 +42,6 @@ type LoadedEditorModules = [
   delimiterModule: unknown,
   inlineCodeModule: unknown,
   tableModule: unknown,
-  imageModule: unknown,
 ]
 
 const ASSET_UPLOAD_SYNC_DELAY_MS = 100
@@ -82,7 +81,6 @@ function loadEditorModules(): Promise<LoadedEditorModules> {
     import('@editorjs/delimiter'),
     import('@editorjs/inline-code'),
     import('@editorjs/table'),
-    import('@editorjs/image'),
   ]) as Promise<LoadedEditorModules>
 
   return editorModulesPromise
@@ -179,7 +177,6 @@ export function useEditorLifecycle({
         delimiterModule,
         inlineCodeModule,
         tableModule,
-        imageModule,
       ] = await loadEditorModules()
 
       const Editorjs = getDefaultExport(editorModule) as EditorjsConstructor
@@ -189,9 +186,6 @@ export function useEditorLifecycle({
       const Delimiter = getDefaultExport(delimiterModule)
       const InlineCode = getDefaultExport(inlineCodeModule)
       const Table = getDefaultExport(tableModule)
-      const ImageTool = patchEditorImageToolForLocalAssets(
-        getDefaultExport(imageModule) as new (...args: never[]) => unknown,
-      )
       const blocks = buildRenderedBlocks(
         initialContent,
         initialTitle,

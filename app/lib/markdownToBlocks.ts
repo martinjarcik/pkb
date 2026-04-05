@@ -239,7 +239,19 @@ function blocksFromRootWithBlankLines(
     const blocks = parseMarkdownNode(node, parseContext, resolveAssetUrl)
 
     if (pendingCssClasses && blocks.length > 0) {
-      blocks[0]!.cssClasses = pendingCssClasses
+      const first = blocks[0]!
+
+      if (
+        first.type === 'image' &&
+        pendingCssClasses.includes('image-stretch')
+      ) {
+        first.data.stretched = true
+        const remaining = pendingCssClasses.filter((c) => c !== 'image-stretch')
+        first.cssClasses = remaining.length > 0 ? remaining : undefined
+      } else {
+        first.cssClasses = pendingCssClasses
+      }
+
       pendingCssClasses = null
     }
 

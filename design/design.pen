@@ -746,7 +746,11 @@
                   "y": 0,
                   "width": "fill_container",
                   "height": "fit_content",
-                  "fill": "#3f57df0d",
+                  "fill": {
+                    "type": "color",
+                    "color": "#0000000d",
+                    "enabled": false
+                  },
                   "name": "NotesListItem pinned",
                   "descendants": {
                     "Sfrab": {
@@ -855,8 +859,7 @@
                     "align": "inside",
                     "thickness": {
                       "left": 5
-                    },
-                    "fill": "#3f57dfff"
+                    }
                   },
                   "name": "NotesListItem selected",
                   "width": "fill_container",
@@ -2152,6 +2155,19 @@
               "fontWeight": "normal"
             }
           ]
+        },
+        {
+          "type": "icon_font",
+          "id": "uqeoZ",
+          "x": 572.5,
+          "y": 56,
+          "name": "pinned",
+          "rotation": -29.999999999999996,
+          "width": 15,
+          "height": 15,
+          "iconFontName": "pin",
+          "iconFontFamily": "lucide",
+          "fill": "#3f57dfff"
         }
       ]
     }

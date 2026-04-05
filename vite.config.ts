@@ -41,7 +41,6 @@ export default defineConfig({
       '@editorjs/delimiter',
       '@editorjs/inline-code',
       '@editorjs/table',
-      '@editorjs/image',
       '@vueuse/core',
       'lucide-vue-next',
       'emoji-picker-element',

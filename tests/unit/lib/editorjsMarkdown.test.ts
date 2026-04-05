@@ -1068,6 +1068,116 @@ describe('editorjsMarkdown', () => {
     })
   })
 
+  it('parses image-stretch block comment into a stretched image block', () => {
+    const blocks = markdownToEditorjsBlocks(
+      '<!-- block: image-stretch -->\n![](assets/wide.png)',
+      assetDisplayUrl,
+    )
+
+    expect(blocks).toEqual([
+      {
+        type: 'image',
+        data: {
+          file: { url: 'asset://assets/wide.png' },
+          caption: '',
+          withBorder: false,
+          withBackground: false,
+          stretched: true,
+        },
+      },
+    ])
+  })
+
+  it('emits image-stretch block comment for a stretched image block', () => {
+    const md = editorjsBlocksToMarkdown(
+      [
+        {
+          type: 'image',
+          data: {
+            file: { url: 'asset://assets/wide.png' },
+            caption: '',
+            withBorder: false,
+            withBackground: false,
+            stretched: true,
+          },
+        },
+      ],
+      markdownAssetUrl,
+    )
+
+    expect(md).toBe('<!-- block: image-stretch -->\n![](assets/wide.png)')
+  })
+
+  it('does not emit image-stretch comment for a non-stretched image', () => {
+    const md = editorjsBlocksToMarkdown(
+      [
+        {
+          type: 'image',
+          data: {
+            file: { url: 'asset://assets/a.png' },
+            caption: '',
+            withBorder: false,
+            withBackground: false,
+            stretched: false,
+          },
+        },
+      ],
+      markdownAssetUrl,
+    )
+
+    expect(md).toBe('![](assets/a.png)')
+  })
+
+  it('round-trips a stretched image through markdown', () => {
+    const md = '<!-- block: image-stretch -->\n![](assets/wide.png)'
+
+    expect(editorjsBlocksToMarkdown(markdownToEditorjsBlocks(md))).toBe(md)
+  })
+
+  it('merges image-stretch with other css classes on the block comment', () => {
+    const blocks = markdownToEditorjsBlocks(
+      '<!-- block: custom-frame image-stretch -->\n![](assets/wide.png)',
+      assetDisplayUrl,
+    )
+
+    expect(blocks).toEqual([
+      {
+        type: 'image',
+        data: {
+          file: { url: 'asset://assets/wide.png' },
+          caption: '',
+          withBorder: false,
+          withBackground: false,
+          stretched: true,
+        },
+        cssClasses: ['custom-frame'],
+      },
+    ])
+  })
+
+  it('emits image-stretch alongside css classes for a stretched image', () => {
+    const md = editorjsBlocksToMarkdown(
+      [
+        {
+          type: 'image',
+          data: {
+            file: { url: 'asset://assets/wide.png' },
+            caption: '',
+            withBorder: false,
+            withBackground: false,
+            stretched: true,
+          },
+          cssClasses: ['custom-frame'],
+        },
+      ],
+      markdownAssetUrl,
+    )
+
+    expect(md).toBe(
+      '<!-- block: custom-frame image-stretch -->\n![](assets/wide.png)',
+    )
+  })
+
   it('serializes bold wrapping highlight to markdown preserving both', () => {
     expect(
       editorjsBlocksToMarkdown([

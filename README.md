@@ -31,6 +31,20 @@ npm run dev
 Then open the Vite dev URL shown in the terminal, or run the app through Tauri
 once the desktop host is installed.
 
+### macOS desktop installer (DMG)
+
+Prebuilt DMGs for the current app version live under `releases/`. To rebuild them
+after changing the desktop app or frontend:
+
+```sh
+npm run build:tauri:dmg
+```
+
+This runs a production Vite build, then `tauri build` with the `dmg` bundle only.
+The script uses `--no-sign` so it works without Apple code-signing credentials;
+remove that flag (or run `npx tauri build` from `desktop/tauri`) when you are
+ready to sign and notarize.
+
 ## Documentation
 
 | Document                                                   | Purpose                                                               |
@@ -44,15 +58,16 @@ once the desktop host is installed.
 
 ## Scripts
 
-| Command                | Purpose                               |
-| ---------------------- | ------------------------------------- |
-| `npm run dev`          | Start the Vite dev server             |
-| `npm run build`        | Production build                      |
-| `npm run preview`      | Preview production build locally      |
-| `npm run lint`         | Check for lint errors (ESLint)        |
-| `npm run lint:fix`     | Auto-fix lint errors                  |
-| `npm run format`       | Format all files (Prettier)           |
-| `npm run format:check` | Check formatting without writing      |
-| `npm run typecheck`    | Type-check the project (`vue-tsc`)    |
-| `npm run test:unit`    | Run unit tests in watch mode (Vitest) |
-| `npm run test:unit:ci` | Run unit tests once                   |
+| Command                   | Purpose                               |
+| ------------------------- | ------------------------------------- |
+| `npm run dev`             | Start the Vite dev server             |
+| `npm run build`           | Production build                      |
+| `npm run preview`         | Preview production build locally      |
+| `npm run lint`            | Check for lint errors (ESLint)        |
+| `npm run lint:fix`        | Auto-fix lint errors                  |
+| `npm run format`          | Format all files (Prettier)           |
+| `npm run format:check`    | Check formatting without writing      |
+| `npm run typecheck`       | Type-check the project (`vue-tsc`)    |
+| `npm run test:unit`       | Run unit tests in watch mode (Vitest) |
+| `npm run test:unit:ci`    | Run unit tests once                   |
+| `npm run build:tauri:dmg` | Production DMG for macOS (see above)  |

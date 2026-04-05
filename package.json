@@ -16,14 +16,15 @@
     "typecheck": "vue-tsc --noEmit",
     "test:unit": "vitest",
     "test:unit:ci": "vitest run",
+    "build:tauri:dmg": "npm run build && (cd desktop/tauri && env -u CARGO_TARGET_DIR npx tauri build -b dmg --ci --no-sign) && mkdir -p releases && cp desktop/tauri/target/release/bundle/dmg/Notes_*.dmg releases/",
     "prepare": "husky"
   },
   "dependencies": {
+    "@codexteam/ajax": "^4.2.0",
     "@editorjs/code": "^2.9.4",
     "@editorjs/delimiter": "^1.4.2",
     "@editorjs/editorjs": "^2.31.5",
     "@editorjs/header": "^2.8.8",
-    "@editorjs/image": "^2.10.3",
     "@editorjs/inline-code": "^1.5.2",
     "@editorjs/list": "^2.0.9",
     "@editorjs/table": "^2.4.5",

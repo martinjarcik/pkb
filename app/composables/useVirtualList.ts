@@ -172,11 +172,41 @@ export function useVirtualList<T extends { id: string }>({
     viewportResizeObserver = null
   })
 
+  const SCROLL_INTO_VIEW_PADDING_PX = 8
+
+  function scrollItemIdIntoView(id: string): void {
+    const viewport = listViewport.value
+
+    if (!viewport) {
+      return
+    }
+
+    const row = virtualRows.value.find((r) => r.item.id === id)
+
+    if (!row) {
+      return
+    }
+
+    const viewTop = viewport.scrollTop
+    const viewHeight = viewport.clientHeight
+    const viewBottom = viewTop + viewHeight
+    const itemTop = row.offset
+    const itemBottom = row.offset + row.height
+    const pad = SCROLL_INTO_VIEW_PADDING_PX
+
+    if (itemTop < viewTop + pad) {
+      viewport.scrollTop = Math.max(0, itemTop - pad)
+    } else if (itemBottom > viewBottom - pad) {
+      viewport.scrollTop = Math.max(0, itemBottom - viewHeight + pad)
+    }
+  }
+
   return {
     listViewport,
     totalHeight,
     visibleRows,
     handleScroll,
     registerRowElement,
+    scrollItemIdIntoView,
   }
 }

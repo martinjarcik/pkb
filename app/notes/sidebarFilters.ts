@@ -4,15 +4,15 @@ export type {
   TagFilterState,
 } from './sidebarViewTypes'
 export {
+  activeTagsFromView,
   applyTagCycle,
   cycleTagState,
-  selectedTagsFromView,
   tagFilterState,
 } from './tagFilterMachine'
 export {
   allTagsFromCatalog,
   filterNotesWithTasks,
-  filterCatalogBySelectedTags,
+  filterCatalogByTags,
   filterCatalogForSidebarView,
   mergeTopLevelFolders,
   orderedCatalogRowsForSidebarView,
