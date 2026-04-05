@@ -1,8 +1,10 @@
 import { isDirectChildOfFolder, isVaultRootNote } from './noteFilters'
 import { catalogRowIsTrashed } from './trash'
-import type { NoteCatalogRow } from './types'
+import type { Note, NoteCatalogRow } from './types'
 import type { SidebarWorkspaceView } from './sidebarViewTypes'
 import { selectedTagsFromView } from './tagFilterMachine'
+
+const UNCHECKED_TASK_ITEM = /^\s*[-*+]\s+\[ \]\s+/mu
 
 function rowTags(row: NoteCatalogRow): string[] {
   if (!Array.isArray(row.tags)) {
@@ -12,8 +14,13 @@ function rowTags(row: NoteCatalogRow): string[] {
   return row.tags.filter((tag): tag is string => typeof tag === 'string')
 }
 
-function rowHasTasks(row: NoteCatalogRow): boolean {
-  return row.hasTasks === true
+function noteHasTasks(note: Note): boolean {
+  return UNCHECKED_TASK_ITEM.test(note.content)
+}
+
+function projectCatalogRow(note: Note): NoteCatalogRow {
+  const { content: _content, ...row } = note
+  return row
 }
 
 export function allTagsFromCatalog(rows: readonly NoteCatalogRow[]): string[] {
@@ -36,10 +43,12 @@ export function filterCatalogBySelectedTags(
   })
 }
 
-export function filterCatalogByHasTasks(
-  rows: readonly NoteCatalogRow[],
+export function filterNotesWithTasks(
+  notes: readonly Note[],
 ): readonly NoteCatalogRow[] {
-  return rows.filter((row) => rowHasTasks(row))
+  return notes
+    .filter((note) => !catalogRowIsTrashed(note) && noteHasTasks(note))
+    .map(projectCatalogRow)
 }
 
 export function mergeTopLevelFolders(
@@ -73,9 +82,7 @@ export function filterCatalogForSidebarView(
   }
 
   if (view.kind === 'tasks') {
-    return filterCatalogByHasTasks(
-      rows.filter((row) => !catalogRowIsTrashed(row)),
-    )
+    return []
   }
 
   if (view.kind === 'favorites') {

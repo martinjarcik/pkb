@@ -21,7 +21,7 @@ five parts:
   Never serialized to frontmatter. Recomputed at note load and on save/rename.
   They shadow any user-defined Properties with the same key names (see D011).
 - **Application Properties** — application-managed per-note state (e.g.
-  `hasTasks`). Controlled through dedicated UI, not editable in the property
+  `favorite`). Controlled through dedicated UI, not editable in the property
   editor. In memory these are flat top-level Note fields. On disk they are
   serialized under the `app` namespace key in YAML frontmatter (see D009).
 - **Properties** — user-defined data, unique per note. In memory these live as
@@ -160,8 +160,7 @@ those rules.
   Markdown and Editor.js blocks in the browser.
 - On save, the app extracts inline hashtags from Markdown Content and persists
   them as the top-level `tags` Property while keeping the visible Content text
-  unchanged. It also recomputes the `hasTasks` Application Property from
-  unchecked markdown checklist items.
+  unchanged.
 - Templates wrap content to provide rendered page context. Liquid and layout
   code lives outside the editor. Templates are not edited inline.
 - Note metadata is edited through focused controls and dialogs rather than an
@@ -192,12 +191,13 @@ those rules.
   vault root. The `Favorites` view (when enabled in config) filters across the
   whole catalog to notes whose `favorite` Application Property is `true`,
   excluding trashed notes. The `Tasks` view filters across the whole catalog to
-  notes whose `hasTasks` Application Property is `true`, while folder views
-  filter to notes that are direct children of the selected folder path (which
-  can be a top-level or nested vault folder). The sidebar renders folders as an
-  expandable tree; each node can be expanded to reveal subfolders. Tag views
-  filter across the whole catalog to notes whose `tags` Property contains all
-  active and pinned Tags (AND logic). Each Tag has a tri-state filter cycle
+  notes whose loaded Content contains at least one unchecked markdown checklist
+  item (`- [ ]`), while folder views filter to notes that are direct children
+  of the selected folder path (which can be a top-level or nested vault
+  folder). The sidebar renders folders as an expandable tree; each node can be
+  expanded to reveal subfolders. Tag views filter across the whole catalog to
+  notes whose `tags` Property contains all active and pinned Tags (AND logic).
+  Each Tag has a tri-state filter cycle
   (idle -> active -> pinned -> idle): at most one Tag can be active; pinned
   Tags survive further clicks. For any sidebar view, the visible notes list
   orders rows with the `pinned` Application Property `true` first, then by
@@ -239,7 +239,8 @@ those rules.
   set to notes whose `favorite` Application Property is `true`, excluding trashed
   notes.
 - The `Tasks` sidebar view narrows the broad note set to notes whose
-  `hasTasks` Application Property is `true`, regardless of folder.
+  loaded Content contains at least one unchecked markdown checklist item,
+  regardless of folder.
 - Folder sidebar views narrow the broad note set to notes that are direct
   children of the selected folder path (e.g. `Work/Archive/plan.md` matches
   the `Work/Archive` folder view but not the `Work` folder view).
@@ -262,7 +263,7 @@ those rules.
   ```yaml
   ---
   app:
-    hasTasks: true
+    favorite: true
   tags: [cooking]
   rating: 5
   ---

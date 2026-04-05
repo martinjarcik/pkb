@@ -8,11 +8,11 @@ export const NOTE_SYSTEM_PROPERTY_KEYS = [
 ] as const
 
 export const APPLICATION_PROPERTY_KEYS = [
-  'hasTasks',
   'trashedAt',
   'favorite',
   'pinned',
   'webhook',
+  'wide',
 ] as const
 
 export type NotePropertyValue =
@@ -32,11 +32,11 @@ type NoteFields = {
   title: string
   description: string
   tags?: string[]
-  hasTasks?: boolean
   trashedAt?: string
   favorite?: boolean
   pinned?: boolean
   webhook?: string
+  wide?: boolean
 }
 
 export type Note = NoteProperties &

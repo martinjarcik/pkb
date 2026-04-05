@@ -20,7 +20,6 @@ describe('buildSaveNoteInput', () => {
       id: 'notes/example.md',
       content: '# Updated',
       properties: {
-        hasTasks: false,
         tags: [],
       },
     })
@@ -44,7 +43,6 @@ describe('buildSaveNoteInput', () => {
       id: 'notes/example.md',
       content: '# Updated',
       properties: {
-        hasTasks: false,
         tags: ['autosave', 'fixture'],
         meta: {
           nested: true,
@@ -67,7 +65,6 @@ describe('buildSaveNoteInput', () => {
       id: 'notes/example.md',
       content: '#idea #engineering',
       properties: {
-        hasTasks: false,
         tags: ['engineering', 'idea'],
       },
     })
@@ -88,48 +85,7 @@ describe('buildSaveNoteInput', () => {
       id: 'notes/example.md',
       content: '#idea #cooking',
       properties: {
-        hasTasks: false,
         tags: ['cooking', 'idea', 'recipes'],
-      },
-    })
-  })
-
-  it('sets hasTasks to true when saved content contains unchecked tasks', () => {
-    const note = {
-      id: 'notes/example.md',
-      title: 'example',
-      description: '',
-      content: '',
-      createdAt: '2026-03-25T08:00:00.000Z',
-      modifiedAt: '2026-03-25T08:00:00.000Z',
-    } satisfies Note
-
-    expect(buildSaveNoteInput(note, '- [ ] buy groceries')).toEqual({
-      id: 'notes/example.md',
-      content: '- [ ] buy groceries',
-      properties: {
-        hasTasks: true,
-        tags: [],
-      },
-    })
-  })
-
-  it('sets hasTasks to false when saved content has no unchecked tasks', () => {
-    const note = {
-      id: 'notes/example.md',
-      title: 'example',
-      description: '',
-      content: '',
-      createdAt: '2026-03-25T08:00:00.000Z',
-      modifiedAt: '2026-03-25T08:00:00.000Z',
-    } satisfies Note
-
-    expect(buildSaveNoteInput(note, '- [x] done')).toEqual({
-      id: 'notes/example.md',
-      content: '- [x] done',
-      properties: {
-        hasTasks: false,
-        tags: [],
       },
     })
   })
@@ -169,7 +125,6 @@ describe('normalizeSaveProperties', () => {
       ),
     ).toEqual({
       tags: ['existing', 'idea'],
-      hasTasks: true,
       favorite: true,
       meta: {
         nested: true,

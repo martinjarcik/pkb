@@ -104,6 +104,7 @@ export function useNotes() {
     moveNote,
     toggleFavoriteSelectedNote,
     togglePinnedSelectedNote,
+    toggleWideSelectedNote,
     saveWebhookForSelectedNote,
     deleteSelectedNote,
   } = useNoteMutations(noteMutationsArgs)
@@ -180,6 +181,7 @@ export function useNotes() {
     deleteSelectedNote,
     toggleFavoriteSelectedNote,
     togglePinnedSelectedNote,
+    toggleWideSelectedNote,
     saveWebhookForSelectedNote,
     moveNote,
     registerEditorFlush,

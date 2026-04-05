@@ -6,7 +6,10 @@ const { accentColor, allTags, tagFilterState, cycleTag } =
 </script>
 
 <template>
-  <div data-testid="sidebar-tags-list" class="sidebar-tags-list-shell">
+  <div
+    data-testid="sidebar-tags-list"
+    class="sidebar-tags-list-shell"
+  >
     <SidebarTagItem
       v-for="tag in allTags"
       :key="tag"

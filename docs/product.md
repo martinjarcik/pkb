@@ -153,9 +153,8 @@ The default sidebar view is `Inbox`.
 
 The sidebar navigation includes a `Tasks` item alongside `Inbox`.
 
-- `Tasks` shows notes whose `hasTasks` Application Property is `true`.
-- `hasTasks` is recomputed on save from unchecked markdown checklist items such
-  as `- [ ] Buy milk`.
+- `Tasks` shows notes whose content contains an unchecked markdown checklist
+  item such as `- [ ] Buy milk`.
 - The `Tasks` view filters across the whole catalog, not just the vault root.
 - The selected Tasks item uses the same accent styling as `Inbox`.
 
@@ -231,8 +230,6 @@ The note content area uses Editor.js as the editing surface.
 - Switching to a different note flushes any pending autosave before selection changes.
 - On save, inline hashtags such as `#engineering` are extracted into the
   top-level `tags` frontmatter property and remain visible in the note content.
-- On save, unchecked markdown checklist items cause the `hasTasks` Application
-  Property to be stored under the `app` frontmatter namespace.
 - The inline toolbar includes a `Highlight` tool for marked text. Clicking it
   wraps the current selection in a yellow highlight by default. Hovering the
   highlight item opens color choices: red, green, yellow, blue, orange,

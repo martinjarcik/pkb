@@ -1,12 +1,12 @@
 import { describe, expect, it } from 'vitest'
-import type { NoteCatalogRow } from '~/notes/types'
+import type { Note, NoteCatalogRow } from '~/notes/types'
 import {
   allTagsFromCatalog,
   applyTagCycle,
   cycleTagState,
-  filterCatalogByHasTasks,
   filterCatalogBySelectedTags,
   filterCatalogForSidebarView,
+  filterNotesWithTasks,
   mergeTopLevelFolders,
   orderedCatalogRowsForSidebarView,
   selectedTagsFromView,
@@ -24,6 +24,17 @@ function createCatalogRow(id: string, tags: unknown): NoteCatalogRow {
     description: '',
     tags,
   } as NoteCatalogRow
+}
+
+function createNote(id: string, content: string): Note {
+  return {
+    id,
+    content,
+    createdAt: '2026-03-20T00:00:00.000Z',
+    modifiedAt: '2026-03-20T00:00:00.000Z',
+    title: id,
+    description: '',
+  }
 }
 
 describe('allTagsFromCatalog', () => {
@@ -62,21 +73,29 @@ describe('filterCatalogBySelectedTags', () => {
   })
 })
 
-describe('filterCatalogByHasTasks', () => {
-  it('returns only notes with hasTasks set to true', () => {
-    const rows = [
-      createCatalogRow('a.md', []),
+describe('filterNotesWithTasks', () => {
+  it('returns only notes with unchecked checklist items', () => {
+    const notes = [
+      createNote('a.md', 'regular note'),
+      createNote('b.md', '- [ ] todo'),
+      createNote('c.md', '- [x] done'),
+    ]
+
+    expect(filterNotesWithTasks(notes).map((row) => row.id)).toEqual(['b.md'])
+  })
+
+  it('excludes trashed notes with unchecked checklist items', () => {
+    const notes = [
+      createNote('task.md', '- [ ] todo'),
       {
-        ...createCatalogRow('b.md', []),
-        hasTasks: true,
-      },
-      {
-        ...createCatalogRow('c.md', []),
-        hasTasks: false,
+        ...createNote('trashed-task.md', '- [ ] todo'),
+        trashedAt: '2026-01-01T00:00:00.000Z',
       },
     ]
 
-    expect(filterCatalogByHasTasks(rows).map((row) => row.id)).toEqual(['b.md'])
+    expect(filterNotesWithTasks(notes).map((row) => row.id)).toEqual([
+      'task.md',
+    ])
   })
 })
 
@@ -220,24 +239,6 @@ describe('filterCatalogForSidebarView', () => {
     expect(
       filterCatalogForSidebarView(rows, { kind: 'trashed' }).map((r) => r.id),
     ).toEqual(['b.md'])
-  })
-
-  it('excludes trashed notes from tasks view', () => {
-    const rows = [
-      {
-        ...createCatalogRow('task.md', []),
-        hasTasks: true,
-      },
-      {
-        ...createCatalogRow('trashed-task.md', []),
-        hasTasks: true,
-        trashedAt: '2026-01-01T00:00:00.000Z',
-      },
-    ]
-
-    expect(
-      filterCatalogForSidebarView(rows, { kind: 'tasks' }).map((r) => r.id),
-    ).toEqual(['task.md'])
   })
 
   it('lists only non-trashed favorited notes in favorites view', () => {

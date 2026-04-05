@@ -4,6 +4,7 @@ import type { EditorFlush } from '~/composables/useNoteSelection'
 import { resolveUniqueNoteIdForParentPath } from '~/notes/noteId'
 import { noteWithToggledFavorite } from '~/notes/noteWithToggledFavorite'
 import { noteWithToggledPinned } from '~/notes/noteWithToggledPinned'
+import { noteWithToggledWide } from '~/notes/noteWithToggledWide'
 import { noteWithWebhookUrl } from '~/notes/noteWithWebhookUrl'
 import { buildSaveNoteInput } from '~/notes/saveNoteInput'
 import { dispatchNoteWebhook } from '~/notes/webhook'
@@ -271,6 +272,10 @@ export function useNoteMutations({
     await saveAppPropertyChange(noteWithToggledPinned)
   }
 
+  async function toggleWideSelectedNote(): Promise<void> {
+    await saveAppPropertyChange(noteWithToggledWide)
+  }
+
   async function saveWebhookForSelectedNote(url: string): Promise<void> {
     await saveAppPropertyChange((note) => noteWithWebhookUrl(note, url))
   }
@@ -332,6 +337,7 @@ export function useNoteMutations({
     moveNote,
     toggleFavoriteSelectedNote,
     togglePinnedSelectedNote,
+    toggleWideSelectedNote,
     saveWebhookForSelectedNote,
     deleteSelectedNote,
   }

@@ -1,6 +1,5 @@
 import type { SaveNoteInput } from '~/storage/types'
 import { sanitizeProperties } from '~/storage/document'
-import { detectHasTasks } from './detectHasTasks'
 import { extractTagsFromMarkdown } from './extractTags'
 import type { Note } from './types'
 
@@ -31,7 +30,6 @@ export function normalizeSaveProperties(
 
   return {
     ...sanitizedProperties,
-    hasTasks: detectHasTasks(content),
     tags: mergeTags(existing, extractTagsFromMarkdown(content)),
   }
 }

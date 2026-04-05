@@ -37,7 +37,6 @@
     --app-space-lg: 1rem;
     --app-space-xl: 1.25rem;
     --app-space-inspector-nav-inline: 0.875rem;
-    --app-note-surface-padding-inline: 6vw;
     --app-note-surface-padding-top: 4vh;
     --app-note-template-gap: 1.75rem;
     --app-note-title-font-size: 1.5rem;
@@ -322,11 +321,7 @@
 
   .note-template-shell {
     gap: var(--app-note-template-gap);
-    padding-inline: clamp(
-      1.5rem,
-      var(--app-note-surface-padding-inline),
-      var(--app-note-surface-padding-inline)
-    );
+    padding-inline: 1rem;
     padding-top: clamp(
       1.5rem,
       var(--app-note-surface-padding-top),
@@ -355,18 +350,25 @@
   }
 
   .note-editor-shell {
+    align-self: center;
     background-color: hsl(var(--card));
     border-top-left-radius: var(--radius);
     border-top-right-radius: var(--radius);
     display: flex;
     flex: 1 1 0;
     flex-direction: column;
+    margin-inline: auto;
+    max-width: 750px;
     min-height: 0;
     min-width: 0;
-    padding-inline: 10px;
     padding-top: 30px;
     width: 100%;
     font-size: 0.9rem;
+  }
+
+  .note-editor-wide.note-editor-shell {
+    align-self: stretch;
+    max-width: none;
   }
 
   .note-editor-surface {
@@ -375,7 +377,6 @@
     min-width: 0;
     overflow-y: auto;
     overscroll-behavior: contain;
-    padding-left: 10px;
   }
 
   .note-editor-surface .codex-editor {

@@ -6,45 +6,45 @@ describe('serializeDocument', () => {
     expect(
       serializeDocument(
         {
-          hasTasks: true,
+          favorite: true,
         },
         '# Hello',
       ),
-    ).toBe('---\napp:\n  hasTasks: true\n---\n# Hello')
+    ).toBe('---\napp:\n  favorite: true\n---\n# Hello')
   })
 
   it('keeps user-defined properties at the top level', () => {
     expect(
       serializeDocument(
         {
-          hasTasks: true,
+          favorite: true,
           tags: ['cooking'],
         },
         '# Hello',
       ),
-    ).toBe('---\ntags:\n  - cooking\napp:\n  hasTasks: true\n---\n# Hello')
+    ).toBe('---\ntags:\n  - cooking\napp:\n  favorite: true\n---\n# Hello')
   })
 
   it('nests trashedAt under app with other application properties', () => {
     expect(
       serializeDocument(
         {
-          hasTasks: false,
+          favorite: true,
           trashedAt: '2025-01-01T00:00:00.000Z',
         },
         '# Hi',
       ),
     ).toBe(
-      '---\napp:\n  hasTasks: false\n  trashedAt: 2025-01-01T00:00:00.000Z\n---\n# Hi',
+      '---\napp:\n  favorite: true\n  trashedAt: 2025-01-01T00:00:00.000Z\n---\n# Hi',
     )
   })
 })
 
 describe('parseDocument', () => {
   it('promotes app namespace properties to flat note properties', () => {
-    expect(parseDocument('---\napp:\n  hasTasks: true\n---\n# Hello')).toEqual({
+    expect(parseDocument('---\napp:\n  favorite: true\n---\n# Hello')).toEqual({
       properties: {
-        hasTasks: true,
+        favorite: true,
       },
       content: '# Hello',
     })
@@ -62,7 +62,7 @@ describe('parseDocument', () => {
   it('round-trips user-defined and application properties together', () => {
     const document = serializeDocument(
       {
-        hasTasks: true,
+        favorite: true,
         meta: {
           nested: true,
         },
@@ -73,7 +73,7 @@ describe('parseDocument', () => {
 
     expect(parseDocument(document)).toEqual({
       properties: {
-        hasTasks: true,
+        favorite: true,
         meta: {
           nested: true,
         },
@@ -86,7 +86,6 @@ describe('parseDocument', () => {
   it('round-trips trashedAt under app', () => {
     const document = serializeDocument(
       {
-        hasTasks: false,
         trashedAt: '2025-03-01T12:00:00.000Z',
       },
       '# Body',
@@ -94,7 +93,6 @@ describe('parseDocument', () => {
 
     expect(parseDocument(document)).toEqual({
       properties: {
-        hasTasks: false,
         trashedAt: '2025-03-01T12:00:00.000Z',
       },
       content: '# Body',
@@ -104,7 +102,6 @@ describe('parseDocument', () => {
   it('round-trips favorite under app', () => {
     const document = serializeDocument(
       {
-        hasTasks: false,
         favorite: true,
       },
       '# Body',
@@ -112,7 +109,6 @@ describe('parseDocument', () => {
 
     expect(parseDocument(document)).toEqual({
       properties: {
-        hasTasks: false,
         favorite: true,
       },
       content: '# Body',
@@ -122,7 +118,6 @@ describe('parseDocument', () => {
   it('round-trips pinned under app', () => {
     const document = serializeDocument(
       {
-        hasTasks: false,
         pinned: true,
       },
       '# Body',
@@ -130,7 +125,6 @@ describe('parseDocument', () => {
 
     expect(parseDocument(document)).toEqual({
       properties: {
-        hasTasks: false,
         pinned: true,
       },
       content: '# Body',
@@ -140,7 +134,6 @@ describe('parseDocument', () => {
   it('round-trips webhook under app', () => {
     const document = serializeDocument(
       {
-        hasTasks: false,
         webhook: 'https://example.com/webhook',
       },
       '# Body',
@@ -148,7 +141,6 @@ describe('parseDocument', () => {
 
     expect(parseDocument(document)).toEqual({
       properties: {
-        hasTasks: false,
         webhook: 'https://example.com/webhook',
       },
       content: '# Body',

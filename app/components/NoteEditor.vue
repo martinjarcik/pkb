@@ -25,11 +25,13 @@ const props = withDefaults(
     autosaveDelay?: number
     content?: string
     title?: string
+    wide?: boolean
   }>(),
   {
     autosaveDelay: 2000,
     content: '',
     title: '',
+    wide: false,
   },
 )
 
@@ -185,7 +187,7 @@ onBeforeUnmount(() => {
 <template>
   <div
     data-testid="note-editor"
-    class="note-editor-shell"
+    :class="['note-editor-shell', props.wide && 'note-editor-wide']"
   >
     <div
       v-if="editorError"

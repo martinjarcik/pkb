@@ -32,7 +32,10 @@ function handleOpenCreate(): void {
           data-testid="sidebar-folders-create"
           @click="handleOpenCreate"
         >
-          <Plus :size="14" aria-hidden="true" />
+          <Plus
+            :size="14"
+            aria-hidden="true"
+          />
         </button>
       </div>
       <button

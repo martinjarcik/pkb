@@ -200,6 +200,7 @@ export function useEditorLifecycle({
 
       editor.value = new Editorjs({
         holder: holder.value,
+        minHeight: 50,
         autofocus: false,
         inlineToolbar: inlineToolbarTools,
         i18n: editorI18n,

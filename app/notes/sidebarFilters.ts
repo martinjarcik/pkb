@@ -11,7 +11,7 @@ export {
 } from './tagFilterMachine'
 export {
   allTagsFromCatalog,
-  filterCatalogByHasTasks,
+  filterNotesWithTasks,
   filterCatalogBySelectedTags,
   filterCatalogForSidebarView,
   mergeTopLevelFolders,

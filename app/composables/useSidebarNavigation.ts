@@ -14,8 +14,10 @@ import {
 } from '~/notes/folderTree'
 import {
   allTagsFromCatalog,
+  filterNotesWithTasks,
   mergeTopLevelFolders,
   orderedCatalogRowsForSidebarView,
+  sortCatalogRowsPinnedFirstByModifiedAt,
 } from '~/notes/sidebarViewFilters'
 import {
   applyTagCycle,
@@ -28,7 +30,7 @@ import type {
   SidebarWorkspaceView,
   TagFilterState,
 } from '~/notes/sidebarViewTypes'
-import type { NoteCatalogRow } from '~/notes/types'
+import type { Note, NoteCatalogRow } from '~/notes/types'
 
 const selectedView = ref<SidebarWorkspaceView>({ kind: 'inbox' })
 const searchInput = ref('')
@@ -45,9 +47,14 @@ type FolderResult =
 function resolveVisibleCatalogRows(
   rows: readonly NoteCatalogRow[],
   view: SidebarWorkspaceView,
+  notes: readonly Note[],
 ): NoteCatalogRow[] {
   if (view.kind === 'search') {
     return filterOrderedCatalogRowsByIds(rows, view.matchingIds)
+  }
+
+  if (view.kind === 'tasks') {
+    return sortCatalogRowsPinnedFirstByModifiedAt(filterNotesWithTasks(notes))
   }
 
   return orderedCatalogRowsForSidebarView(rows, view)
@@ -118,7 +125,7 @@ export function useSidebarNavigation() {
     resolveTagFilterState(selectedView.value, tag)
 
   const visibleCatalogRows = computed(() =>
-    resolveVisibleCatalogRows(notes.value, selectedView.value),
+    resolveVisibleCatalogRows(notes.value, selectedView.value, allNotes.value),
   )
 
   function clearSearchState(): void {
@@ -143,7 +150,9 @@ export function useSidebarNavigation() {
   async function selectView(view: SidebarNonSearchView): Promise<void> {
     clearSearchState()
     selectedView.value = view
-    await syncSelection(resolveVisibleCatalogRows(notes.value, view))
+    await syncSelection(
+      resolveVisibleCatalogRows(notes.value, view, allNotes.value),
+    )
   }
 
   async function selectInbox(): Promise<void> {
@@ -205,7 +214,11 @@ export function useSidebarNavigation() {
       if (selectedView.value.kind === 'search') {
         selectedView.value = selectedView.value.previousView
         await syncSelection(
-          resolveVisibleCatalogRows(notes.value, selectedView.value),
+          resolveVisibleCatalogRows(
+            notes.value,
+            selectedView.value,
+            allNotes.value,
+          ),
         )
       }
 
@@ -227,7 +240,11 @@ export function useSidebarNavigation() {
     }
 
     await syncSelection(
-      resolveVisibleCatalogRows(notes.value, selectedView.value),
+      resolveVisibleCatalogRows(
+        notes.value,
+        selectedView.value,
+        allNotes.value,
+      ),
     )
   }
 

@@ -83,3 +83,7 @@ Derive sidebar folders from actual vault directories on disk (via `NoteStorage.l
 ## D027 — 2026-04
 
 Support nested subfolders in the sidebar. `list_directories` now recursively walks the vault and returns vault-relative paths for all directories (e.g. `Work`, `Work/Archive`, `Work/Archive/2024`). The sidebar view type uses `folderPath` (a vault-relative path string) instead of `folderName` (single segment). The sidebar renders folders as an expandable tree with per-node expand/collapse state. Folder views filter to direct children of the selected folder path. Subfolder creation, drag-and-drop move targets, and folder metadata all use full vault-relative paths. Extends D026.
+
+## D028 — 2026-04
+
+Stop persisting `hasTasks` as an Application Property. The `Tasks` sidebar view now derives its note set directly from loaded note content by scanning for unchecked markdown checklist items, which removes stale frontmatter and makes externally authored notes show up without an app save. Partially supersedes D013.

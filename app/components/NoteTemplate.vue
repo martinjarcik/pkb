@@ -1,16 +1,13 @@
 <script setup lang="ts">
-import { nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import NoteEditor from '~/components/NoteEditor.vue'
-import { useLayout } from '~/composables/useLayout'
 import { useNotes } from '~/composables/useNotes'
-import { cn } from '~/lib/utils'
 
 type NoteEditorHandle = {
   focusTitle(): Promise<void>
   flushContentSync(): Promise<void>
 }
 
-const { nonDistractionMode } = useLayout()
 const {
   clearShouldFocusTitle,
   editorAutosaveDelay,
@@ -22,6 +19,7 @@ const {
   shouldFocusTitle,
 } = useNotes()
 const noteEditor = ref<NoteEditorHandle | null>(null)
+const isWide = computed(() => selectedNote.value?.wide === true)
 
 let pendingContentSave = Promise.resolve()
 
@@ -61,18 +59,14 @@ watch(shouldFocusTitle, async (nextShouldFocusTitle) => {
 <template>
   <div
     data-testid="note-template"
-    :class="
-      cn(
-        'note-template-shell flex min-h-0 min-w-0 flex-1 flex-col',
-        nonDistractionMode && 'w-1/2 self-center',
-      )
-    "
+    class="note-template-shell flex min-h-0 min-w-0 flex-1 flex-col"
   >
     <NoteEditor
       ref="noteEditor"
       :autosave-delay="editorAutosaveDelay"
       :content="selectedNote?.content ?? ''"
       :title="selectedNoteTitle"
+      :wide="isWide"
       @content-change="handleContentChange"
       @title-change="handleTitleChange"
     />

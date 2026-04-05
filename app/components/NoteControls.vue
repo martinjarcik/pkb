@@ -1,6 +1,14 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import { Maximize2, Pin, PinOff, PlugZap, Star, Trash2 } from 'lucide-vue-next'
+import {
+  Maximize2,
+  MoveHorizontal,
+  Pin,
+  PinOff,
+  PlugZap,
+  Star,
+  Trash2,
+} from 'lucide-vue-next'
 import { useAppFeatures } from '~/composables/useAppFeatures'
 import { useLayout } from '~/composables/useLayout'
 import { useNotes } from '~/composables/useNotes'
@@ -13,6 +21,7 @@ const {
   deleteSelectedNote,
   toggleFavoriteSelectedNote,
   togglePinnedSelectedNote,
+  toggleWideSelectedNote,
   saveWebhookForSelectedNote,
   saveError,
 } = useNotes()
@@ -30,6 +39,7 @@ const webhookDraft = ref('')
 
 const isFavorite = computed(() => selectedNote.value?.favorite === true)
 const isPinned = computed(() => selectedNote.value?.pinned === true)
+const isWide = computed(() => selectedNote.value?.wide === true)
 const hasWebhook = computed(
   () =>
     typeof selectedNote.value?.webhook === 'string' &&
@@ -46,6 +56,10 @@ async function handleFavoriteClick(): Promise<void> {
 
 async function handlePinClick(): Promise<void> {
   await togglePinnedSelectedNote()
+}
+
+async function handleWideClick(): Promise<void> {
+  await toggleWideSelectedNote()
 }
 
 function handleNonDistractionClick(): void {
@@ -112,6 +126,17 @@ function handleWebhookCancel(): void {
         v-else
         :size="16"
       />
+    </button>
+    <button
+      v-if="selectedNote"
+      type="button"
+      data-testid="note-wide"
+      class="flex items-center justify-center hover:opacity-90"
+      :class="isWide ? '' : 'text-muted-foreground hover:text-foreground'"
+      :style="isWide ? { color: accentColor } : undefined"
+      @click="handleWideClick"
+    >
+      <MoveHorizontal :size="16" />
     </button>
     <button
       v-if="selectedNote && nonDistractionModeEnabled"
