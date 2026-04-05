@@ -1,5 +1,6 @@
 import { computed, ref } from 'vue'
 import { useAppConfigDisk } from '~/composables/useAppConfigDisk'
+import { useAppTheme } from '~/composables/useAppTheme'
 import { useFolderMeta } from '~/composables/useFolderMeta'
 import { useNotes } from '~/composables/useNotes'
 import { useNoteStorage } from '~/composables/useNoteStorage'
@@ -8,16 +9,20 @@ import { filterOrderedCatalogRowsByIds, searchNotes } from '~/notes/noteSearch'
 import { sanitizeNoteTitleForFilename } from '~/notes/noteId'
 import {
   allTagsFromCatalog,
-  applyTagCycle,
   mergeTopLevelFolders,
   orderedCatalogRowsForSidebarView,
+} from '~/notes/sidebarViewFilters'
+import { vaultTopLevelFolderNames } from '~/notes/noteFilters'
+import {
+  applyTagCycle,
   selectedTagsFromView,
   tagFilterState as resolveTagFilterState,
-  type SidebarNonSearchView,
-  type TagFilterState,
-  type SidebarWorkspaceView,
-  vaultTopLevelFolderNames,
-} from '~/notes/sidebarFilters'
+} from '~/notes/tagFilterMachine'
+import type {
+  SidebarNonSearchView,
+  SidebarWorkspaceView,
+  TagFilterState,
+} from '~/notes/sidebarViewTypes'
 import type { NoteCatalogRow } from '~/notes/types'
 
 const selectedView = ref<SidebarWorkspaceView>({ kind: 'inbox' })
@@ -26,14 +31,15 @@ const foldersExpanded = ref(true)
 const tagsExpanded = ref(true)
 const explicitFolders = ref<string[]>([])
 
+/** Owns the shared sidebar view, tag filters, and top-level folder actions. */
 export function useSidebarNavigation() {
-  const { catalog, allNotes, selectedNoteId, selectNoteById } = useNotes()
+  const { notes, allNotes, selectedNoteId, selectNoteById } = useNotes()
   const { storage } = useNoteStorage()
   const { meta } = useFolderMeta()
   const { data: appConfigDisk } = useAppConfigDisk()
-  const accentColor = computed(() => appConfigDisk.value.theme.accentColor)
+  const { accentColor } = useAppTheme()
   const catalogDerivedFolders = computed(() =>
-    vaultTopLevelFolderNames(catalog.value.map((row) => row.id)),
+    vaultTopLevelFolderNames(notes.value.map((row) => row.id)),
   )
   const metaDerivedFolders = computed(() =>
     Object.keys(meta.value.folders).sort((left, right) =>
@@ -54,13 +60,13 @@ export function useSidebarNavigation() {
 
     return merged.filter((name) => name !== excluded)
   })
-  const allTags = computed(() => allTagsFromCatalog(catalog.value))
+  const allTags = computed(() => allTagsFromCatalog(notes.value))
   const selectedTags = computed(() => selectedTagsFromView(selectedView.value))
   const tagFilterState = (tag: string): TagFilterState =>
     resolveTagFilterState(selectedView.value, tag)
 
   const visibleCatalogRows = computed(() =>
-    resolveVisibleCatalogRows(catalog.value, selectedView.value),
+    resolveVisibleCatalogRows(notes.value, selectedView.value),
   )
 
   function resolveVisibleCatalogRows(
@@ -92,7 +98,7 @@ export function useSidebarNavigation() {
   async function selectView(view: SidebarNonSearchView): Promise<void> {
     clearSearchState()
     selectedView.value = view
-    await syncSelection(resolveVisibleCatalogRows(catalog.value, view))
+    await syncSelection(resolveVisibleCatalogRows(notes.value, view))
   }
 
   async function selectInbox(): Promise<void> {
@@ -142,7 +148,7 @@ export function useSidebarNavigation() {
       if (selectedView.value.kind === 'search') {
         selectedView.value = selectedView.value.previousView
         await syncSelection(
-          resolveVisibleCatalogRows(catalog.value, selectedView.value),
+          resolveVisibleCatalogRows(notes.value, selectedView.value),
         )
       }
 
@@ -164,12 +170,8 @@ export function useSidebarNavigation() {
     }
 
     await syncSelection(
-      resolveVisibleCatalogRows(catalog.value, selectedView.value),
+      resolveVisibleCatalogRows(notes.value, selectedView.value),
     )
-  }
-
-  async function loadFolders(): Promise<void> {
-    return undefined
   }
 
   function toggleFoldersExpanded(): void {
@@ -256,7 +258,6 @@ export function useSidebarNavigation() {
     tagFilterState,
     visibleCatalogRows,
     updateSearchInput,
-    loadFolders,
     selectInbox,
     selectTasks,
     selectFavorites,

@@ -5,17 +5,16 @@ import { useAppConfigDisk } from '~/composables/useAppConfigDisk'
 
 const defaultLayout = loadConfig().layout
 type LayoutVisibilitySnapshot = {
-  showInspectorPanel: boolean
   showNotesListPanel: boolean
   showSidebarPanel: boolean
 }
 
-const showInspectorPanel = ref(defaultLayout.showInspectorPanel)
 const showSidebarPanel = ref(defaultLayout.showSidebarPanel)
 const showNotesListPanel = ref(defaultLayout.showNotesListPanel)
 const nonDistractionMode = ref(false)
 const nonDistractionSnapshot = ref<LayoutVisibilitySnapshot | null>(null)
 
+/** Owns shared layout visibility plus session-only non-distraction mode. */
 export function useLayout() {
   const { saveAppConfigPatch } = useAppConfigDisk()
 
@@ -26,7 +25,6 @@ export function useLayout() {
   }
 
   function syncLayoutFromConfig(layout: AppConfig['layout']): void {
-    showInspectorPanel.value = layout.showInspectorPanel
     showSidebarPanel.value = layout.showSidebarPanel
     showNotesListPanel.value = layout.showNotesListPanel
   }
@@ -37,17 +35,10 @@ export function useLayout() {
     persistAppConfigPatch({ layout: { showSidebarPanel: next } })
   }
 
-  function toggleInspectorPanel(): void {
-    const next = !showInspectorPanel.value
-    showInspectorPanel.value = next
-    persistAppConfigPatch({ layout: { showInspectorPanel: next } })
-  }
-
   function toggleNonDistractionMode(): void {
     if (nonDistractionMode.value) {
       const snapshot = nonDistractionSnapshot.value
       if (snapshot) {
-        showInspectorPanel.value = snapshot.showInspectorPanel
         showNotesListPanel.value = snapshot.showNotesListPanel
         showSidebarPanel.value = snapshot.showSidebarPanel
       }
@@ -57,11 +48,9 @@ export function useLayout() {
     }
 
     nonDistractionSnapshot.value = {
-      showInspectorPanel: showInspectorPanel.value,
       showNotesListPanel: showNotesListPanel.value,
       showSidebarPanel: showSidebarPanel.value,
     }
-    showInspectorPanel.value = false
     showNotesListPanel.value = false
     showSidebarPanel.value = false
     nonDistractionMode.value = true
@@ -69,11 +58,9 @@ export function useLayout() {
 
   return {
     nonDistractionMode,
-    showInspectorPanel,
     showSidebarPanel,
     showNotesListPanel,
     syncLayoutFromConfig,
-    toggleInspectorPanel,
     toggleNonDistractionMode,
     toggleSidebarPanel,
   }

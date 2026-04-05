@@ -111,16 +111,6 @@ shape because the app now keeps full note bodies in shared client state.
     - `NoteEditor` — content editing surface (includes an EditorJS `noteTitle`
       block pinned at index 0 for inline title editing and an inline hashtag
       formatting tool).
-- `InspectorPanel` (`app/components/InspectorPanel.vue`) — inspector shell.
-  - `InspectorNavigation` (`app/components/InspectorNavigation.vue`) — tab bar
-    for inspector views.
-  - `InspectorContent` (`app/components/InspectorContent.vue`) — active view
-    container.
-    - `InspectorPropertiesView`
-      (`app/components/InspectorPropertiesView.vue`) — properties editor.
-      - `InspectorPropertiesList`
-        (`app/components/InspectorPropertiesList.vue`) — property key-value
-        list.
 
 ## Bounded contexts
 
@@ -139,7 +129,8 @@ Context-to-folder mapping:
 | Configuration                     | `app/config/`  | `app/composables/` |
 
 New contexts may be introduced when corresponding features are specified.
-`app/notes/sidebarFilters.ts` stays in domain logic intentionally: it models
+`app/notes/tagFilterMachine.ts` and `app/notes/sidebarViewFilters.ts` stay in
+domain logic intentionally: they model tag-state transitions plus
 workspace-view filtering and ordering as pure TypeScript, while
 `app/composables/useSidebarNavigation.ts` owns the reactive UI state that uses
 those rules.
@@ -156,12 +147,17 @@ those rules.
   unchecked markdown checklist items.
 - Templates wrap content to provide rendered page context. Liquid and layout
   code lives outside the editor. Templates are not edited inline.
-- Properties are edited separately in the InspectorPanel, not inside the editor.
+- Note metadata is edited through focused controls and dialogs rather than an
+  always-visible inspector region.
 - In filesystem-backed storage, properties are serialized as YAML frontmatter.
-- `useNotes()` owns the full in-memory note store, the derived note catalog, the
-  active note id, and the selected full note in shared state. The page selects
-  the initial note after load; `NoteTemplate` passes the selected note's title
-  and Content into `NoteEditor`.
+- `useNoteCatalog()` owns the full in-memory note store plus the derived note
+  catalog in shared state.
+- `useNoteSelection()` owns the active note id, selected full note, editor
+  flush callback, and title-focus handoff in shared state.
+- `useNotes()` composes the catalog, selection, storage, and mutation
+  composables into the app-facing note API. The page selects the initial note
+  after load; `NoteTemplate` passes the selected note's title and Content into
+  `NoteEditor`.
 - After save and trash operations, the client may POST to the note’s `webhook`
   Application Property (HTTPS URL only) with a JSON body `{ event, note }`
   where `event` is `updated` or `deleted`. Delivery is best-effort and does not
@@ -275,7 +271,9 @@ produce stale views, failed saves, or overwritten files.
 
 The app runs as a single-process desktop SPA, so shared state is held in
 module-scope Vue refs owned only by `useAppConfigDisk()`, `useFolderMeta()`,
-`useLayout()`, `useNotes()`, `useSettings()`, and `useSidebarNavigation()`.
+`useLayout()`, `useNoteCatalog()`, `useNoteSelection()`, `useSettings()`, and
+`useSidebarNavigation()`. `useNoteStorage()` derives storage adapters lazily
+from config and does not own module-scope refs.
 
 - Other composables must receive shared refs through arguments or consume those
   state-owning composables.

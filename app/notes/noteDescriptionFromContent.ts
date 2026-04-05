@@ -1,68 +1,65 @@
+import { remark } from 'remark'
+import remarkGfm from 'remark-gfm'
+import { remarkHighlightMark } from 'remark-highlight-mark'
+
 const EMOJI_PATTERN =
   /[\p{Emoji_Presentation}\p{Extended_Pictographic}]\uFE0F?/gu
+const markdownParser = remark().use(remarkGfm).use(remarkHighlightMark)
 
-function stripMarkdownSyntax(line: string): string {
-  return line
-    .replace(/^>\s?/, '')
-    .replace(/^[-*+]\s+\[(?: |x|X)\]\s+/, '')
-    .replace(/^[-*+]\s+/, '')
-    .replace(/^\d+\.\s+/, '')
-    .replace(/!\[([^\]]*)\]\([^)]+\)/g, '$1')
-    .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
-    .replace(/`([^`]+)`/g, '$1')
-    .replace(
-      /==(?:[\p{Emoji_Presentation}\p{Extended_Pictographic}]\uFE0F?){0,3}(.*?)==/gu,
-      '$1',
-    )
-    .replace(/(\*\*|__)(.*?)\1/g, '$2')
-    .replace(/(\*|_)(.*?)\1/g, '$2')
-    .replace(/~~(.*?)~~/g, '$1')
-    .replace(/<[^>]+>/g, '')
-    .replace(/\\([[\]`*_{}()#+\-.!|>])/g, '$1')
-    .replace(/\|/g, ' ')
-    .replace(EMOJI_PATTERN, '')
-    .replace(/\s+/g, ' ')
-    .trim()
+type MarkdownNode = {
+  type: string
+  alt?: string | null
+  value?: string
+  children?: MarkdownNode[]
 }
 
-function isMarkdownTableSeparator(line: string): boolean {
-  return line.includes('|') && /^[\s|:-]+$/.test(line) && line.includes('-')
+function collectNodeText(node: MarkdownNode, segments: string[]): void {
+  if (
+    node.type === 'heading' ||
+    node.type === 'code' ||
+    node.type === 'html' ||
+    node.type === 'thematicBreak'
+  ) {
+    return
+  }
+
+  if (node.type === 'image') {
+    if (typeof node.alt === 'string' && node.alt.trim().length > 0) {
+      segments.push(node.alt)
+    }
+    return
+  }
+
+  if (node.type === 'inlineCode' || node.type === 'text') {
+    if (typeof node.value === 'string' && node.value.trim().length > 0) {
+      segments.push(node.value)
+    }
+    return
+  }
+
+  for (const child of node.children ?? []) {
+    collectNodeText(child, segments)
+  }
 }
 
 const MAX_DESCRIPTION_LENGTH = 120
 
 export function noteDescriptionFromContent(content: string): string {
-  const previewLines: string[] = []
-  let isInsideFencedCodeBlock = false
+  const sanitizedContent = content.replace(
+    /==(?:[\p{Emoji_Presentation}\p{Extended_Pictographic}]\uFE0F?){0,3}(.*?)==/gu,
+    '$1',
+  )
+  const tree = markdownParser.parse(sanitizedContent) as MarkdownNode
+  const segments: string[] = []
 
-  for (const line of content.split(/\r?\n/)) {
-    const trimmedLine = line.trim()
+  collectNodeText(tree, segments)
 
-    if (/^(```|~~~)/.test(trimmedLine)) {
-      isInsideFencedCodeBlock = !isInsideFencedCodeBlock
-      continue
-    }
-
-    if (
-      trimmedLine.length === 0 ||
-      isInsideFencedCodeBlock ||
-      /^#{1,6}\s+/.test(trimmedLine) ||
-      /^([-*_]\s*){3,}$/.test(trimmedLine) ||
-      isMarkdownTableSeparator(trimmedLine)
-    ) {
-      continue
-    }
-
-    const sanitizedLine = stripMarkdownSyntax(trimmedLine)
-
-    if (sanitizedLine.length === 0) {
-      continue
-    }
-
-    previewLines.push(sanitizedLine)
-  }
-
-  const normalizedContent = previewLines.join(' ').replace(/\s+/g, ' ').trim()
+  const normalizedContent = segments
+    .join(' ')
+    .replace(EMOJI_PATTERN, '')
+    .replace(/\s+([.,!?;:])/g, '$1')
+    .replace(/\s+/g, ' ')
+    .trim()
 
   if (normalizedContent.length <= MAX_DESCRIPTION_LENGTH) {
     return normalizedContent

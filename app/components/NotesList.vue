@@ -1,16 +1,9 @@
 <script setup lang="ts">
-import {
-  computed,
-  nextTick,
-  onBeforeUnmount,
-  onMounted,
-  ref,
-  type ComponentPublicInstance,
-  watch,
-} from 'vue'
+import { computed, ref } from 'vue'
 import { useNotes } from '~/composables/useNotes'
 import { useSidebarNavigation } from '~/composables/useSidebarNavigation'
 import { useTranslations } from '~/composables/useTranslations'
+import { useVirtualList } from '~/composables/useVirtualList'
 
 type NotesListItem = {
   id: string
@@ -29,8 +22,6 @@ type NotesListRow = {
 }
 
 const DRAG_PREVIEW_SCALE = 0.5
-const DEFAULT_ITEM_HEIGHT = 96
-const OVERSCAN_PX = 320
 
 const { t } = useTranslations()
 
@@ -48,107 +39,16 @@ const { isLoading, loadError, selectedNoteId, selectNoteById } = useNotes()
 const { accentColor, visibleCatalogRows } = useSidebarNavigation()
 
 const dragPreview = ref<HTMLElement | null>(null)
-const listViewport = ref<HTMLElement | null>(null)
-const scrollTop = ref(0)
-const viewportHeight = ref(0)
-const rowHeights = ref<Record<string, number>>({})
 const listItems = computed(() => visibleCatalogRows.value.map(toListItem))
-const measuredRowElements = new Map<string, HTMLElement>()
-let viewportResizeObserver: ResizeObserver | null = null
-let pendingMeasureFrame = 0
-
-const virtualRows = computed(() => {
-  let offset = 0
-
-  return listItems.value.map((item) => {
-    const height = rowHeights.value[item.id] ?? DEFAULT_ITEM_HEIGHT
-    const row = { item, offset, height }
-
-    offset += height
-
-    return row
-  })
+const {
+  listViewport,
+  totalHeight,
+  visibleRows,
+  handleScroll,
+  registerRowElement,
+} = useVirtualList({
+  items: listItems,
 })
-
-const totalHeight = computed(() => {
-  const lastRow = virtualRows.value[virtualRows.value.length - 1]
-
-  return lastRow ? lastRow.offset + lastRow.height : 0
-})
-
-const visibleRows = computed(() => {
-  const start = Math.max(0, scrollTop.value - OVERSCAN_PX)
-  const end = scrollTop.value + viewportHeight.value + OVERSCAN_PX
-
-  return virtualRows.value.filter(
-    (row) => row.offset + row.height >= start && row.offset <= end,
-  )
-})
-
-function updateViewportHeight(): void {
-  viewportHeight.value = listViewport.value?.clientHeight ?? 0
-}
-
-function handleScroll(event: Event): void {
-  if (!(event.currentTarget instanceof HTMLElement)) {
-    return
-  }
-
-  scrollTop.value = event.currentTarget.scrollTop
-}
-
-function measureVisibleRows(): void {
-  const nextHeights = { ...rowHeights.value }
-  let didChange = false
-
-  for (const [id, element] of measuredRowElements) {
-    const height = element.offsetHeight
-
-    if (height > 0 && nextHeights[id] !== height) {
-      nextHeights[id] = height
-      didChange = true
-    }
-  }
-
-  if (didChange) {
-    rowHeights.value = nextHeights
-  }
-}
-
-function scheduleMeasureVisibleRows(): void {
-  if (typeof window === 'undefined') {
-    return
-  }
-
-  if (pendingMeasureFrame !== 0) {
-    cancelAnimationFrame(pendingMeasureFrame)
-  }
-
-  pendingMeasureFrame = window.requestAnimationFrame(() => {
-    pendingMeasureFrame = 0
-    measureVisibleRows()
-  })
-}
-
-function registerRowElement(
-  id: string,
-  element: Element | ComponentPublicInstance | null,
-): void {
-  const resolvedElement =
-    element instanceof HTMLElement
-      ? element
-      : element && '$el' in element && element.$el instanceof HTMLElement
-        ? element.$el
-        : null
-
-  if (resolvedElement) {
-    measuredRowElements.set(id, resolvedElement)
-    scheduleMeasureVisibleRows()
-    return
-  }
-
-  measuredRowElements.delete(id)
-}
 
 async function handleSelectNote(id: string): Promise<void> {
   await selectNoteById(id)
@@ -229,45 +129,6 @@ function getVirtualRowStyle(offset: number): Record<string, string> {
     transform: `translateY(${offset}px)`,
   }
 }
-
-watch(
-  listItems,
-  async (nextItems) => {
-    const nextIds = new Set(nextItems.map((item) => item.id))
-
-    rowHeights.value = Object.fromEntries(
-      Object.entries(rowHeights.value).filter(([id]) => nextIds.has(id)),
-    )
-
-    await nextTick()
-    updateViewportHeight()
-    scheduleMeasureVisibleRows()
-  },
-  { immediate: true },
-)
-
-onMounted(() => {
-  updateViewportHeight()
-
-  if (!listViewport.value || typeof ResizeObserver === 'undefined') {
-    return
-  }
-
-  viewportResizeObserver = new ResizeObserver(() => {
-    updateViewportHeight()
-    scheduleMeasureVisibleRows()
-  })
-  viewportResizeObserver.observe(listViewport.value)
-})
-
-onBeforeUnmount(() => {
-  if (pendingMeasureFrame !== 0) {
-    cancelAnimationFrame(pendingMeasureFrame)
-  }
-
-  viewportResizeObserver?.disconnect()
-  viewportResizeObserver = null
-})
 </script>
 
 <template>

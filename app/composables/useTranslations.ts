@@ -10,6 +10,8 @@ const localeMessages: Record<string, Messages> = {
   en,
 }
 
+let localeRef: Ref<string> | null = null
+
 function resolveKey(messages: Messages, key: string): string {
   const segments = key.split('.')
   let current: unknown = messages
@@ -29,23 +31,29 @@ function resolveLocale(locale: string): string {
   return locale in localeMessages ? locale : FALLBACK_LOCALE
 }
 
+function currentLocaleRef(): Ref<string> {
+  if (localeRef) {
+    return localeRef
+  }
+
+  const { data: appConfigDisk } = useAppConfigDisk()
+  localeRef = computed(() => resolveLocale(appConfigDisk.value.locale))
+
+  return localeRef
+}
+
 // Keep a standalone translator for composables and editor helpers that only need
 // synchronous string lookup, not reactive locale state.
 export function t(key: string): string {
-  const { data: appConfigDisk } = useAppConfigDisk()
   const messages =
-    localeMessages[resolveLocale(appConfigDisk.value.locale)] ??
-    localeMessages[FALLBACK_LOCALE]
+    localeMessages[currentLocaleRef().value] ?? localeMessages[FALLBACK_LOCALE]
 
   return resolveKey(messages as Messages, key)
 }
 
+/** Exposes synchronous locale lookup for components and composables. */
 export function useTranslations(): {
   t: (key: string) => string
-  locale: Ref<string>
 } {
-  const { data: appConfigDisk } = useAppConfigDisk()
-  const locale = computed(() => resolveLocale(appConfigDisk.value.locale))
-
-  return { t, locale }
+  return { t }
 }

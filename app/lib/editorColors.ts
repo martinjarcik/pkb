@@ -1,21 +1,32 @@
-import { useAppConfigDisk } from '~/composables/useAppConfigDisk'
-import type { EditorColor, EditorColors } from '~/config/parseAppConfig'
+import { loadConfig } from '~/config/loader'
+import type {
+  AppConfig,
+  EditorColor,
+  EditorColors,
+} from '~/config/parseAppConfig'
 
-// This is the editor/lib bridge back to app config for the configured editor
-// palette defaults. Keep the rest of `app/lib/` config-free where possible.
+const defaultConfig = loadConfig()
+let editorColors = defaultConfig.editorColors
+let defaultEditorColor = defaultConfig.theme.defaultEditorColor
+
+// The app shell synchronizes runtime editor colors into this module so the
+// Editor.js helpers can stay independent from composable state.
+export function syncEditorColors(
+  config: Pick<AppConfig, 'editorColors' | 'theme'>,
+): void {
+  editorColors = config.editorColors
+  defaultEditorColor = config.theme.defaultEditorColor
+}
+
 export function getEditorColors(): EditorColors {
-  const { data: appConfigDisk } = useAppConfigDisk()
-
-  return appConfigDisk.value.editorColors
+  return editorColors
 }
 
 export function getDefaultEditorColor(): string {
-  const { data: appConfigDisk } = useAppConfigDisk()
-  const { editorColors, theme } = appConfigDisk.value
   const editorColorNames = Object.keys(editorColors)
 
-  return editorColorNames.includes(theme.defaultEditorColor)
-    ? theme.defaultEditorColor
+  return editorColorNames.includes(defaultEditorColor)
+    ? defaultEditorColor
     : (editorColorNames[0] ?? 'red')
 }
 

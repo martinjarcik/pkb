@@ -46,8 +46,8 @@ All notable changes to this project will be documented in this file.
   through the desktop platform API layer (default path overridable with
   `PKB_META_PATH`).
 - Add non-distraction mode: `NoteControls` toggle (accent `Maximize2` icon) hides
-  SidebarPanel, NotesListPanel, and InspectorPanel for the session; a second
-  click restores the previous panel visibility without persisting to app config.
+  SidebarPanel and NotesListPanel for the session; a second click restores the
+  previous panel visibility without persisting to app config.
   While active, `NoteTemplate` constrains the editor column to 50% width and
   centers it horizontally.
 - Add per-note webhooks: optional `webhook` Application Property (HTTPS URL
@@ -92,8 +92,8 @@ All notable changes to this project will be documented in this file.
   `NotesListPanel`, and let list clicks retarget the editor.
 - Add an Editor.js-based note editor that loads the first note's Markdown
   content through a client-side Markdown-to-block translation layer.
-- Add the default application layout with `SidebarPanel`, `NotesListPanel`, `NotePanel`,
-  and `InspectorPanel`, including config-driven visibility for optional panels.
+- Add the default application layout with `SidebarPanel`, `NotesListPanel`, and
+  `NotePanel`, including config-driven visibility for optional panels.
 - Load notes into shared frontend state on app open and render them in
   `NotesListPanel` using each note `id` as the visible row title.
 - Add filesystem storage adapter for desktop mode. Notes are persisted as

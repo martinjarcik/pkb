@@ -7,7 +7,6 @@ editor:
   autosaveDelay: 2000
   assetsFolder: assets
 layout:
-  showInspectorPanel: false
   showSidebarPanel: true
   showNotesListPanel: true
 theme:

@@ -49,6 +49,31 @@ export function createFilesystemProxyStorage(
   platformApi: PlatformApi,
   vaultPath: string,
 ): NoteStorage {
+  async function loadExistingNoteIds(): Promise<string[]> {
+    const allNotes = await platformApi.readAllNotes(vaultPath)
+    return allNotes.map((entry) => entry.path)
+  }
+
+  async function loadNoteFromInput(id: string, note?: Note): Promise<Note> {
+    if (note) {
+      return note
+    }
+
+    const allNotes = await platformApi.readAllNotes(vaultPath)
+    const rawNote = allNotes.find((entry) => entry.path === id)
+
+    if (!rawNote) {
+      throw new Error(`Note not found: ${id}`)
+    }
+
+    return composeNoteFromRaw(
+      rawNote.path,
+      rawNote.content,
+      rawNote.birthtime,
+      rawNote.mtime,
+    )
+  }
+
   return {
     async loadAllNotes(): Promise<Note[]> {
       const files = await platformApi.readAllNotes(vaultPath)
@@ -82,17 +107,12 @@ export function createFilesystemProxyStorage(
     },
 
     async renameNoteTitle(input: RenameNoteTitleInput): Promise<Note> {
-      const allNotes = await this.loadAllNotes()
-      const note = allNotes.find((n) => n.id === input.id)
-
-      if (!note) {
-        throw new Error(`Note not found: ${input.id}`)
-      }
+      const note = await loadNoteFromInput(input.id, input.note)
 
       const nextId = resolveUniqueNoteId(
         input.id,
         input.title,
-        input.existingIds ?? allNotes.map((n) => n.id),
+        input.existingIds ?? (await loadExistingNoteIds()),
       )
 
       if (nextId !== input.id) {
@@ -107,17 +127,12 @@ export function createFilesystemProxyStorage(
     },
 
     async moveNote(input: MoveNoteInput): Promise<Note> {
-      const allNotes = await this.loadAllNotes()
-      const note = allNotes.find((n) => n.id === input.id)
-
-      if (!note) {
-        throw new Error(`Note not found: ${input.id}`)
-      }
+      const note = await loadNoteFromInput(input.id, input.note)
 
       const nextId = moveNoteId(
         input.id,
         input.targetParentPath,
-        input.existingIds ?? allNotes.map((n) => n.id),
+        input.existingIds ?? (await loadExistingNoteIds()),
       )
 
       if (nextId !== input.id) {
@@ -148,21 +163,16 @@ export function createFilesystemProxyStorage(
       }
     },
 
-    async softDeleteNote(id: string): Promise<Note> {
-      const allNotes = await this.loadAllNotes()
-      const note = allNotes.find((n) => n.id === id)
-
-      if (!note) {
-        throw new Error(`Note not found: ${id}`)
-      }
+    async softDeleteNote(id: string, note?: Note): Promise<Note> {
+      const noteToDelete = await loadNoteFromInput(id, note)
 
       return this.saveNote({
-        id: note.id,
+        id,
         properties: {
-          ...sanitizeProperties(note),
+          ...sanitizeProperties(noteToDelete),
           trashedAt: new Date().toISOString(),
         },
-        content: note.content,
+        content: noteToDelete.content,
       })
     },
 

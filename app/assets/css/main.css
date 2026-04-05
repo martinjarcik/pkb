@@ -27,7 +27,7 @@
     --sidebar-foreground: 0 0% 3.9%;
     --sidebar-border: 0 0% 89%;
     --radius: 0.625rem;
-    --app-panel-sidebar-width: 13.75rem;
+    --app-panel-sidebar-width: 18.75rem;
     --app-panel-notes-list-width: 23.125rem;
     --app-panel-inspector-width: 15.625rem;
     --app-panel-top-offset: 3.25rem;
@@ -110,9 +110,12 @@
   }
 
   .sidebar-panel-shell {
-    background-color: hsl(var(--sidebar-background));
+    background-color: var(
+      --app-config-sidebar-background-color,
+      hsl(var(--sidebar-background))
+    );
     color: hsl(var(--sidebar-foreground));
-    padding-inline-start: var(--app-space-xl);
+    padding: var(--app-space-xl);
     padding-top: var(--app-panel-top-offset);
   }
 
@@ -125,16 +128,15 @@
     background: transparent;
     border: 0;
     border-radius: 5px;
-    color: var(--app-sidebar-text);
+    color: var(--app-config-sidebar-text-color, var(--app-sidebar-text));
     cursor: pointer;
     display: flex;
-    font-size: 13px;
-    gap: 5px;
+    font-size: 15px;
+    gap: 10px;
     height: 30px;
     line-height: 2.5;
     padding-left: 10px;
     text-align: left;
-    width: 180px;
   }
 
   .sidebar-navigation-item-shell:hover:not(.sidebar-navigation-item-selected) {
@@ -165,10 +167,6 @@
     line-height: 2.5;
   }
 
-  .sidebar-folders-shell {
-    width: 180px;
-  }
-
   .sidebar-section-controls-shell {
     align-items: center;
     display: flex;
@@ -183,7 +181,10 @@
   }
 
   .sidebar-section-title {
-    color: var(--app-sidebar-section-title);
+    color: var(
+      --app-config-sidebar-text-color,
+      var(--app-sidebar-section-title)
+    );
     font-size: 11px;
     font-weight: 700;
     line-height: 2;
@@ -208,7 +209,7 @@
     appearance: none;
     background: transparent;
     border: 0;
-    color: var(--app-sidebar-control);
+    color: var(--app-config-sidebar-text-color, var(--app-sidebar-control));
     cursor: pointer;
     display: inline-flex;
     align-items: center;
@@ -230,7 +231,6 @@
 
   .sidebar-tags-shell {
     gap: 0.375rem;
-    width: 180px;
   }
 
   .sidebar-tags-list-shell {
@@ -240,28 +240,26 @@
   }
 
   .sidebar-tag-item-shell {
-    background: transparent;
+    background: rgba(0, 0, 0, 0.04);
     border: 0;
-    color: var(--app-sidebar-text);
+    border-radius: 3px;
+    color: var(--app-config-sidebar-text-color, var(--app-sidebar-text));
     cursor: pointer;
-    font-size: 11px;
+    font-size: 13px;
     line-height: 2;
     min-height: 22px;
-    padding: 0 0.375rem;
+    padding: 0 0.5rem;
     text-align: left;
+    opacity: 0.6;
   }
 
-  .sidebar-tag-item-shell:hover:not(.sidebar-tag-item-selected) {
-    background-color: hsl(var(--accent) / 0.5);
+  .sidebar-tag-item-pinned,
+  .sidebar-tag-item-selected {
+    opacity: 1;
   }
 
   .sidebar-tag-item-pinned {
     font-weight: 700;
-  }
-
-  .sidebar-tag-item-shell:focus-visible {
-    outline: 2px solid hsl(var(--ring));
-    outline-offset: 2px;
   }
 
   .notes-list-controls-shell {

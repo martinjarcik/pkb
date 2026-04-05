@@ -11,6 +11,7 @@ const meta = ref<WorkspaceMeta>({
   folders: {},
 })
 
+/** Owns the shared workspace folder metadata loaded from `meta.yaml`. */
 export function useFolderMeta() {
   const { data: appConfigDisk } = useAppConfigDisk()
 

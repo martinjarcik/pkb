@@ -8,7 +8,7 @@ vi.mock('~/composables/useTranslations', () => ({
 
 vi.mock('~/composables/useNotes', () => ({
   useNotes: () => ({
-    catalog: ref([]),
+    notes: ref([]),
     allNotes: ref([]),
     selectedNoteId: ref<string | null>(null),
     selectNoteById: vi.fn(),
@@ -51,10 +51,8 @@ vi.mock('~/composables/useFolderMeta', () => ({
 }))
 
 describe('useSidebarNavigation', () => {
-  it('includes folder names persisted in workspace meta', async () => {
-    const { loadFolders, topLevelFolders } = useSidebarNavigation()
-
-    await loadFolders()
+  it('includes folder names persisted in workspace meta', () => {
+    const { topLevelFolders } = useSidebarNavigation()
 
     expect(topLevelFolders.value).toEqual(['Keep', 'Projects'])
   })

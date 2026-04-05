@@ -1,27 +1,20 @@
 import { computed } from 'vue'
 import { useAppConfigDisk } from '~/composables/useAppConfigDisk'
-import { getNoteStorage } from '~/storage/router'
-import { getPlatformApi } from '~/storage/platformRouter'
+import { createStorageContext } from '~/storage/context'
 
-const { data: appConfigDisk } = useAppConfigDisk()
-const platformApi = computed(() =>
-  getPlatformApi(
-    appConfigDisk.value.storageType,
-    appConfigDisk.value.vault,
-    appConfigDisk.value.editor.assetsFolder,
-  ),
-)
-const storage = computed(() =>
-  getNoteStorage({
-    storageType: appConfigDisk.value.storageType,
-    platformApi: platformApi.value,
-    vault: appConfigDisk.value.vault,
-  }),
-)
-
+/** Lazily derives the current platform and note storage adapters from app config. */
 export function useNoteStorage() {
+  const { data: appConfigDisk } = useAppConfigDisk()
+  const storageContext = computed(() =>
+    createStorageContext({
+      storageType: appConfigDisk.value.storageType,
+      vault: appConfigDisk.value.vault,
+      assetsFolder: appConfigDisk.value.editor.assetsFolder,
+    }),
+  )
+
   return {
-    platformApi,
-    storage,
+    platformApi: computed(() => storageContext.value.platformApi),
+    storage: computed(() => storageContext.value.storage),
   }
 }

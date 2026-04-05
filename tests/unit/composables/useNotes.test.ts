@@ -49,7 +49,6 @@ vi.mock('~/composables/useAppConfigDisk', () => ({
         notes: { trashRetentionDays: 30 },
         editor: { autosaveDelay: 300, assetsFolder: 'assets' },
         layout: {
-          showInspectorPanel: true,
           showSidebarPanel: true,
           showNotesListPanel: true,
         },

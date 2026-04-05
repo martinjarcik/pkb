@@ -1,5 +1,5 @@
 import type { Note, NoteCatalogRow } from './types'
-import { sortCatalogRowsPinnedFirstByModifiedAt } from './sidebarFilters'
+import { sortCatalogRowsPinnedFirstByModifiedAt } from './sidebarViewFilters'
 
 function normalizeSearchQuery(query: string): string {
   return query.trim().toLocaleLowerCase()

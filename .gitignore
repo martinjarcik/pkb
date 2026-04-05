@@ -1,6 +1,7 @@
 .eslintcache
 node_modules/
 dist/
+.output/
 .DS_Store
 *.log
 .cache/
@@ -18,6 +19,7 @@ vault/*
 
 # Runtime user config
 data/
+app-config.yaml
 meta.yaml
 
 # Coverage

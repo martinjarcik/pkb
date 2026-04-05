@@ -9,6 +9,7 @@ import { getPlatformApi } from '~/storage/platformRouter'
 
 const data = ref<AppConfig>(loadConfig())
 
+/** Owns the persisted app config snapshot shared across the desktop app. */
 export function useAppConfigDisk() {
   async function loadAppConfigDisk(): Promise<void> {
     try {
@@ -49,3 +50,5 @@ export function useAppConfigDisk() {
     saveAppConfigPatch,
   }
 }
+
+export type { AppConfig }

@@ -17,14 +17,13 @@
 - **NotePanel** (center) — hosts the main note area and fills the remaining
   space. `NoteControls` above the editor includes a favorite toggle (when
   enabled in config), a pin toggle, non-distraction mode (hides the sidebar,
-  notes list, and inspector until toggled off; accent-colored icon while
+  and notes list until toggled off; accent-colored icon while
   active; note editor area is half width and centered), a webhook control (dialog for the optional HTTPS `webhook`
   Application Property; accent-colored icon when set), and delete. Pin sets the
   `pinned` Application Property; active pin, favorite, non-distraction, and
   set-webhook icon states use `theme.accentColor`.
-- **InspectorPanel** (right panel) — shows and edits the selected note's properties.
 
-Default visibility of the sidebar, note list, and inspector is set in
+Default visibility of the sidebar and note list is set in
 `app/config/default.yaml`. The UI can override these values at runtime.
 
 When the application opens on the default route, the frontend loads all notes
@@ -87,7 +86,6 @@ workspace with the updated configuration. Workspace metadata also uses
 | `notes.trashRetentionDays`    | number  | `30`           | Days to keep trashed notes before permanent deletion                                                   |
 | `editor.autosaveDelay`        | number  | `2000`         | Milliseconds of idle time before content autosaves                                                     |
 | `editor.assetsFolder`         | string  | `"assets"`     | Vault-relative folder path for uploaded note images (its top-level segment is hidden from the sidebar) |
-| `layout.showInspectorPanel`   | boolean | `true`         | Show the InspectorPanel                                                                                |
 | `layout.showSidebarPanel`     | boolean | `true`         | Show the SidebarPanel                                                                                  |
 | `layout.showNotesListPanel`   | boolean | `true`         | Show the NotesListPanel                                                                                |
 | `theme.accentColor`           | string  | `"#3f57dfff"`  | Accent color for selected nav, pinned note icon, and list tint                                         |

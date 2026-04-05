@@ -22,8 +22,6 @@
   "layoutMenu": {
     "hideSidebar": "Hide Sidebar",
     "showSidebar": "Show Sidebar",
-    "hideInspector": "Hide Inspector",
-    "showInspector": "Show Inspector",
     "settings": "Settings"
   },
   "settings": {
@@ -68,6 +66,14 @@
         "label": "Accent color",
         "description": "Used for primary highlights across the app."
       },
+      "sidebarBackgroundColor": {
+        "label": "Sidebar background color",
+        "description": "Used as the background color for the left sidebar panel."
+      },
+      "sidebarTextColor": {
+        "label": "Sidebar text color",
+        "description": "Used for sidebar labels, section titles, and controls."
+      },
       "defaultEditorColor": {
         "label": "Default editor color",
         "placeholder": "Select a default editor color",
@@ -103,10 +109,6 @@
         "showNotesListPanel": {
           "label": "NotesListPanel",
           "description": "Show the center note list panel by default."
-        },
-        "showInspectorPanel": {
-          "label": "InspectorPanel",
-          "description": "Show the right properties panel by default."
         }
       }
     },

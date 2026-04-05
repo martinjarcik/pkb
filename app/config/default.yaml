@@ -13,11 +13,12 @@ editor:
   autosaveDelay: 2000
   assetsFolder: assets
 layout:
-  showInspectorPanel: true
   showSidebarPanel: true
   showNotesListPanel: true
 theme:
   accentColor: '#3f57dfff'
+  sidebarBackgroundColor: '#fafafa'
+  sidebarTextColor: '#444444'
   defaultEditorColor: yellow
 editorColors:
   red:

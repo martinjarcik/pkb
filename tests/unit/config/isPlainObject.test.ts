@@ -27,13 +27,13 @@ describe('deepMergePlainObjects', () => {
   it('merges nested plain-object fields recursively', () => {
     expect(
       deepMergePlainObjects(
-        { layout: { showSidebarPanel: true, showInspectorPanel: true } },
+        { layout: { showSidebarPanel: true, showNotesListPanel: true } },
         { layout: { showSidebarPanel: false } },
       ),
     ).toEqual({
       layout: {
         showSidebarPanel: false,
-        showInspectorPanel: true,
+        showNotesListPanel: true,
       },
     })
   })

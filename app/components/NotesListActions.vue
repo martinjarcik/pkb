@@ -12,12 +12,7 @@ const { t } = useTranslations()
 const { createNote } = useNotes()
 const { openSettings } = useSettings()
 const { selectedView, selectedTags } = useSidebarNavigation()
-const {
-  showInspectorPanel,
-  showSidebarPanel,
-  toggleInspectorPanel,
-  toggleSidebarPanel,
-} = useLayout()
+const { showSidebarPanel, toggleSidebarPanel } = useLayout()
 
 type CreateNoteInitialProperties = NonNullable<Parameters<typeof createNote>[1]>
 
@@ -93,11 +88,6 @@ function handleToggleSidebar(): void {
   layoutMenuOpen.value = false
 }
 
-function handleToggleInspector(): void {
-  toggleInspectorPanel()
-  layoutMenuOpen.value = false
-}
-
 function handleOpenSettings(): void {
   openSettings()
   layoutMenuOpen.value = false
@@ -165,18 +155,6 @@ function handleOpenSettings(): void {
                 showSidebarPanel
                   ? t('layoutMenu.hideSidebar')
                   : t('layoutMenu.showSidebar')
-              }}
-            </button>
-            <button
-              class="w-full rounded-sm px-2 py-1.5 text-left text-sm transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-              role="menuitem"
-              type="button"
-              @click="handleToggleInspector"
-            >
-              {{
-                showInspectorPanel
-                  ? t('layoutMenu.hideInspector')
-                  : t('layoutMenu.showInspector')
               }}
             </button>
             <Separator class="my-1" />

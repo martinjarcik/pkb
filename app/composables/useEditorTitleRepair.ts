@@ -152,7 +152,6 @@ export function useEditorTitleRepair({
   }
 
   return {
-    isRepairingTitleBlock,
     commitTitleChange,
     handleEditorChange,
   }

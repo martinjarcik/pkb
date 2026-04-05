@@ -15,7 +15,6 @@ const { allTags } = useSidebarNavigation()
     <SidebarFolders />
 
     <template v-if="allTags.length > 0">
-      <div aria-hidden="true" class="h-[30px] shrink-0" />
       <SidebarTags />
     </template>
   </aside>

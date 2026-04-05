@@ -1,5 +1,6 @@
 import type { ComputedRef, Ref } from 'vue'
 import { t } from '~/composables/useTranslations'
+import type { EditorFlush } from '~/composables/useNoteSelection'
 import { resolveUniqueNoteIdForParentPath } from '~/notes/noteId'
 import { noteWithToggledFavorite } from '~/notes/noteWithToggledFavorite'
 import { noteWithToggledPinned } from '~/notes/noteWithToggledPinned'
@@ -9,60 +10,96 @@ import { dispatchNoteWebhook } from '~/notes/webhook'
 import type { Note, NoteCatalogRow, NoteProperties } from '~/notes/types'
 import type { NoteStorage } from '~/storage/types'
 
-type EditorFlush = () => Promise<void>
-
 type UseNoteMutationsArgs = {
   storage: ComputedRef<NoteStorage>
-  notes: Ref<NoteCatalogRow[]>
-  selectedNote: Ref<Note | null>
-  selectedNoteId: Ref<string | null>
-  selectedNoteFull: Ref<Note | null>
+  catalogState: {
+    notes: Ref<NoteCatalogRow[]>
+    findNoteById: (id: string) => Note | null
+    replaceNote: (note: Note) => void
+    replaceRenamedNote: (previousId: string, note: Note) => void
+    prependNote: (note: Note) => void
+    updateNoteContent: (id: string, content: string) => Note | null
+  }
+  selectionState: {
+    editorFlush: Ref<EditorFlush | null>
+    selectedNote: Ref<Note | null>
+    selectedNoteId: Ref<string | null>
+    selectedNoteFull: Ref<Note | null>
+    shouldFocusTitle: Ref<boolean>
+    selectNoteById: (id: string | null) => Promise<void>
+  }
   saveError: Ref<string | null>
-  shouldFocusTitle: Ref<boolean>
   isRenamingNoteTitle: Ref<boolean>
-  editorFlush: Ref<EditorFlush | null>
-  replaceNote: (note: Note) => void
-  replaceRenamedNote: (previousId: string, note: Note) => void
-  prependNote: (note: Note) => void
-  updateSelectedNoteContent: (content: string) => void
-  selectNoteById: (id: string | null) => Promise<void>
 }
 
+/** Creates the async note mutation commands over the shared catalog and selection state. */
 export function useNoteMutations({
   storage,
-  notes,
-  selectedNote,
-  selectedNoteId,
-  selectedNoteFull,
+  catalogState,
+  selectionState,
   saveError,
-  shouldFocusTitle,
   isRenamingNoteTitle,
-  editorFlush,
-  replaceNote,
-  replaceRenamedNote,
-  prependNote,
-  updateSelectedNoteContent,
-  selectNoteById,
 }: UseNoteMutationsArgs) {
+  const {
+    notes,
+    findNoteById,
+    replaceNote,
+    replaceRenamedNote,
+    prependNote,
+    updateNoteContent,
+  } = catalogState
+  const {
+    editorFlush,
+    selectedNote,
+    selectedNoteId,
+    selectedNoteFull,
+    shouldFocusTitle,
+    selectNoteById,
+  } = selectionState
+
+  async function executeNoteCommand<T>(
+    operation: () => Promise<T>,
+    fallbackErrorKey: string,
+  ): Promise<T | null> {
+    saveError.value = null
+
+    try {
+      await editorFlush.value?.()
+      return await operation()
+    } catch (error) {
+      saveError.value =
+        error instanceof Error ? error.message : t(fallbackErrorKey)
+
+      return null
+    }
+  }
+
   async function saveSelectedNoteContent(content: string): Promise<void> {
-    if (!selectedNote.value) {
+    const currentNote = selectedNote.value
+
+    if (!currentNote) {
       return
     }
 
-    saveError.value = null
-    const saveInput = buildSaveNoteInput(selectedNote.value, content)
-    updateSelectedNoteContent(content)
+    const saveInput = buildSaveNoteInput(currentNote, content)
+    const optimisticNote = updateNoteContent(currentNote.id, content)
 
-    try {
-      const savedNote = await storage.value.saveNote(saveInput)
+    const savedNote = await executeNoteCommand(
+      () => storage.value.saveNote(saveInput),
+      'notes.errorSaveFallback',
+    )
 
-      replaceNote(savedNote)
-      selectedNoteFull.value = savedNote
-      void dispatchWebhookIfPresent(savedNote, 'updated')
-    } catch (error) {
-      saveError.value =
-        error instanceof Error ? error.message : t('notes.errorSaveFallback')
+    if (!savedNote) {
+      if (optimisticNote) {
+        replaceNote(currentNote)
+        selectedNoteFull.value = currentNote
+      }
+      return
     }
+
+    replaceNote(savedNote)
+    selectedNoteFull.value = savedNote
+    void dispatchWebhookIfPresent(savedNote, 'updated')
   }
 
   async function createNote(
@@ -80,34 +117,32 @@ export function useNoteMutations({
       return null
     }
 
-    saveError.value = null
     shouldFocusTitle.value = false
 
-    try {
-      await editorFlush.value?.()
+    const createdNote = await executeNoteCommand(
+      () =>
+        storage.value.saveNote({
+          id: resolveUniqueNoteIdForParentPath(
+            parentPath,
+            defaultTitle,
+            notes.value.map((note) => note.id),
+          ),
+          properties: initialProperties,
+          content: '',
+        }),
+      'notes.errorCreateFallback',
+    )
 
-      const createdNote = await storage.value.saveNote({
-        id: resolveUniqueNoteIdForParentPath(
-          parentPath,
-          defaultTitle,
-          notes.value.map((note) => note.id),
-        ),
-        properties: initialProperties,
-        content: '',
-      })
-
-      prependNote(createdNote)
-      selectedNoteId.value = createdNote.id
-      selectedNoteFull.value = createdNote
-      shouldFocusTitle.value = true
-
-      return createdNote
-    } catch (error) {
-      saveError.value =
-        error instanceof Error ? error.message : t('notes.errorCreateFallback')
-
+    if (!createdNote) {
       return null
     }
+
+    prependNote(createdNote)
+    selectedNoteId.value = createdNote.id
+    selectedNoteFull.value = createdNote
+    shouldFocusTitle.value = true
+
+    return createdNote
   }
 
   async function renameSelectedNoteTitle(title: string): Promise<Note | null> {
@@ -124,17 +159,23 @@ export function useNoteMutations({
 
     const currentId = currentNote.id
 
-    saveError.value = null
     isRenamingNoteTitle.value = true
 
     try {
-      await editorFlush.value?.()
+      const renamedNote = await executeNoteCommand(
+        () =>
+          storage.value.renameNoteTitle({
+            id: currentId,
+            title: trimmedTitle,
+            existingIds: notes.value.map((note) => note.id),
+            note: currentNote,
+          }),
+        'notes.errorRenameFallback',
+      )
 
-      const renamedNote = await storage.value.renameNoteTitle({
-        id: currentId,
-        title: trimmedTitle,
-        existingIds: notes.value.map((note) => note.id),
-      })
+      if (!renamedNote) {
+        return null
+      }
 
       replaceRenamedNote(currentId, renamedNote)
 
@@ -144,11 +185,6 @@ export function useNoteMutations({
       }
 
       return renamedNote
-    } catch (error) {
-      saveError.value =
-        error instanceof Error ? error.message : t('notes.errorRenameFallback')
-
-      return null
     } finally {
       isRenamingNoteTitle.value = false
     }
@@ -162,31 +198,35 @@ export function useNoteMutations({
       return null
     }
 
-    saveError.value = null
+    const note = findNoteById(id)
 
-    try {
-      await editorFlush.value?.()
-
-      const movedNote = await storage.value.moveNote({
-        id,
-        targetParentPath,
-        existingIds: notes.value.map((note) => note.id),
-      })
-
-      replaceRenamedNote(id, movedNote)
-
-      if (selectedNoteId.value === id) {
-        selectedNoteId.value = movedNote.id
-        selectedNoteFull.value = movedNote
-      }
-
-      return movedNote
-    } catch (error) {
-      saveError.value =
-        error instanceof Error ? error.message : t('notes.errorSaveFallback')
-
+    if (!note) {
       return null
     }
+
+    const movedNote = await executeNoteCommand(
+      () =>
+        storage.value.moveNote({
+          id,
+          targetParentPath,
+          existingIds: notes.value.map((note) => note.id),
+          note,
+        }),
+      'notes.errorSaveFallback',
+    )
+
+    if (!movedNote) {
+      return null
+    }
+
+    replaceRenamedNote(id, movedNote)
+
+    if (selectedNoteId.value === id) {
+      selectedNoteId.value = movedNote.id
+      selectedNoteFull.value = movedNote
+    }
+
+    return movedNote
   }
 
   async function saveAppPropertyChange(
@@ -198,23 +238,20 @@ export function useNoteMutations({
       return
     }
 
-    saveError.value = null
+    const nextNote = transform(current)
+    const saveInput = buildSaveNoteInput(nextNote, nextNote.content)
+    const savedNote = await executeNoteCommand(
+      () => storage.value.saveNote(saveInput),
+      'notes.errorSaveFallback',
+    )
 
-    try {
-      await editorFlush.value?.()
-
-      const nextNote = transform(current)
-      const saveInput = buildSaveNoteInput(nextNote, nextNote.content)
-
-      const savedNote = await storage.value.saveNote(saveInput)
-
-      replaceNote(savedNote)
-      selectedNoteFull.value = savedNote
-      void dispatchWebhookIfPresent(savedNote, 'updated')
-    } catch (error) {
-      saveError.value =
-        error instanceof Error ? error.message : t('notes.errorSaveFallback')
+    if (!savedNote) {
+      return
     }
+
+    replaceNote(savedNote)
+    selectedNoteFull.value = savedNote
+    void dispatchWebhookIfPresent(savedNote, 'updated')
   }
 
   async function toggleFavoriteSelectedNote(): Promise<void> {
@@ -240,34 +277,30 @@ export function useNoteMutations({
 
     const deletedVisibleIndex = visibleNoteIds.indexOf(noteToDelete.id)
 
-    saveError.value = null
+    const trashedNote = await executeNoteCommand(
+      () => storage.value.softDeleteNote(noteToDelete.id, noteToDelete),
+      'notes.errorDeleteFallback',
+    )
 
-    try {
-      await editorFlush.value?.()
-
-      const trashedNote = await storage.value.softDeleteNote(noteToDelete.id)
-
-      replaceNote(trashedNote)
-      void dispatchWebhookIfPresent(trashedNote, 'deleted')
-      selectedNoteFull.value = null
-      selectedNoteId.value = null
-
-      const remainingVisibleIds = visibleNoteIds.filter(
-        (id) => id !== noteToDelete.id,
-      )
-      const nextIndex = Math.min(
-        deletedVisibleIndex,
-        remainingVisibleIds.length - 1,
-      )
-      await selectNoteById(remainingVisibleIds[nextIndex] ?? null)
-
-      return true
-    } catch (error) {
-      saveError.value =
-        error instanceof Error ? error.message : t('notes.errorDeleteFallback')
-
+    if (!trashedNote) {
       return false
     }
+
+    replaceNote(trashedNote)
+    void dispatchWebhookIfPresent(trashedNote, 'deleted')
+    selectedNoteFull.value = null
+    selectedNoteId.value = null
+
+    const remainingVisibleIds = visibleNoteIds.filter(
+      (id) => id !== noteToDelete.id,
+    )
+    const nextIndex = Math.min(
+      deletedVisibleIndex,
+      remainingVisibleIds.length - 1,
+    )
+    await selectNoteById(remainingVisibleIds[nextIndex] ?? null)
+
+    return true
   }
 
   async function dispatchWebhookIfPresent(

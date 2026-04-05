@@ -46,7 +46,7 @@ function handleEditClick(event: MouseEvent): void {
 
 <template>
   <div
-    class="group relative w-[180px]"
+    class="group relative"
     data-testid="sidebar-folder-row"
     :data-folder-name="folderName"
   >
@@ -75,10 +75,7 @@ function handleEditClick(event: MouseEvent): void {
       data-testid="sidebar-folder-edit"
       @click="handleEditClick"
     >
-      <Pencil
-        :size="12"
-        aria-hidden="true"
-      />
+      <Pencil :size="12" aria-hidden="true" />
     </button>
   </div>
 </template>

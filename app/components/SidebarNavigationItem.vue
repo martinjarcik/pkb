@@ -47,14 +47,14 @@ function handleClick(): void {
   >
     <span
       v-if="typeof icon === 'string'"
-      class="sidebar-navigation-item-icon inline-flex w-3 shrink-0 items-center justify-center text-[12px] leading-none"
+      class="sidebar-navigation-item-icon inline-flex w-[15px] shrink-0 items-center justify-center text-[15px] leading-none"
       aria-hidden="true"
       >{{ icon }}</span
     >
     <component
       :is="icon"
       v-else
-      :size="12"
+      :size="15"
       class="sidebar-navigation-item-icon"
       aria-hidden="true"
     />

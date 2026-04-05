@@ -31,13 +31,13 @@ vi.mock('~/storage/router', () => ({
 import { useNoteStorage } from '~/composables/useNoteStorage'
 
 describe('useNoteStorage', () => {
-  it('returns shared platformApi and storage refs across calls', () => {
+  it('derives platformApi and storage from current app config', () => {
     const first = useNoteStorage()
     const second = useNoteStorage()
 
-    expect(first.platformApi).toBe(second.platformApi)
-    expect(first.storage).toBe(second.storage)
     expect(first.platformApi.value).toBe(platformApiMock)
     expect(first.storage.value).toBe(storageMock)
+    expect(second.platformApi.value).toBe(platformApiMock)
+    expect(second.storage.value).toBe(storageMock)
   })
 })

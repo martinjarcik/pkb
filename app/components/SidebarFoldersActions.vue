@@ -35,5 +35,6 @@ function handleEdit(folderName: string): void {
       @click="selectFolder(folderName)"
       @edit="handleEdit(folderName)"
     />
+    <div aria-hidden="true" class="h-[30px] shrink-0" />
   </div>
 </template>
