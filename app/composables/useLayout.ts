@@ -4,14 +4,6 @@ import type { AppConfig } from '~/config/parseAppConfig'
 import { useAppConfigDisk } from '~/composables/useAppConfigDisk'
 
 const defaultLayout = loadConfig().layout
-export const LAYOUT_STATE_KEYS = {
-  showInspectorPanel: 'layout.showInspectorPanel',
-  showSidebarPanel: 'layout.showSidebarPanel',
-  showNotesListPanel: 'layout.showNotesListPanel',
-  nonDistractionMode: 'layout.nonDistractionMode',
-  nonDistractionSnapshot: 'layout.nonDistractionSnapshot',
-} as const
-
 type LayoutVisibilitySnapshot = {
   showInspectorPanel: boolean
   showNotesListPanel: boolean

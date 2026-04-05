@@ -17,7 +17,6 @@ export function useFolderMeta() {
   async function loadMeta(): Promise<void> {
     try {
       const data = await readMetaPersistence(
-        appConfigDisk.value.storageType,
         getPlatformApi(
           appConfigDisk.value.storageType,
           appConfigDisk.value.vault,
@@ -35,18 +34,6 @@ export function useFolderMeta() {
     return meta.value.folders[folderName]?.icon
   }
 
-  async function removeFolderMeta(folderName: string): Promise<void> {
-    meta.value = await writeMetaPatchPersistence(
-      appConfigDisk.value.storageType,
-      getPlatformApi(
-        appConfigDisk.value.storageType,
-        appConfigDisk.value.vault,
-        appConfigDisk.value.editor.assetsFolder,
-      ),
-      { folders: { [folderName]: null } },
-    )
-  }
-
   async function setFolderIcon(
     folderName: string,
     icon: string | undefined,
@@ -57,7 +44,6 @@ export function useFolderMeta() {
         : { folders: { [folderName]: { icon } as FolderMeta } }
 
     meta.value = await writeMetaPatchPersistence(
-      appConfigDisk.value.storageType,
       getPlatformApi(
         appConfigDisk.value.storageType,
         appConfigDisk.value.vault,
@@ -74,7 +60,6 @@ export function useFolderMeta() {
     const nextMeta = meta.value.folders[oldName] ?? {}
 
     meta.value = await writeMetaPatchPersistence(
-      appConfigDisk.value.storageType,
       getPlatformApi(
         appConfigDisk.value.storageType,
         appConfigDisk.value.vault,
@@ -93,7 +78,6 @@ export function useFolderMeta() {
     meta,
     loadMeta,
     folderIcon,
-    removeFolderMeta,
     renameFolderMeta,
     setFolderIcon,
   }

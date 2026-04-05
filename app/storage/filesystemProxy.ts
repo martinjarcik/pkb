@@ -65,10 +65,6 @@ export function createFilesystemProxyStorage(
         .sort((a, b) => b.modifiedAt.localeCompare(a.modifiedAt))
     },
 
-    async loadExplicitFolders(): Promise<string[]> {
-      return []
-    },
-
     async saveNote(input: SaveNoteInput): Promise<Note> {
       const saved = await platformApi.writeTextFile(
         vaultPath,

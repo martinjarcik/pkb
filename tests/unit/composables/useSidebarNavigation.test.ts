@@ -2,10 +2,6 @@ import { describe, expect, it, vi } from 'vitest'
 import { ref } from 'vue'
 import { useSidebarNavigation } from '~/composables/useSidebarNavigation'
 
-const { loadExplicitFolders } = vi.hoisted(() => ({
-  loadExplicitFolders: vi.fn<() => Promise<string[]>>().mockResolvedValue([]),
-}))
-
 vi.mock('~/composables/useTranslations', () => ({
   t: (key: string) => key,
 }))
@@ -23,7 +19,6 @@ vi.mock('~/composables/useNoteStorage', () => ({
   useNoteStorage: () => ({
     storage: {
       value: {
-        loadExplicitFolders,
         createFolder: vi.fn(),
         renameFolder: vi.fn(),
       },

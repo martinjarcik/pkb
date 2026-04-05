@@ -1,6 +1,5 @@
 import type { ComputedRef, Ref } from 'vue'
 import { t } from '~/composables/useTranslations'
-import type { EditorFlush } from '~/composables/useNoteSelection'
 import { resolveUniqueNoteIdForParentPath } from '~/notes/noteId'
 import { noteWithToggledFavorite } from '~/notes/noteWithToggledFavorite'
 import { noteWithToggledPinned } from '~/notes/noteWithToggledPinned'
@@ -9,6 +8,8 @@ import { buildSaveNoteInput } from '~/notes/saveNoteInput'
 import { dispatchNoteWebhook } from '~/notes/webhook'
 import type { Note, NoteCatalogRow, NoteProperties } from '~/notes/types'
 import type { NoteStorage } from '~/storage/types'
+
+type EditorFlush = () => Promise<void>
 
 type UseNoteMutationsArgs = {
   storage: ComputedRef<NoteStorage>

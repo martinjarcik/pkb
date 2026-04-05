@@ -8,7 +8,6 @@ import { useNotes } from '~/composables/useNotes'
 const { storageMock } = vi.hoisted(() => {
   const storageMock: NoteStorage = {
     loadAllNotes: vi.fn<() => Promise<Note[]>>().mockResolvedValue([]),
-    loadExplicitFolders: vi.fn<() => Promise<string[]>>().mockResolvedValue([]),
     saveNote: vi.fn<(input: SaveNoteInput) => Promise<Note>>(),
     renameNoteTitle: vi.fn(),
     moveNote: vi.fn(),

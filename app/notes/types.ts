@@ -7,8 +7,6 @@ export const NOTE_SYSTEM_PROPERTY_KEYS = [
   'description',
 ] as const
 
-export type NoteSystemPropertyKey = (typeof NOTE_SYSTEM_PROPERTY_KEYS)[number]
-
 export const APPLICATION_PROPERTY_KEYS = [
   'hasTasks',
   'trashedAt',
@@ -16,8 +14,6 @@ export const APPLICATION_PROPERTY_KEYS = [
   'pinned',
   'webhook',
 ] as const
-
-export type ApplicationPropertyKey = (typeof APPLICATION_PROPERTY_KEYS)[number]
 
 export type NotePropertyValue =
   | string
@@ -29,9 +25,8 @@ export type NotePropertyValue =
 
 export type NoteProperties = Record<string, unknown>
 
-export type Note = NoteProperties & {
+type NoteFields = {
   id: string
-  content: string
   createdAt: string
   modifiedAt: string
   title: string
@@ -44,16 +39,9 @@ export type Note = NoteProperties & {
   webhook?: string
 }
 
-export type NoteCatalogRow = NoteProperties & {
-  id: string
-  createdAt: string
-  modifiedAt: string
-  title: string
-  description: string
-  tags?: string[]
-  hasTasks?: boolean
-  trashedAt?: string
-  favorite?: boolean
-  pinned?: boolean
-  webhook?: string
-}
+export type Note = NoteProperties &
+  NoteFields & {
+    content: string
+  }
+
+export type NoteCatalogRow = NoteProperties & NoteFields

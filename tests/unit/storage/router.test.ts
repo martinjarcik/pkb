@@ -14,21 +14,11 @@ describe('getNoteStorage', () => {
     expect(typeof storage.loadAllNotes).toBe('function')
   })
 
-  it('throws for database storage type (not yet implemented)', () => {
-    expect(() =>
-      getNoteStorage({
-        storageType: 'database',
-        platformApi: null,
-        vault: './vault',
-      }),
-    ).toThrow('Database storage is not yet implemented')
-  })
-
   it('throws for unsupported storage types', () => {
     expect(() =>
       getNoteStorage({
         storageType: 'unknown' as 'filesystem',
-        platformApi: null,
+        platformApi: getPlatformApi('filesystem', './vault', 'assets'),
         vault: './vault',
       }),
     ).toThrow('Unsupported storage type: unknown')

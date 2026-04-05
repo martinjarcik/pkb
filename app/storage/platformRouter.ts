@@ -6,12 +6,10 @@ export function getPlatformApi(
   storageType: StorageType,
   vaultPath: string,
   assetsFolder: string,
-): PlatformApi | null {
+): PlatformApi {
   switch (storageType) {
     case 'filesystem':
       return createTauriPlatformApi(vaultPath, assetsFolder)
-    case 'database':
-      return null
     default:
       throw new Error(`Unsupported storage type: ${storageType as string}`)
   }

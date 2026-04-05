@@ -8,6 +8,7 @@ import { catalogRowIsTrashed, trashExpired } from '~/notes/trash'
 import type { Note, NoteCatalogRow } from '~/notes/types'
 
 type EditorFlush = () => Promise<void>
+
 const allNotes = ref<Note[]>([])
 const notes = ref<NoteCatalogRow[]>([])
 const isLoading = ref(false)
@@ -28,9 +29,7 @@ export function useNotes() {
   const { storage } = useNoteStorage()
 
   function rebuildCatalog(): void {
-    notes.value = sortNotesByModifiedAt(
-      allNotes.value as unknown as NoteCatalogRow[],
-    )
+    notes.value = sortNotesByModifiedAt(allNotes.value)
   }
 
   function sortNotesByModifiedAt(
@@ -39,54 +38,31 @@ export function useNotes() {
     return nextNotes.sort((a, b) => b.modifiedAt.localeCompare(a.modifiedAt))
   }
 
-  function replaceNoteInStore(nextNote: Note): void {
-    const nextNotes: Note[] = []
-    const currentNotes = allNotes.value as unknown as Array<{ id: string }>
-
-    for (const note of currentNotes) {
-      if (note.id === nextNote.id) {
-        nextNotes.push(nextNote)
-      } else {
-        nextNotes.push(note as Note)
-      }
-    }
-
-    allNotes.value = nextNotes
+  function replaceInStore(matchId: string, replacement: Note): void {
+    allNotes.value = allNotes.value.map((note) =>
+      note.id === matchId ? replacement : note,
+    )
     rebuildCatalog()
+  }
+
+  function replaceNoteInStore(nextNote: Note): void {
+    replaceInStore(nextNote.id, nextNote)
   }
 
   function replaceRenamedNoteInStore(previousId: string, nextNote: Note): void {
-    const nextNotes: Note[] = []
-    const currentNotes = allNotes.value as unknown as Array<{ id: string }>
-
-    for (const note of currentNotes) {
-      if (note.id === previousId) {
-        nextNotes.push(nextNote)
-      } else {
-        nextNotes.push(note as Note)
-      }
-    }
-
-    allNotes.value = nextNotes
-    rebuildCatalog()
+    replaceInStore(previousId, nextNote)
   }
 
   function prependNoteToStore(nextNote: Note): void {
-    const nextNotes: Note[] = [nextNote]
-    const currentNotes = allNotes.value as unknown as Array<{ id: string }>
-
-    for (const note of currentNotes) {
-      if (note.id !== nextNote.id) {
-        nextNotes.push(note as Note)
-      }
-    }
-
-    allNotes.value = nextNotes
+    allNotes.value = [
+      nextNote,
+      ...allNotes.value.filter((note) => note.id !== nextNote.id),
+    ]
     rebuildCatalog()
   }
 
   function updateSelectedNoteContent(content: string): void {
-    const currentSelectedNote = selectedNote.value as Note | null
+    const currentSelectedNote = selectedNote.value
 
     if (!currentSelectedNote) {
       return
@@ -98,31 +74,11 @@ export function useNotes() {
       description: noteDescriptionFromContent(content),
     }
     selectedNoteFull.value = nextNote
-    const nextNotes: Note[] = []
-    const currentNotes = allNotes.value as unknown as Array<{ id: string }>
-
-    for (const note of currentNotes) {
-      if (note.id === nextNote.id) {
-        nextNotes.push(nextNote)
-      } else {
-        nextNotes.push(note as Note)
-      }
-    }
-
-    allNotes.value = nextNotes
-    rebuildCatalog()
+    replaceInStore(nextNote.id, nextNote)
   }
 
   function findNoteById(id: string): Note | null {
-    const currentNotes = allNotes.value as unknown as Array<{ id: string }>
-
-    for (const note of currentNotes) {
-      if (note.id === id) {
-        return note as Note
-      }
-    }
-
-    return null
+    return allNotes.value.find((note) => note.id === id) ?? null
   }
 
   function registerEditorFlush(flush: EditorFlush | null): void {
@@ -135,52 +91,31 @@ export function useNotes() {
 
   const selectedNote = selectedNoteFull
   const showNoteControls = computed(() => {
-    const currentSelectedNote = selectedNote.value as Note | null
-
     return (
-      currentSelectedNote !== null && !catalogRowIsTrashed(currentSelectedNote)
+      selectedNote.value !== null && !catalogRowIsTrashed(selectedNote.value)
     )
   })
   const selectedNoteTitle = computed(() => {
-    const currentSelectedNote = selectedNote.value as Note | null
+    const currentSelectedNote = selectedNote.value
 
     if (currentSelectedNote) {
       return currentSelectedNote.title
     }
 
     if (selectedNoteId.value) {
-      const currentCatalog = notes.value as unknown as Array<{
-        id: string
-        title: string
-      }>
-
-      for (const note of currentCatalog) {
-        if (note.id === selectedNoteId.value) {
-          return note.title
-        }
-      }
-
-      return ''
+      return (
+        notes.value.find((note) => note.id === selectedNoteId.value)?.title ??
+        ''
+      )
     }
 
     return ''
   })
 
   async function selectNoteById(id: string | null): Promise<void> {
-    let nextSelectedNoteId: string | null = null
-
-    if (id !== null) {
-      const currentCatalog = notes.value as unknown as Array<{ id: string }>
-
-      for (const note of currentCatalog) {
-        if (note.id === id) {
-          nextSelectedNoteId = id
-          break
-        }
-      }
-    }
-
-    const currentSelectedNote = selectedNoteFull.value as Note | null
+    const nextSelectedNoteId =
+      id !== null && notes.value.some((note) => note.id === id) ? id : null
+    const currentSelectedNote = selectedNoteFull.value
 
     if (
       nextSelectedNoteId === selectedNoteId.value &&
@@ -262,19 +197,10 @@ export function useNotes() {
       }
 
       const expiredIds = new Set(expired.map((n) => n.id))
-      const nextNotes: Note[] = []
-      const currentLoadedNotes = loaded as unknown as Array<{ id: string }>
-
-      for (const note of currentLoadedNotes) {
-        if (!expiredIds.has(note.id)) {
-          nextNotes.push(note as Note)
-        }
-      }
-
-      allNotes.value = nextNotes
+      allNotes.value = loaded.filter((note) => !expiredIds.has(note.id))
       rebuildCatalog()
 
-      return notes.value as unknown as NoteCatalogRow[]
+      return notes.value
     } catch (error) {
       allNotes.value = []
       notes.value = []
@@ -283,7 +209,7 @@ export function useNotes() {
       loadError.value =
         error instanceof Error ? error.message : t('notes.errorLoadFallback')
 
-      return [] as NoteCatalogRow[]
+      return []
     } finally {
       isLoading.value = false
     }

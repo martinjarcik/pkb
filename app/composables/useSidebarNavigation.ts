@@ -22,7 +22,6 @@ import type { NoteCatalogRow } from '~/notes/types'
 
 const selectedView = ref<SidebarWorkspaceView>({ kind: 'inbox' })
 const searchInput = ref('')
-const searchRequestId = ref(0)
 const foldersExpanded = ref(true)
 const tagsExpanded = ref(true)
 const explicitFolders = ref<string[]>([])
@@ -77,7 +76,6 @@ export function useSidebarNavigation() {
 
   function clearSearchState(): void {
     searchInput.value = ''
-    searchRequestId.value += 1
   }
 
   async function syncSelection(rows: readonly NoteCatalogRow[]): Promise<void> {
@@ -141,8 +139,6 @@ export function useSidebarNavigation() {
     const query = nextValue.trim()
 
     if (query.length === 0) {
-      searchRequestId.value += 1
-
       if (selectedView.value.kind === 'search') {
         selectedView.value = selectedView.value.previousView
         await syncSelection(
@@ -157,8 +153,6 @@ export function useSidebarNavigation() {
       selectedView.value.kind === 'search'
         ? selectedView.value.previousView
         : selectedView.value
-
-    searchRequestId.value += 1
 
     const matchingIds = searchNotes(allNotes.value, query)
 
@@ -175,13 +169,7 @@ export function useSidebarNavigation() {
   }
 
   async function loadFolders(): Promise<void> {
-    try {
-      const folders = await storage.value.loadExplicitFolders()
-
-      explicitFolders.value = folders
-    } catch {
-      // Non-critical; catalog-derived folders still work.
-    }
+    return undefined
   }
 
   function toggleFoldersExpanded(): void {

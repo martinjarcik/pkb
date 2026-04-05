@@ -1,15 +1,5 @@
 export type PlatformFileScope = 'app-config' | 'meta'
 
-export type PlatformJsonValue =
-  | string
-  | number
-  | boolean
-  | null
-  | PlatformJsonValue[]
-  | { [key: string]: PlatformJsonValue }
-
-export type PlatformJsonObject = { [key: string]: PlatformJsonValue }
-
 export type PlatformNoteFile = {
   path: string
   content: string

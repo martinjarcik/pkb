@@ -1,4 +1,4 @@
-export type StorageType = 'filesystem' | 'database'
+export type StorageType = 'filesystem'
 
 export type EditorColor = {
   emoji: string
@@ -39,7 +39,7 @@ export type AppConfig = {
   }
 }
 
-const VALID_STORAGE_TYPES: StorageType[] = ['filesystem', 'database']
+const VALID_STORAGE_TYPES: StorageType[] = ['filesystem']
 const EDITOR_COLOR_KEY_PATTERN = /^[A-Za-z0-9_-]+$/
 const DEFAULT_EDITOR_COLORS: EditorColors = {
   red: {
@@ -98,9 +98,7 @@ const DEFAULT_EDITOR_COLORS: EditorColors = {
   },
 }
 
-export function parseEditorAssetsFolder(
-  editor: Record<string, unknown>,
-): string {
+function parseEditorAssetsFolder(editor: Record<string, unknown>): string {
   const raw = editor.assetsFolder
 
   if (raw === undefined) {

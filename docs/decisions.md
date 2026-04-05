@@ -113,3 +113,7 @@ Drop the Nitro proxy and Nuxt runtime for desktop delivery: the app now targets 
 ## D024 — 2026-04
 
 Expose persisted `AppConfig` editing through a centralized Settings dialog opened from `NotesListActions`, and keep runtime UI state bound to disk-backed config refs instead of bundled defaults.
+
+## D025 — 2026-04
+
+Remove `database` from the runtime `StorageType` union until a concrete adapter exists. The storage router, platform router, and `NoteStorage` adapter boundary remain designed for multiple backends; re-adding a new storage type requires only extending the union and adding a case in each router. Partially revises D022.

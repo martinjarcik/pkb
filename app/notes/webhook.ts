@@ -4,7 +4,7 @@ const WEBHOOK_REQUEST_TIMEOUT_MS = 8000
 
 export type NoteWebhookEvent = 'updated' | 'deleted'
 
-export function isAllowedWebhookUrl(url: string): boolean {
+function isAllowedWebhookUrl(url: string): boolean {
   const trimmed = url.trim()
 
   if (trimmed.length === 0) {

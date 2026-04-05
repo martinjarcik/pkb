@@ -33,7 +33,7 @@ describe('persistence', () => {
       yaml.stringify(config),
     )
 
-    const loaded = await readAppConfigPersistence('filesystem', platformApi)
+    const loaded = await readAppConfigPersistence(platformApi)
 
     expect(platformApi.readScopedTextFile).toHaveBeenCalledWith('app-config')
     expect(loaded).toEqual(config)
@@ -52,11 +52,9 @@ describe('persistence', () => {
       mtime: '2026-04-03T10:00:00.000Z',
     })
 
-    const updated = await writeAppConfigPatchPersistence(
-      'filesystem',
-      platformApi,
-      { locale: 'pl' },
-    )
+    const updated = await writeAppConfigPatchPersistence(platformApi, {
+      locale: 'pl',
+    })
 
     expect(platformApi.writeScopedTextFile).toHaveBeenCalledWith(
       'app-config',

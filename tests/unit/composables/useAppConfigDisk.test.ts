@@ -27,10 +27,7 @@ describe('useAppConfigDisk', () => {
     const { loadAppConfigDisk } = useAppConfigDisk()
     await loadAppConfigDisk()
 
-    expect(readAppConfigPersistence).toHaveBeenCalledWith(
-      'filesystem',
-      expect.anything(),
-    )
+    expect(readAppConfigPersistence).toHaveBeenCalledWith(expect.anything())
   })
 
   it('updates the data ref after saving config', async () => {

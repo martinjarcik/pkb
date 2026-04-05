@@ -15,7 +15,6 @@ export function useAppConfigDisk() {
       const storageType = data.value.storageType
 
       data.value = await readAppConfigPersistence(
-        storageType,
         getPlatformApi(
           storageType,
           data.value.vault,
@@ -31,7 +30,6 @@ export function useAppConfigDisk() {
     patch: Record<string, unknown>,
   ): Promise<AppConfig> {
     const updated = await writeAppConfigPatchPersistence(
-      data.value.storageType,
       getPlatformApi(
         data.value.storageType,
         data.value.vault,

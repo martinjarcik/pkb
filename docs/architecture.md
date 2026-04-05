@@ -264,9 +264,10 @@ produce stale views, failed saves, or overwritten files.
   app-level storage or editor contracts.
 - `app/storage/router.ts` selects the active `NoteStorage` from configuration.
 - The active storage adapter is determined by `storageType` in
-  `app/config/default.yaml`: `filesystem` → filesystem adapter (default),
-  `database` → reserved for future remote database adapter.
-- Expected adapters: filesystem (current), database (future).
+  `app/config/default.yaml`: `filesystem` → filesystem adapter (current).
+- Expected adapters: filesystem (current). The storage router and `NoteStorage`
+  boundary remain intentionally shaped so a future adapter can be added
+  without changing higher-level composables.
 - Adapter-specific caches or indexes are derived artifacts, never the source of
   truth.
 

@@ -12,25 +12,16 @@ export function parseFolderMeta(value: unknown): FolderMeta {
   }
 
   const obj = value as Record<string, unknown>
-  const result: FolderMeta = {}
 
-  for (const key of Object.keys(obj)) {
-    if (key !== 'icon') {
-      continue
-    }
-
-    if (obj.icon === undefined) {
-      continue
-    }
-
-    if (typeof obj.icon !== 'string') {
-      throw new Error('Folder meta icon must be a string')
-    }
-
-    result.icon = obj.icon
+  if (obj.icon === undefined) {
+    return {}
   }
 
-  return result
+  if (typeof obj.icon !== 'string') {
+    throw new Error('Folder meta icon must be a string')
+  }
+
+  return { icon: obj.icon }
 }
 
 export function parseMeta(value: unknown): WorkspaceMeta {

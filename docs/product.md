@@ -76,7 +76,7 @@ workspace with the updated configuration. Workspace metadata also uses
 
 | Key                           | Type    | Default        | Description                                                                                            |
 | ----------------------------- | ------- | -------------- | ------------------------------------------------------------------------------------------------------ |
-| `storageType`                 | string  | `"filesystem"` | Storage backend: `filesystem`, `database` (future)                                                     |
+| `storageType`                 | string  | `"filesystem"` | Storage backend: `filesystem`                                                                          |
 | `locale`                      | string  | `"en"`         | Active application locale                                                                              |
 | `vault`                       | string  | `"./vault"`    | Path to the vault directory for filesystem storage                                                     |
 | `features.favorites`          | boolean | `true`         | Show Favorites in SidebarNavigation and note favorite controls                                         |

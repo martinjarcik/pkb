@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { parseAppConfig } from '~/config/parseAppConfig'
-import { deepMergeAppConfig } from '~/config/mergeAppConfigPatch'
+import { deepMergePlainObjects } from '~/config/isPlainObject'
 
 function createEditorColors() {
   return {
@@ -86,10 +86,10 @@ function createConfigRecord(): Record<string, unknown> {
   }
 }
 
-describe('deepMergeAppConfig', () => {
+describe('deepMergePlainObjects', () => {
   it('merges nested layout patch without dropping sibling layout keys', () => {
     const base = createConfigRecord()
-    const merged = deepMergeAppConfig(base, {
+    const merged = deepMergePlainObjects(base, {
       layout: { showSidebarPanel: false },
     })
 
@@ -103,7 +103,7 @@ describe('deepMergeAppConfig', () => {
 
   it('preserves unrelated top-level keys when patching layout', () => {
     const base = createConfigRecord()
-    const merged = deepMergeAppConfig(base, {
+    const merged = deepMergePlainObjects(base, {
       layout: { showInspectorPanel: false },
     })
 
@@ -114,7 +114,7 @@ describe('deepMergeAppConfig', () => {
 
   it('rejects merged config when patch corrupts a boolean field', () => {
     const base = createConfigRecord()
-    const merged = deepMergeAppConfig(base, {
+    const merged = deepMergePlainObjects(base, {
       layout: { showSidebarPanel: 'invalid' },
     })
 
