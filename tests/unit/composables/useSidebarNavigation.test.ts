@@ -6,10 +6,16 @@ vi.mock('~/composables/useTranslations', () => ({
   t: (key: string) => key,
 }))
 
-vi.mock('~/composables/useNotes', () => ({
-  useNotes: () => ({
+vi.mock('~/composables/useNoteCatalog', () => ({
+  useNoteCatalog: () => ({
     notes: ref([]),
     allNotes: ref([]),
+    findNoteById: vi.fn(),
+  }),
+}))
+
+vi.mock('~/composables/useNoteSelection', () => ({
+  useNoteSelection: () => ({
     selectedNoteId: ref<string | null>(null),
     selectNoteById: vi.fn(),
   }),
@@ -21,6 +27,9 @@ vi.mock('~/composables/useNoteStorage', () => ({
       value: {
         createFolder: vi.fn(),
         renameFolder: vi.fn(),
+        loadFolderNames: vi
+          .fn()
+          .mockResolvedValue(['Keep', 'Projects', 'assets']),
       },
     },
   }),
@@ -38,21 +47,13 @@ vi.mock('~/composables/useAppConfigDisk', () => ({
   }),
 }))
 
-vi.mock('~/composables/useFolderMeta', () => ({
-  useFolderMeta: () => ({
-    meta: ref({
-      folders: {
-        Projects: {},
-        assets: {},
-        Keep: {},
-      },
-    }),
-  }),
-}))
-
 describe('useSidebarNavigation', () => {
-  it('includes folder names persisted in workspace meta', () => {
-    const { topLevelFolders } = useSidebarNavigation()
+  it('lists vault directories after loading and excludes the configured assets folder', async () => {
+    const { topLevelFolders, loadVaultFolders } = useSidebarNavigation()
+
+    expect(topLevelFolders.value).toEqual([])
+
+    await loadVaultFolders()
 
     expect(topLevelFolders.value).toEqual(['Keep', 'Projects'])
   })

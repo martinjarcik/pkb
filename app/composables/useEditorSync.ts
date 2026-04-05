@@ -7,7 +7,8 @@ import {
 import { renderNoteTitleBlocks } from '~/lib/editorjsTitleBlock'
 import { markdownToEditorjsBlocks } from '~/lib/markdownToBlocks'
 import type { EditorjsBlock } from '~/lib/editorjsMarkdownTypes'
-import { useNoteStorage } from './useNoteStorage'
+import type { PlatformApi } from '~/storage/platformApi'
+import type { ComputedRef } from 'vue'
 
 type EditorjsInstance = {
   blocks: {
@@ -24,6 +25,7 @@ type PendingExternalRender = {
 
 type UseEditorSyncArgs = {
   editor: Ref<EditorjsInstance | null>
+  platformApi: ComputedRef<PlatformApi>
   autosaveDelay: () => number
   content: () => string
   title: () => string
@@ -32,12 +34,12 @@ type UseEditorSyncArgs = {
 
 export function useEditorSync({
   editor,
+  platformApi,
   autosaveDelay,
   content,
   title,
   emitContentChange,
 }: UseEditorSyncArgs) {
-  const { platformApi } = useNoteStorage()
   const isApplyingExternalContent = ref(false)
   const lastRenderedContent = ref('')
   const lastRenderedTitle = ref('')
@@ -131,10 +133,7 @@ export function useEditorSync({
   }
 
   function scheduleContentSync(): void {
-    if (contentSyncTimeout) {
-      clearTimeout(contentSyncTimeout)
-    }
-
+    clearPendingContentSync()
     contentSyncTimeout = setTimeout(() => {
       contentSyncTimeout = null
       void emitContentChangeFromEditor()

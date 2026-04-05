@@ -34,9 +34,11 @@ Recompute `hasTasks` from unchecked markdown checklist items on save and persist
 
 ## D016 — 2026-03
 
-Partially superseded by D023. Asset upload and serving now use `PlatformApi` instead of Nitro routes.
-
-Store note images as files under a configurable vault-relative folder path (`editor.assetsFolder`, default `assets`), expose Nitro `POST /api/vault-assets/upload` and `GET /api/vault-assets/*`, persist Markdown as `![caption](<relative path>)`, and hide the configured top-level folder segment from sidebar folder lists so asset storage does not appear as a navigable folder view.
+Store note images as files under a configurable vault-relative folder path
+(`editor.assetsFolder`, default `assets`), resolve desktop-safe asset URLs
+through `PlatformApi`, persist Markdown as `![caption](<relative path>)`, and
+hide the configured top-level folder segment from sidebar folder lists so asset
+storage does not appear as a navigable folder view.
 
 ## D017 — 2026-03
 
@@ -44,13 +46,19 @@ Replace `vue3-emoji-picker` with `emoji-picker-element` (web component, ~12.5 KB
 
 ## D018 — 2026-03
 
-Partially superseded by D023. `meta.yaml` is now read and written via `PlatformApi`, not HTTP handlers.
-
-Store per-folder sidebar customization (emoji icons) in a dedicated workspace `meta.yaml` file with `GET`/`PUT` API handlers, separate from `AppConfig` and from hidden files inside vault folders, so metadata stays app-scoped and portable alongside the project.
+Store per-folder sidebar customization (emoji icons) in a dedicated workspace
+`meta.yaml` file, read and written through `PlatformApi`, separate from
+`AppConfig` and from hidden files inside vault folders, so metadata stays
+app-scoped and portable alongside the project.
 
 ## D019 — 2026-04
 
-Run the app as a client-only SPA: load full notes into memory at startup, keep search/trash purge/webhook dispatch/config-meta orchestration on the client, and keep Nitro only as a minimal filesystem/YAML proxy plus vault asset endpoints. Folder rows are derived from loaded note ids, with `meta.yaml` entries preserving explicitly created empty folders across reloads. Supersedes the server-driven parts of D012, D014, and D015.
+Run the app as a client-only SPA: load full notes into memory at startup, keep
+search/trash purge/webhook dispatch/config-meta orchestration on the client,
+and let `PlatformApi` handle raw filesystem, scoped-file, and asset I/O.
+Folder rows are derived from loaded note ids, with `meta.yaml` entries
+preserving explicitly created empty folders across reloads. Supersedes the
+server-driven parts of D012, D014, and D015.
 
 ## D022 — 2026-04
 
@@ -67,3 +75,7 @@ Expose persisted `AppConfig` editing through a centralized Settings dialog opene
 ## D025 — 2026-04
 
 Remove `database` from the runtime `StorageType` union until a concrete adapter exists. The storage router, platform router, and `NoteStorage` adapter boundary remain designed for multiple backends; re-adding a new storage type requires only extending the union and adding a case in each router. Partially revises D022.
+
+## D026 — 2026-04
+
+Derive sidebar folders from actual vault directories on disk (via `NoteStorage.loadFolderNames()` backed by a `list_directories` Tauri IPC command) instead of extracting folder names from loaded note ids or workspace metadata. Folder metadata (`meta.yaml`) provides enrichment (emoji icons) but is not a source of folder names. The configured assets folder name is still excluded from the sidebar list. Partially revises D019.

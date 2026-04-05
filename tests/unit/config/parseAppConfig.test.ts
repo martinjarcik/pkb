@@ -82,6 +82,7 @@ describe('parseAppConfig', () => {
 
   it('accepts legacy editorColors hex values as background', () => {
     const config = createBaseConfig()
+    config.theme.defaultEditorColor = 'blue'
     config.editorColors = {
       blue: {
         emoji: '🔵',

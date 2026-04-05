@@ -50,6 +50,10 @@
         "placeholder": "./vault",
         "description": "Choose the local directory used for filesystem note storage."
       },
+      "assetsFolder": {
+        "label": "Assets",
+        "description": "Choose the folder for storing note images and attachments, relative to the vault."
+      },
       "trashRetentionDays": {
         "label": "Trash retention days",
         "description": "Automatically delete trashed notes after this many days."

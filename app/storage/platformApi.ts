@@ -29,6 +29,7 @@ export type PlatformApi = {
   renameTextFile(dir: string, oldPath: string, newPath: string): Promise<void>
   createDirectory(dir: string, path: string): Promise<void>
   renameDirectory(dir: string, oldPath: string, newPath: string): Promise<void>
+  listDirectories(dir: string): Promise<string[]>
   readScopedTextFile(scope: PlatformFileScope): Promise<string | undefined>
   writeScopedTextFile(
     scope: PlatformFileScope,

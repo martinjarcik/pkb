@@ -70,6 +70,8 @@ export function parseAppConfig(value: unknown): AppConfig {
     throw new Error('Config vault must be a non-empty string')
   }
 
+  const editorColors = parseEditorColors(obj.editorColors)
+
   return {
     storageType: obj.storageType as StorageType,
     locale: obj.locale as string,
@@ -77,8 +79,8 @@ export function parseAppConfig(value: unknown): AppConfig {
     notes: parseNotesConfig(obj),
     editor: parseEditorConfig(obj),
     layout: parseLayoutConfig(obj),
-    theme: parseThemeConfig(obj),
-    editorColors: parseEditorColors(obj.editorColors),
+    theme: parseThemeConfig(obj, editorColors),
+    editorColors,
     features: parseFeaturesConfig(obj),
   }
 }

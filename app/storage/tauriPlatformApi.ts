@@ -233,6 +233,10 @@ export function createTauriPlatformApi(
       await callTauri<void>('rename_directory', { dir, oldPath, newPath })
     },
 
+    async listDirectories(dir: string): Promise<string[]> {
+      return callTauri<string[]>('list_directories', { dir })
+    },
+
     async readScopedTextFile(
       scope: PlatformFileScope,
     ): Promise<string | undefined> {

@@ -1,7 +1,8 @@
-import type { AppConfig } from './parseAppConfig'
+import type { AppConfig, EditorColors } from './parseAppConfig'
 
 export function parseThemeConfig(
   obj: Record<string, unknown>,
+  editorColors: EditorColors,
 ): AppConfig['theme'] {
   if (typeof obj.theme !== 'object' || obj.theme === null) {
     throw new Error('Config theme must be an object')
@@ -31,6 +32,12 @@ export function parseThemeConfig(
     theme.sidebarTextColor.trim().length > 0
       ? theme.sidebarTextColor.trim()
       : '#444444'
+
+  if (!(defaultEditorColor in editorColors)) {
+    throw new Error(
+      `Config theme.defaultEditorColor must match an editorColors key: ${defaultEditorColor}`,
+    )
+  }
 
   return {
     accentColor: theme.accentColor,

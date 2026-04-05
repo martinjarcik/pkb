@@ -22,6 +22,7 @@ export type MoveNoteInput = {
 
 export type NoteStorage = {
   loadAllNotes(): Promise<Note[]>
+  loadFolderNames(): Promise<string[]>
   saveNote(input: SaveNoteInput): Promise<Note>
   renameNoteTitle(input: RenameNoteTitleInput): Promise<Note>
   moveNote(input: MoveNoteInput): Promise<Note>

@@ -26,6 +26,7 @@ export function useNotes() {
     loadError,
     setAllNotes,
     clearAllNotes,
+    removeNotesByIds,
     findNoteById,
     replaceNote,
     replaceRenamedNote,
@@ -107,27 +108,45 @@ export function useNotes() {
     deleteSelectedNote,
   } = useNoteMutations(noteMutationsArgs)
 
+  async function purgeExpiredTrashedNotes(
+    loadedRows: readonly NoteCatalogRow[],
+  ): Promise<void> {
+    const retentionDays = appConfigDisk.value.notes.trashRetentionDays
+    const now = new Date()
+    const expiredIds = loadedRows
+      .filter(
+        (note) =>
+          catalogRowIsTrashed(note) &&
+          typeof note.trashedAt === 'string' &&
+          trashExpired(note.trashedAt, retentionDays, now),
+      )
+      .map((note) => note.id)
+
+    if (expiredIds.length === 0) {
+      return
+    }
+
+    const deletedIds: string[] = []
+    const results = await Promise.allSettled(
+      expiredIds.map(async (id) => {
+        await storage.value.deleteNote(id)
+        deletedIds.push(id)
+      }),
+    )
+
+    if (results.some((result) => result.status === 'fulfilled')) {
+      removeNotesByIds(deletedIds)
+    }
+  }
+
   async function loadNotes(): Promise<NoteCatalogRow[]> {
     isLoading.value = true
     loadError.value = null
 
     try {
       const loaded = await storage.value.loadAllNotes()
-      const retentionDays = appConfigDisk.value.notes.trashRetentionDays
-      const now = new Date()
-      const expired = loaded.filter(
-        (n) =>
-          catalogRowIsTrashed(n) &&
-          typeof n.trashedAt === 'string' &&
-          trashExpired(n.trashedAt, retentionDays, now),
-      )
-
-      if (expired.length > 0) {
-        await Promise.all(expired.map((n) => storage.value.deleteNote(n.id)))
-      }
-
-      const expiredIds = new Set(expired.map((n) => n.id))
-      setAllNotes(loaded.filter((note) => !expiredIds.has(note.id)))
+      setAllNotes(loaded)
+      void purgeExpiredTrashedNotes(loaded)
 
       return notes.value
     } catch (error) {

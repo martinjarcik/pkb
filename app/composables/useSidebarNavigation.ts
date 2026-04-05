@@ -1,8 +1,8 @@
 import { computed, ref } from 'vue'
 import { useAppConfigDisk } from '~/composables/useAppConfigDisk'
 import { useAppTheme } from '~/composables/useAppTheme'
-import { useFolderMeta } from '~/composables/useFolderMeta'
-import { useNotes } from '~/composables/useNotes'
+import { useNoteCatalog } from '~/composables/useNoteCatalog'
+import { useNoteSelection } from '~/composables/useNoteSelection'
 import { useNoteStorage } from '~/composables/useNoteStorage'
 import { t } from '~/composables/useTranslations'
 import { filterOrderedCatalogRowsByIds, searchNotes } from '~/notes/noteSearch'
@@ -12,12 +12,12 @@ import {
   mergeTopLevelFolders,
   orderedCatalogRowsForSidebarView,
 } from '~/notes/sidebarViewFilters'
-import { vaultTopLevelFolderNames } from '~/notes/noteFilters'
 import {
   applyTagCycle,
   selectedTagsFromView,
   tagFilterState as resolveTagFilterState,
 } from '~/notes/tagFilterMachine'
+
 import type {
   SidebarNonSearchView,
   SidebarWorkspaceView,
@@ -29,29 +29,52 @@ const selectedView = ref<SidebarWorkspaceView>({ kind: 'inbox' })
 const searchInput = ref('')
 const foldersExpanded = ref(true)
 const tagsExpanded = ref(true)
+const vaultFolders = ref<string[]>([])
 const explicitFolders = ref<string[]>([])
+
+type FolderResult =
+  | { ok: true; folderName: string }
+  | { ok: false; error: string }
+
+function resolveVisibleCatalogRows(
+  rows: readonly NoteCatalogRow[],
+  view: SidebarWorkspaceView,
+): NoteCatalogRow[] {
+  if (view.kind === 'search') {
+    return filterOrderedCatalogRowsByIds(rows, view.matchingIds)
+  }
+
+  return orderedCatalogRowsForSidebarView(rows, view)
+}
+
+function sanitizedFolderResult(
+  currentFolders: readonly string[],
+  name: string,
+): FolderResult | { ok: true; folderName: string; unchanged?: boolean } {
+  const sanitized = sanitizeNoteTitleForFilename(name)
+
+  if (sanitized.length === 0) {
+    return { ok: false, error: t('sidebarFolders.errorEmpty') }
+  }
+
+  if (currentFolders.includes(sanitized)) {
+    return { ok: false, error: t('sidebarFolders.errorDuplicate') }
+  }
+
+  return { ok: true, folderName: sanitized }
+}
 
 /** Owns the shared sidebar view, tag filters, and top-level folder actions. */
 export function useSidebarNavigation() {
-  const { notes, allNotes, selectedNoteId, selectNoteById } = useNotes()
+  const { notes, allNotes, findNoteById } = useNoteCatalog()
+  const selectionState = useNoteSelection()
+  const { selectedNoteId } = selectionState
   const { storage } = useNoteStorage()
-  const { meta } = useFolderMeta()
   const { data: appConfigDisk } = useAppConfigDisk()
   const { accentColor } = useAppTheme()
-  const catalogDerivedFolders = computed(() =>
-    vaultTopLevelFolderNames(notes.value.map((row) => row.id)),
-  )
-  const metaDerivedFolders = computed(() =>
-    Object.keys(meta.value.folders).sort((left, right) =>
-      left.localeCompare(right),
-    ),
-  )
   const topLevelFolders = computed(() => {
     const merged = mergeTopLevelFolders(
-      mergeTopLevelFolders(
-        catalogDerivedFolders.value,
-        metaDerivedFolders.value,
-      ),
+      vaultFolders.value,
       explicitFolders.value,
     )
     const excluded =
@@ -69,19 +92,12 @@ export function useSidebarNavigation() {
     resolveVisibleCatalogRows(notes.value, selectedView.value),
   )
 
-  function resolveVisibleCatalogRows(
-    rows: readonly NoteCatalogRow[],
-    view: SidebarWorkspaceView,
-  ): NoteCatalogRow[] {
-    if (view.kind === 'search') {
-      return filterOrderedCatalogRowsByIds(rows, view.matchingIds)
-    }
-
-    return orderedCatalogRowsForSidebarView(rows, view)
-  }
-
   function clearSearchState(): void {
     searchInput.value = ''
+  }
+
+  async function selectNoteById(id: string | null): Promise<void> {
+    await selectionState.selectNoteById(id, notes.value, findNoteById)
   }
 
   async function syncSelection(rows: readonly NoteCatalogRow[]): Promise<void> {
@@ -174,6 +190,14 @@ export function useSidebarNavigation() {
     )
   }
 
+  async function loadVaultFolders(): Promise<void> {
+    try {
+      vaultFolders.value = await storage.value.loadFolderNames()
+    } catch {
+      vaultFolders.value = []
+    }
+  }
+
   function toggleFoldersExpanded(): void {
     foldersExpanded.value = !foldersExpanded.value
   }
@@ -182,27 +206,22 @@ export function useSidebarNavigation() {
     tagsExpanded.value = !tagsExpanded.value
   }
 
-  type FolderResult =
-    | { ok: true; folderName: string }
-    | { ok: false; error: string }
-
   async function createFolder(name: string): Promise<FolderResult> {
-    const sanitized = sanitizeNoteTitleForFilename(name)
+    const folderResult = sanitizedFolderResult(topLevelFolders.value, name)
 
-    if (sanitized.length === 0) {
-      return { ok: false, error: t('sidebarFolders.errorEmpty') }
-    }
-
-    if (topLevelFolders.value.includes(sanitized)) {
-      return { ok: false, error: t('sidebarFolders.errorDuplicate') }
+    if (!folderResult.ok) {
+      return folderResult
     }
 
     try {
-      await storage.value.createFolder(sanitized)
+      await storage.value.createFolder(folderResult.folderName)
 
-      explicitFolders.value = [...explicitFolders.value, sanitized]
+      explicitFolders.value = [
+        ...explicitFolders.value,
+        folderResult.folderName,
+      ]
 
-      return { ok: true, folderName: sanitized }
+      return folderResult
     } catch {
       return { ok: false, error: t('sidebarFolders.errorCreateFallback') }
     }
@@ -222,25 +241,33 @@ export function useSidebarNavigation() {
       return { ok: true, folderName: oldName }
     }
 
-    if (topLevelFolders.value.includes(sanitized)) {
-      return { ok: false, error: t('sidebarFolders.errorDuplicate') }
+    const folderResult = sanitizedFolderResult(
+      topLevelFolders.value.filter((folderName) => folderName !== oldName),
+      sanitized,
+    )
+
+    if (!folderResult.ok) {
+      return folderResult
     }
 
     try {
-      await storage.value.renameFolder(oldName, sanitized)
+      await storage.value.renameFolder(oldName, folderResult.folderName)
 
       explicitFolders.value = explicitFolders.value.map((f) =>
-        f === oldName ? sanitized : f,
+        f === oldName ? folderResult.folderName : f,
       )
 
       if (
         selectedView.value.kind === 'folder' &&
         selectedView.value.folderName === oldName
       ) {
-        selectedView.value = { kind: 'folder', folderName: sanitized }
+        selectedView.value = {
+          kind: 'folder',
+          folderName: folderResult.folderName,
+        }
       }
 
-      return { ok: true, folderName: sanitized }
+      return folderResult
     } catch {
       return { ok: false, error: t('sidebarFolders.errorRenameFallback') }
     }
@@ -257,6 +284,7 @@ export function useSidebarNavigation() {
     selectedTags,
     tagFilterState,
     visibleCatalogRows,
+    loadVaultFolders,
     updateSearchInput,
     selectInbox,
     selectTasks,

@@ -594,6 +594,18 @@
     font-size: 0.74rem;
   }
 
+  /* @editorjs/image enables the caption tune when block data contains a
+     non-empty caption, even with features.caption:false. Force-hide the
+     caption element so it stays invisible while still preserving its
+     innerHTML for round-trip to markdown. */
+  .note-editor-surface .image-tool__caption {
+    display: none !important;
+  }
+
+  .note-editor-surface .image-tool--caption {
+    padding-bottom: 0;
+  }
+
   /* List tool injects unlayered CSS after our bundle; it uses these vars for the
      checked checkbox. Override vars here so we do not fight cascade/specificity. */
   .note-editor-surface .cdx-list {

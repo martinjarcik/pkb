@@ -57,6 +57,15 @@ export function useNoteMutations({
     selectNoteById,
   } = selectionState
 
+  function existingNoteIds(): string[] {
+    return notes.value.map((note) => note.id)
+  }
+
+  function syncSelectedNote(nextNote: Note): void {
+    selectedNoteId.value = nextNote.id
+    selectedNoteFull.value = nextNote
+  }
+
   async function executeNoteCommand<T>(
     operation: () => Promise<T>,
     fallbackErrorKey: string,
@@ -125,7 +134,7 @@ export function useNoteMutations({
           id: resolveUniqueNoteIdForParentPath(
             parentPath,
             defaultTitle,
-            notes.value.map((note) => note.id),
+            existingNoteIds(),
           ),
           properties: initialProperties,
           content: '',
@@ -138,8 +147,7 @@ export function useNoteMutations({
     }
 
     prependNote(createdNote)
-    selectedNoteId.value = createdNote.id
-    selectedNoteFull.value = createdNote
+    syncSelectedNote(createdNote)
     shouldFocusTitle.value = true
 
     return createdNote
@@ -167,7 +175,7 @@ export function useNoteMutations({
           storage.value.renameNoteTitle({
             id: currentId,
             title: trimmedTitle,
-            existingIds: notes.value.map((note) => note.id),
+            existingIds: existingNoteIds(),
             note: currentNote,
           }),
         'notes.errorRenameFallback',
@@ -180,8 +188,7 @@ export function useNoteMutations({
       replaceRenamedNote(currentId, renamedNote)
 
       if (selectedNoteId.value === currentId) {
-        selectedNoteId.value = renamedNote.id
-        selectedNoteFull.value = renamedNote
+        syncSelectedNote(renamedNote)
       }
 
       return renamedNote
@@ -209,7 +216,7 @@ export function useNoteMutations({
         storage.value.moveNote({
           id,
           targetParentPath,
-          existingIds: notes.value.map((note) => note.id),
+          existingIds: existingNoteIds(),
           note,
         }),
       'notes.errorSaveFallback',
@@ -222,8 +229,7 @@ export function useNoteMutations({
     replaceRenamedNote(id, movedNote)
 
     if (selectedNoteId.value === id) {
-      selectedNoteId.value = movedNote.id
-      selectedNoteFull.value = movedNote
+      syncSelectedNote(movedNote)
     }
 
     return movedNote

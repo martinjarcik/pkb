@@ -27,6 +27,7 @@ function createNote(overrides: Partial<Note> = {}): Note {
 function createStorageMock(): NoteStorage {
   return {
     loadAllNotes: vi.fn(),
+    loadFolderNames: vi.fn().mockResolvedValue([]),
     saveNote: vi.fn(),
     renameNoteTitle: vi.fn(),
     moveNote: vi.fn(),

@@ -15,6 +15,7 @@ function createPlatformApiMock(): PlatformApi {
     renameTextFile: vi.fn(),
     createDirectory: vi.fn(),
     renameDirectory: vi.fn(),
+    listDirectories: vi.fn().mockResolvedValue([]),
     readScopedTextFile: vi.fn(),
     writeScopedTextFile: vi.fn(),
     ensureReady: vi.fn(),

@@ -45,6 +45,8 @@ type LoadedEditorModules = [
   imageModule: unknown,
 ]
 
+const ASSET_UPLOAD_SYNC_DELAY_MS = 100
+
 type UseEditorLifecycleArgs = {
   editor: Ref<EditorjsInstance | null>
   holder: Ref<HTMLDivElement | null>
@@ -86,6 +88,17 @@ function loadEditorModules(): Promise<LoadedEditorModules> {
   return editorModulesPromise
 }
 
+function buildRenderedBlocks(
+  markdown: string,
+  noteTitle: string,
+  assetUrl: (relativePath: string) => string,
+): EditorjsBlock[] {
+  return renderNoteTitleBlocks(
+    markdownToEditorjsBlocks(markdown, assetUrl),
+    noteTitle,
+  )
+}
+
 /** Owns Editor.js startup, teardown, and drag/drop lifecycle for `NoteEditor.vue`. */
 export function useEditorLifecycle({
   editor,
@@ -105,6 +118,11 @@ export function useEditorLifecycle({
   const editorError = ref<string | null>(null)
   const isEditorLoading = ref(true)
   let dragDropHandle: ReturnType<typeof initEditorjsDragDrop> | null = null
+
+  function syncRenderedState(nextContent: string, nextTitle: string): void {
+    lastRenderedContent.value = nextContent
+    lastRenderedTitle.value = nextTitle
+  }
 
   async function focusTitle(): Promise<void> {
     if (!editor.value) {
@@ -174,9 +192,10 @@ export function useEditorLifecycle({
       const ImageTool = patchEditorImageToolForLocalAssets(
         getDefaultExport(imageModule) as new (...args: never[]) => unknown,
       )
-      const blocks = renderNoteTitleBlocks(
-        markdownToEditorjsBlocks(initialContent, platformApi.value.assetUrl),
+      const blocks = buildRenderedBlocks(
+        initialContent,
         initialTitle,
+        platformApi.value.assetUrl,
       )
 
       editor.value = new Editorjs({
@@ -202,7 +221,7 @@ export function useEditorLifecycle({
           translate,
           async uploadByFile(file: File) {
             const result = await platformApi.value.uploadAsset(file)
-            setTimeout(() => scheduleContentSync(), 100)
+            setTimeout(() => scheduleContentSync(), ASSET_UPLOAD_SYNC_DELAY_MS)
             return result
           },
         }),
@@ -219,19 +238,24 @@ export function useEditorLifecycle({
 
       if (content() !== initialContent || title() !== initialTitle) {
         await platformApi.value.ensureReady()
-        const latestBlocks = renderNoteTitleBlocks(
-          markdownToEditorjsBlocks(content(), platformApi.value.assetUrl),
-          title(),
+        const latestContent = content()
+        const latestTitle = title()
+        const latestBlocks = buildRenderedBlocks(
+          latestContent,
+          latestTitle,
+          platformApi.value.assetUrl,
         )
 
         await editor.value.blocks.render({
           blocks: prepareEditorjsBlocksForEditor(latestBlocks),
         })
+
+        syncRenderedState(latestContent, latestTitle)
+      } else {
+        syncRenderedState(initialContent, initialTitle)
       }
 
       isApplyingExternalContent.value = false
-      lastRenderedContent.value = content()
-      lastRenderedTitle.value = title()
     } catch (error) {
       editorError.value =
         error instanceof Error

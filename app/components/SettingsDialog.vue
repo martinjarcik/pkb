@@ -18,6 +18,7 @@ const { startApp } = useAppStartup()
 const saveError = ref<string | null>(null)
 const isSaving = ref(false)
 const vaultDraft = ref('')
+const assetsFolderDraft = ref('')
 const trashRetentionDaysDraft = ref('')
 const autosaveDelayDraft = ref('')
 
@@ -52,6 +53,7 @@ const editorColors = computed(() =>
 
 function syncDrafts(config: AppConfig): void {
   vaultDraft.value = config.vault
+  assetsFolderDraft.value = config.editor.assetsFolder
   trashRetentionDaysDraft.value = String(config.notes.trashRetentionDays)
   autosaveDelayDraft.value = String(config.editor.autosaveDelay)
 }
@@ -129,6 +131,49 @@ async function chooseVaultDirectory(): Promise<void> {
   }
 
   await savePatch({ vault: nextVault }, { restartApp: true })
+}
+
+async function makeRelativeToVault(
+  vault: string,
+  absolutePath: string,
+): Promise<string> {
+  const { invoke } = await import('@tauri-apps/api/core')
+
+  return invoke<string>('make_relative_to_vault', {
+    vault,
+    absolutePath,
+  })
+}
+
+async function chooseAssetsFolderDirectory(): Promise<void> {
+  const vaultAbsolute = await resolveAbsoluteVaultPath(
+    appConfigDisk.value.vault,
+  )
+  const currentAssetsFolder = appConfigDisk.value.editor.assetsFolder
+  const defaultPath = currentAssetsFolder
+    ? `${vaultAbsolute}/${currentAssetsFolder}`
+    : vaultAbsolute
+
+  const selectedDirectory = await openDirectoryDialog(defaultPath)
+
+  if (!selectedDirectory) {
+    return
+  }
+
+  const relativePath = await makeRelativeToVault(
+    appConfigDisk.value.vault,
+    selectedDirectory.trim(),
+  )
+
+  if (
+    relativePath.length === 0 ||
+    relativePath === appConfigDisk.value.editor.assetsFolder
+  ) {
+    assetsFolderDraft.value = appConfigDisk.value.editor.assetsFolder
+    return
+  }
+
+  await savePatch({ editor: { assetsFolder: relativePath } })
 }
 
 async function updateFeature(
@@ -281,7 +326,9 @@ function handleDefaultEditorColorSelected(value: string | undefined): void {
             v-if="activeCategory === 'general'"
             :is-saving="isSaving"
             :vault-draft="vaultDraft"
+            :assets-folder-draft="assetsFolderDraft"
             @choose-vault="void chooseVaultDirectory()"
+            @choose-assets-folder="void chooseAssetsFolderDirectory()"
           />
 
           <SettingsFeaturesSection

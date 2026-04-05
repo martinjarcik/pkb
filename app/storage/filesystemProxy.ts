@@ -75,6 +75,10 @@ export function createFilesystemProxyStorage(
   }
 
   return {
+    async loadFolderNames(): Promise<string[]> {
+      return platformApi.listDirectories(vaultPath)
+    },
+
     async loadAllNotes(): Promise<Note[]> {
       const files = await platformApi.readAllNotes(vaultPath)
 

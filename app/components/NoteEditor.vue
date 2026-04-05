@@ -54,6 +54,7 @@ const {
   resetPendingExternalRender,
 } = useEditorSync({
   editor,
+  platformApi,
   autosaveDelay: () => props.autosaveDelay,
   content: () => props.content,
   title: () => props.title,

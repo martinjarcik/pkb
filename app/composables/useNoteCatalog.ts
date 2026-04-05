@@ -7,6 +7,11 @@ const notes = ref<NoteCatalogRow[]>([])
 const isLoading = ref(false)
 const loadError = ref<string | null>(null)
 
+function projectCatalogRow(note: Note): NoteCatalogRow {
+  const { content: _content, ...row } = note
+  return row
+}
+
 function sortNotesByModifiedAt(
   nextNotes: readonly NoteCatalogRow[],
 ): NoteCatalogRow[] {
@@ -16,7 +21,7 @@ function sortNotesByModifiedAt(
 /** Owns the shared note store and the derived note catalog rows. */
 export function useNoteCatalog() {
   function rebuildCatalog(): void {
-    notes.value = sortNotesByModifiedAt(allNotes.value as NoteCatalogRow[])
+    notes.value = sortNotesByModifiedAt(allNotes.value.map(projectCatalogRow))
   }
 
   function setAllNotes(nextNotes: Note[]): void {
@@ -29,6 +34,16 @@ export function useNoteCatalog() {
     notes.value = []
   }
 
+  function removeNotesByIds(ids: readonly string[]): void {
+    if (ids.length === 0) {
+      return
+    }
+
+    const idSet = new Set(ids)
+    allNotes.value = allNotes.value.filter((note) => !idSet.has(note.id))
+    rebuildCatalog()
+  }
+
   function replaceInStore(matchId: string, replacement: Note): void {
     const nextNotes: Note[] = []
 
@@ -38,7 +53,7 @@ export function useNoteCatalog() {
         continue
       }
 
-      nextNotes.push(note as Note)
+      nextNotes.push(note)
     }
 
     allNotes.value = nextNotes
@@ -90,6 +105,7 @@ export function useNoteCatalog() {
     loadError,
     setAllNotes,
     clearAllNotes,
+    removeNotesByIds,
     replaceNote,
     replaceRenamedNote,
     prependNote,

@@ -7,7 +7,7 @@ import { useSidebarNavigation } from '~/composables/useSidebarNavigation'
 /** Coordinates app bootstrap across config, notes, metadata, and navigation state. */
 export function useAppStartup() {
   const { loadError, loadNotes } = useNotes()
-  const { selectInbox } = useSidebarNavigation()
+  const { selectInbox, loadVaultFolders } = useSidebarNavigation()
   const { data: appConfigDisk, loadAppConfigDisk } = useAppConfigDisk()
   const { loadMeta } = useFolderMeta()
   const { syncLayoutFromConfig } = useLayout()
@@ -16,11 +16,12 @@ export function useAppStartup() {
     try {
       await loadAppConfigDisk()
       syncLayoutFromConfig(appConfigDisk.value.layout)
-      await Promise.all([loadNotes(), loadMeta()])
+      await Promise.all([loadNotes(), loadMeta(), loadVaultFolders()])
       loadError.value = null
     } catch {
       await loadNotes()
       await loadMeta()
+      await loadVaultFolders()
     }
 
     await selectInbox()

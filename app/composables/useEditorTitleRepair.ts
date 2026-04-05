@@ -40,13 +40,19 @@ export function useEditorTitleRepair({
 }: UseEditorTitleRepairArgs) {
   const isRepairingTitleBlock = ref(false)
 
+  function currentEditor(): EditorjsInstance | null {
+    return editor.value
+  }
+
   async function commitTitleChange(): Promise<void> {
-    if (!editor.value || isApplyingExternalContent.value) {
+    const instance = currentEditor()
+
+    if (!instance || isApplyingExternalContent.value) {
       return
     }
 
-    await editor.value.isReady
-    const output = await editor.value.save()
+    await instance.isReady
+    const output = await instance.save()
     const blocks = normalizeSavedEditorjsBlocks(output.blocks)
     const titleText = extractNoteTitleText(blocks)
 
@@ -59,14 +65,16 @@ export function useEditorTitleRepair({
   }
 
   function findNoteTitleIndex(): number {
-    if (!editor.value) {
+    const instance = currentEditor()
+
+    if (!instance) {
       return -1
     }
 
-    const blocksCount = editor.value.blocks.getBlocksCount()
+    const blocksCount = instance.blocks.getBlocksCount()
 
     for (let index = 0; index < blocksCount; index += 1) {
-      if (editor.value.blocks.getBlockByIndex(index)?.name === 'noteTitle') {
+      if (instance.blocks.getBlockByIndex(index)?.name === 'noteTitle') {
         return index
       }
     }
@@ -75,11 +83,13 @@ export function useEditorTitleRepair({
   }
 
   function repairMovedNoteTitleBlock(): boolean {
-    if (!editor.value) {
+    const instance = currentEditor()
+
+    if (!instance) {
       return false
     }
 
-    if (editor.value.blocks.getBlockByIndex(0)?.name === 'noteTitle') {
+    if (instance.blocks.getBlockByIndex(0)?.name === 'noteTitle') {
       return false
     }
 
@@ -92,7 +102,7 @@ export function useEditorTitleRepair({
     isRepairingTitleBlock.value = true
 
     try {
-      editor.value.blocks.move(0, noteTitleIndex)
+      instance.blocks.move(0, noteTitleIndex)
     } finally {
       window.requestAnimationFrame(() => {
         isRepairingTitleBlock.value = false
@@ -111,11 +121,17 @@ export function useEditorTitleRepair({
   }
 
   async function handleEditorChange(): Promise<void> {
+    const instance = currentEditor()
+
     if (isEditorBusy()) {
       return
     }
 
-    await editor.value!.isReady
+    if (!instance) {
+      return
+    }
+
+    await instance.isReady
 
     if (isEditorBusy()) {
       return
@@ -125,7 +141,7 @@ export function useEditorTitleRepair({
       return
     }
 
-    const output = await editor.value!.save()
+    const output = await instance.save()
 
     if (isEditorBusy()) {
       return
@@ -138,7 +154,7 @@ export function useEditorTitleRepair({
       isRepairingTitleBlock.value = true
 
       try {
-        await editor.value!.blocks.render({
+        await instance.blocks.render({
           blocks: prepareEditorjsBlocksForEditor(normalizedBlocks),
         })
       } finally {

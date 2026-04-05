@@ -51,6 +51,10 @@ shape because the app now keeps full note bodies in shared client state.
   writes.
 - `app/storage/platformApi.ts` — raw I/O contract for note files,
   scoped config/meta text files, and vault assets.
+- `app/storage/platformRouter.ts` — active `PlatformApi` selection from
+  `storageType`.
+- `app/storage/context.ts` — composition point that derives the current
+  `PlatformApi` and `NoteStorage` pair from config.
 - `app/storage/tauriPlatformApi.ts` — desktop `PlatformApi` implementation
   using Tauri IPC commands plus desktop asset URLs for note images.
 - `app/storage/router.ts` — active storage selection from `storageType`.
@@ -64,9 +68,18 @@ shape because the app now keeps full note bodies in shared client state.
   from config defaults, plus session-only non-distraction mode (snapshot and
   restore of the three panel flags).
 - `app/composables/useSidebarNavigation.ts` — sidebar view state initialized
-  from config defaults, including the Inbox, Tasks, Favorites (when
-  `features.favorites` is true), Trashed, top-level folder note filters, and
-  tag-based note filtering.
+  from config defaults, consuming the shared note catalog and selection state
+  directly for Inbox, Tasks, Favorites (when `features.favorites` is true),
+  Trashed, top-level folder note filters, and tag-based note filtering.
+- `app/composables/useEditorLifecycle.ts` — Editor.js startup, teardown, drag
+  and drop wiring, image upload integration, and initial render ownership for
+  `NoteEditor`.
+- `app/composables/useEditorSync.ts` — editor-to-Markdown autosave scheduling
+  and external content re-render coordination.
+- `app/composables/useEditorTitleRepair.ts` — title-block normalization and
+  title commit flow for the Editor.js surface.
+- `app/composables/useVirtualList.ts` — notes-list viewport virtualization for
+  the scrollable note list.
 - `desktop/tauri/` — Tauri desktop host and Rust IPC commands for filesystem,
   scoped config/meta, folder, and asset operations.
 - `SidebarPanel` (`app/components/SidebarPanel.vue`) — sidebar shell.
@@ -150,19 +163,27 @@ those rules.
 - Note metadata is edited through focused controls and dialogs rather than an
   always-visible inspector region.
 - In filesystem-backed storage, properties are serialized as YAML frontmatter.
-- `useNoteCatalog()` owns the full in-memory note store plus the derived note
-  catalog in shared state.
+- `useNoteCatalog()` owns the full in-memory note store plus a derived
+  `Note catalog row` projection that omits `content` for list-facing state.
 - `useNoteSelection()` owns the active note id, selected full note, editor
   flush callback, and title-focus handoff in shared state.
 - `useNotes()` composes the catalog, selection, storage, and mutation
   composables into the app-facing note API. The page selects the initial note
   after load; `NoteTemplate` passes the selected note's title and Content into
   `NoteEditor`.
+- `useNotes()` publishes the loaded catalog first, then runs expired-trash
+  retention cleanup as a separate silent best-effort pass so failed deletions
+  do not clear the workspace state.
 - After save and trash operations, the client may POST to the note’s `webhook`
   Application Property (HTTPS URL only) with a JSON body `{ event, note }`
   where `event` is `updated` or `deleted`. Delivery is best-effort and does not
   affect persistence.
 - `useSidebarNavigation()` owns the active sidebar view in shared state.
+  Sidebar folders are loaded from actual vault directories on disk via
+  `NoteStorage.loadFolderNames()`, merged with session-created folders,
+  excluding the configured assets folder name. Folder metadata (`meta.yaml`)
+  provides enrichment (e.g. emoji icons) but is not a source of folder names
+  (see D026).
   The default `Inbox` view filters `NotesList` to notes whose `id` lives at the
   vault root. The `Favorites` view (when enabled in config) filters across the
   whole catalog to notes whose `favorite` Application Property is `true`,
@@ -253,8 +274,8 @@ produce stale views, failed saves, or overwritten files.
 
 - `NoteStorage` — adapter boundary for loading Workspace Catalog rows, loading
   full logical note documents by id, saving logical note documents, creating
-  folders, and loading folder names, while hiding backend-specific
-  serialization details.
+  and renaming folders, and listing vault directory names, while hiding
+  backend-specific serialization details.
 - `PlatformApi` — desktop-only raw I/O boundary under `NoteStorage` and config
   persistence. The current implementation uses Tauri IPC without changing the
   app-level storage or editor contracts.

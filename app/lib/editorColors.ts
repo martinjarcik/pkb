@@ -23,11 +23,7 @@ export function getEditorColors(): EditorColors {
 }
 
 export function getDefaultEditorColor(): string {
-  const editorColorNames = Object.keys(editorColors)
-
-  return editorColorNames.includes(defaultEditorColor)
-    ? defaultEditorColor
-    : (editorColorNames[0] ?? 'red')
+  return defaultEditorColor
 }
 
 export function getEditorColor(name: string): EditorColor | null {
