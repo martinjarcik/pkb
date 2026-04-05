@@ -2,7 +2,7 @@ import { getEditorColors } from './editorColors'
 import type { EditorjsBlock } from './editorjsMarkdownTypes'
 
 export const BLOCK_BACKGROUND_TUNE_NAME = 'backgroundColor'
-export const BLOCK_BACKGROUND_CLASS_PREFIX = 'editor-background-'
+export const BLOCK_BACKGROUND_CLASS_PREFIX = 'block-background-'
 
 export type BlockBackgroundColor = string
 

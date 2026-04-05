@@ -16,7 +16,7 @@ describe('editorjsBlockBackground', () => {
       {
         type: 'paragraph',
         data: { text: 'Hello world' },
-        cssClasses: ['note-box', `editor-background-${primaryColor}`],
+        cssClasses: ['note-box', `block-background-${primaryColor}`],
       },
     ]
 
@@ -24,7 +24,7 @@ describe('editorjsBlockBackground', () => {
       {
         type: 'paragraph',
         data: { text: 'Hello world' },
-        cssClasses: ['note-box', `editor-background-${primaryColor}`],
+        cssClasses: ['note-box', `block-background-${primaryColor}`],
         tunes: {
           backgroundColor: {
             color: primaryColor,
@@ -52,7 +52,7 @@ describe('editorjsBlockBackground', () => {
       {
         type: 'paragraph',
         data: { text: 'Hello world' },
-        cssClasses: ['note-box', `editor-background-${secondaryColor}`],
+        cssClasses: ['note-box', `block-background-${secondaryColor}`],
       },
     ])
   })
@@ -62,7 +62,7 @@ describe('editorjsBlockBackground', () => {
       {
         type: 'paragraph',
         data: { text: 'Hello world' },
-        cssClasses: [`editor-background-${primaryColor}`, 'note-box'],
+        cssClasses: [`block-background-${primaryColor}`, 'note-box'],
         tunes: {
           backgroundColor: {},
         },
