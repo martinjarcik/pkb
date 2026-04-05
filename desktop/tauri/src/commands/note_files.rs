@@ -122,26 +122,36 @@ pub fn rename_directory(dir: String, old_path: String, new_path: String) -> Resu
 #[tauri::command]
 pub fn list_directories(dir: String) -> Result<Vec<String>, String> {
     let root = resolve_root_path(&dir);
-    let mut names = Vec::new();
+    let mut paths = Vec::new();
 
-    let entries = fs::read_dir(&root).map_err(|error| error.to_string())?;
-
-    for entry in entries {
-        let entry = entry.map_err(|error| error.to_string())?;
-        let file_type = entry.file_type().map_err(|error| error.to_string())?;
-
-        if !file_type.is_dir() {
+    for entry in WalkDir::new(&root).into_iter().filter_map(Result::ok) {
+        if !entry.file_type().is_dir() {
             continue;
         }
 
-        if let Some(name) = entry.file_name().to_str() {
-            if !name.starts_with('.') {
-                names.push(name.to_string());
-            }
+        let rel = entry
+            .path()
+            .strip_prefix(&root)
+            .map_err(|error| error.to_string())?;
+
+        if rel.as_os_str().is_empty() {
+            continue;
+        }
+
+        if rel.components().any(|c| {
+            c.as_os_str()
+                .to_str()
+                .map_or(false, |s| s.starts_with('.'))
+        }) {
+            continue;
+        }
+
+        if let Some(rel_str) = rel.to_str() {
+            paths.push(rel_str.replace('\\', "/"));
         }
     }
 
-    names.sort();
+    paths.sort();
 
-    Ok(names)
+    Ok(paths)
 }

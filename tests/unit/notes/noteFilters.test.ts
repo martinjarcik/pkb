@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import {
-  isDirectChildOfVaultFolder,
+  isDirectChildOfFolder,
   isVaultRootNote,
   vaultTopLevelFolderNames,
 } from '~/notes/noteFilters'
@@ -37,28 +37,40 @@ describe('vaultTopLevelFolderNames', () => {
   })
 })
 
-describe('isDirectChildOfVaultFolder', () => {
-  it('returns true for a note directly inside the selected folder', () => {
-    expect(isDirectChildOfVaultFolder('Work/plan.md', 'Work')).toBe(true)
+describe('isDirectChildOfFolder', () => {
+  it('returns true for a note directly inside a top-level folder', () => {
+    expect(isDirectChildOfFolder('Work/plan.md', 'Work')).toBe(true)
   })
 
-  it('returns false for a nested note inside the selected folder', () => {
-    expect(isDirectChildOfVaultFolder('Work/archive/plan.md', 'Work')).toBe(
-      false,
+  it('returns false for a nested note inside a top-level folder', () => {
+    expect(isDirectChildOfFolder('Work/archive/plan.md', 'Work')).toBe(false)
+  })
+
+  it('returns true for a note directly inside a nested folder', () => {
+    expect(isDirectChildOfFolder('Work/archive/plan.md', 'Work/archive')).toBe(
+      true,
     )
+  })
+
+  it('returns false for a deeply nested note when selecting a mid-level folder', () => {
+    expect(
+      isDirectChildOfFolder('Work/archive/2024/plan.md', 'Work/archive'),
+    ).toBe(false)
   })
 
   it('returns false for a vault root note', () => {
-    expect(isDirectChildOfVaultFolder('plan.md', 'Work')).toBe(false)
+    expect(isDirectChildOfFolder('plan.md', 'Work')).toBe(false)
   })
 
   it('returns false for a note in a different folder', () => {
-    expect(isDirectChildOfVaultFolder('Personal/plan.md', 'Work')).toBe(false)
+    expect(isDirectChildOfFolder('Personal/plan.md', 'Work')).toBe(false)
   })
 
-  it('returns false when the folder name is not a top-level folder', () => {
-    expect(isDirectChildOfVaultFolder('Work/plan.md', 'Work/archive')).toBe(
-      false,
-    )
+  it('returns false when folder path is empty', () => {
+    expect(isDirectChildOfFolder('Work/plan.md', '')).toBe(false)
+  })
+
+  it('does not match a folder whose name is a prefix of another', () => {
+    expect(isDirectChildOfFolder('Working/plan.md', 'Work')).toBe(false)
   })
 })

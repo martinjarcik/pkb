@@ -93,12 +93,15 @@ export function useNoteMutations({
     const saveInput = buildSaveNoteInput(currentNote, content)
     const optimisticNote = updateNoteContent(currentNote.id, content)
 
-    const savedNote = await executeNoteCommand(
-      () => storage.value.saveNote(saveInput),
-      'notes.errorSaveFallback',
-    )
+    saveError.value = null
 
-    if (!savedNote) {
+    let savedNote: Note | null
+    try {
+      savedNote = await storage.value.saveNote(saveInput)
+    } catch (error) {
+      saveError.value =
+        error instanceof Error ? error.message : t('notes.errorSaveFallback')
+
       if (optimisticNote) {
         replaceNote(currentNote)
         selectedNoteFull.value = currentNote

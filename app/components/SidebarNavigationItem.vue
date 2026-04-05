@@ -11,10 +11,6 @@ const props = defineProps<{
 }>()
 const emit = defineEmits<{
   activate: []
-  dragenter: [event: DragEvent]
-  dragleave: [event: DragEvent]
-  dragover: [event: DragEvent]
-  drop: [event: DragEvent]
 }>()
 
 const selectedStyle = computed(() =>
@@ -40,17 +36,12 @@ function handleClick(): void {
     :data-drop-active="dropActive ? 'true' : 'false'"
     :style="selectedStyle"
     @click="handleClick"
-    @dragenter="emit('dragenter', $event)"
-    @dragleave="emit('dragleave', $event)"
-    @dragover="emit('dragover', $event)"
-    @drop="emit('drop', $event)"
   >
     <span
       v-if="typeof icon === 'string'"
       class="sidebar-navigation-item-icon inline-flex w-[15px] shrink-0 items-center justify-center text-[15px] leading-none"
       aria-hidden="true"
-      >{{ icon }}</span
-    >
+    >{{ icon }}</span>
     <component
       :is="icon"
       v-else

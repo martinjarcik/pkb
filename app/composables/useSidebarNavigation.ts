@@ -1,4 +1,4 @@
-import { computed, ref } from 'vue'
+import { computed, reactive, ref } from 'vue'
 import { useAppConfigDisk } from '~/composables/useAppConfigDisk'
 import { useAppTheme } from '~/composables/useAppTheme'
 import { useNoteCatalog } from '~/composables/useNoteCatalog'
@@ -7,6 +7,11 @@ import { useNoteStorage } from '~/composables/useNoteStorage'
 import { t } from '~/composables/useTranslations'
 import { filterOrderedCatalogRowsByIds, searchNotes } from '~/notes/noteSearch'
 import { sanitizeNoteTitleForFilename } from '~/notes/noteId'
+import {
+  buildFolderTree,
+  parentFolderPath,
+  type FolderTreeNode,
+} from '~/notes/folderTree'
 import {
   allTagsFromCatalog,
   mergeTopLevelFolders,
@@ -31,9 +36,10 @@ const foldersExpanded = ref(true)
 const tagsExpanded = ref(true)
 const vaultFolders = ref<string[]>([])
 const explicitFolders = ref<string[]>([])
+const expandedFolderPaths = reactive(new Set<string>())
 
 type FolderResult =
-  | { ok: true; folderName: string }
+  | { ok: true; folderPath: string }
   | { ok: false; error: string }
 
 function resolveVisibleCatalogRows(
@@ -47,24 +53,44 @@ function resolveVisibleCatalogRows(
   return orderedCatalogRowsForSidebarView(rows, view)
 }
 
+function isExcludedFolderPath(folderPath: string, excluded: string): boolean {
+  return folderPath === excluded || folderPath.startsWith(excluded + '/')
+}
+
+function siblingPaths(
+  allPaths: readonly string[],
+  parentPath: string,
+): string[] {
+  if (parentPath.length === 0) {
+    return allPaths.filter((p) => !p.includes('/'))
+  }
+
+  const prefix = parentPath + '/'
+
+  return allPaths
+    .filter((p) => p.startsWith(prefix))
+    .map((p) => p.slice(prefix.length))
+    .filter((remainder) => !remainder.includes('/'))
+}
+
 function sanitizedFolderResult(
-  currentFolders: readonly string[],
+  siblingNames: readonly string[],
   name: string,
-): FolderResult | { ok: true; folderName: string; unchanged?: boolean } {
+): FolderResult | { ok: true; folderPath: string } {
   const sanitized = sanitizeNoteTitleForFilename(name)
 
   if (sanitized.length === 0) {
     return { ok: false, error: t('sidebarFolders.errorEmpty') }
   }
 
-  if (currentFolders.includes(sanitized)) {
+  if (siblingNames.includes(sanitized)) {
     return { ok: false, error: t('sidebarFolders.errorDuplicate') }
   }
 
-  return { ok: true, folderName: sanitized }
+  return { ok: true, folderPath: sanitized }
 }
 
-/** Owns the shared sidebar view, tag filters, and top-level folder actions. */
+/** Owns the shared sidebar view, tag filters, and folder tree actions. */
 export function useSidebarNavigation() {
   const { notes, allNotes, findNoteById } = useNoteCatalog()
   const selectionState = useNoteSelection()
@@ -72,7 +98,7 @@ export function useSidebarNavigation() {
   const { storage } = useNoteStorage()
   const { data: appConfigDisk } = useAppConfigDisk()
   const { accentColor } = useAppTheme()
-  const topLevelFolders = computed(() => {
+  const allFolderPaths = computed(() => {
     const merged = mergeTopLevelFolders(
       vaultFolders.value,
       explicitFolders.value,
@@ -81,8 +107,11 @@ export function useSidebarNavigation() {
       appConfigDisk.value.editor.assetsFolder.split('/')[0] ??
       appConfigDisk.value.editor.assetsFolder
 
-    return merged.filter((name) => name !== excluded)
+    return merged.filter((p) => !isExcludedFolderPath(p, excluded))
   })
+  const folderTree = computed<FolderTreeNode[]>(() =>
+    buildFolderTree(allFolderPaths.value),
+  )
   const allTags = computed(() => allTagsFromCatalog(notes.value))
   const selectedTags = computed(() => selectedTagsFromView(selectedView.value))
   const tagFilterState = (tag: string): TagFilterState =>
@@ -133,12 +162,24 @@ export function useSidebarNavigation() {
     await selectView({ kind: 'trashed' })
   }
 
-  async function selectFolder(folderName: string): Promise<void> {
-    if (!topLevelFolders.value.includes(folderName)) {
+  async function selectFolder(folderPath: string): Promise<void> {
+    if (!allFolderPaths.value.includes(folderPath)) {
       return
     }
 
-    await selectView({ kind: 'folder', folderName })
+    await selectView({ kind: 'folder', folderPath })
+  }
+
+  function isFolderExpanded(folderPath: string): boolean {
+    return expandedFolderPaths.has(folderPath)
+  }
+
+  function toggleFolderExpanded(folderPath: string): void {
+    if (expandedFolderPaths.has(folderPath)) {
+      expandedFolderPaths.delete(folderPath)
+    } else {
+      expandedFolderPaths.add(folderPath)
+    }
   }
 
   async function cycleTag(tag: string): Promise<void> {
@@ -206,29 +247,39 @@ export function useSidebarNavigation() {
     tagsExpanded.value = !tagsExpanded.value
   }
 
-  async function createFolder(name: string): Promise<FolderResult> {
-    const folderResult = sanitizedFolderResult(topLevelFolders.value, name)
+  async function createFolder(
+    name: string,
+    parentPath: string = '',
+  ): Promise<FolderResult> {
+    const siblings = siblingPaths(allFolderPaths.value, parentPath)
+    const folderResult = sanitizedFolderResult(siblings, name)
 
     if (!folderResult.ok) {
       return folderResult
     }
 
+    const fullPath =
+      parentPath.length > 0
+        ? `${parentPath}/${folderResult.folderPath}`
+        : folderResult.folderPath
+
     try {
-      await storage.value.createFolder(folderResult.folderName)
+      await storage.value.createFolder(fullPath)
 
-      explicitFolders.value = [
-        ...explicitFolders.value,
-        folderResult.folderName,
-      ]
+      explicitFolders.value = [...explicitFolders.value, fullPath]
 
-      return folderResult
+      if (parentPath.length > 0) {
+        expandedFolderPaths.add(parentPath)
+      }
+
+      return { ok: true, folderPath: fullPath }
     } catch {
       return { ok: false, error: t('sidebarFolders.errorCreateFallback') }
     }
   }
 
   async function renameFolder(
-    oldName: string,
+    oldPath: string,
     newName: string,
   ): Promise<FolderResult> {
     const sanitized = sanitizeNoteTitleForFilename(newName)
@@ -237,37 +288,58 @@ export function useSidebarNavigation() {
       return { ok: false, error: t('sidebarFolders.errorEmpty') }
     }
 
+    const oldName =
+      oldPath.lastIndexOf('/') === -1
+        ? oldPath
+        : oldPath.slice(oldPath.lastIndexOf('/') + 1)
+
     if (sanitized === oldName) {
-      return { ok: true, folderName: oldName }
+      return { ok: true, folderPath: oldPath }
     }
 
-    const folderResult = sanitizedFolderResult(
-      topLevelFolders.value.filter((folderName) => folderName !== oldName),
-      sanitized,
+    const parent = parentFolderPath(oldPath)
+    const siblings = siblingPaths(
+      allFolderPaths.value.filter(
+        (p) => p !== oldPath && !p.startsWith(oldPath + '/'),
+      ),
+      parent,
     )
+    const folderResult = sanitizedFolderResult(siblings, sanitized)
 
     if (!folderResult.ok) {
       return folderResult
     }
 
-    try {
-      await storage.value.renameFolder(oldName, folderResult.folderName)
+    const newPath =
+      parent.length > 0
+        ? `${parent}/${folderResult.folderPath}`
+        : folderResult.folderPath
 
-      explicitFolders.value = explicitFolders.value.map((f) =>
-        f === oldName ? folderResult.folderName : f,
-      )
+    try {
+      await storage.value.renameFolder(oldPath, newPath)
+
+      explicitFolders.value = explicitFolders.value
+        .map((f) => {
+          if (f === oldPath) {
+            return newPath
+          }
+
+          if (f.startsWith(oldPath + '/')) {
+            return newPath + f.slice(oldPath.length)
+          }
+
+          return f
+        })
+        .filter((f) => f !== newPath || !explicitFolders.value.includes(f))
 
       if (
         selectedView.value.kind === 'folder' &&
-        selectedView.value.folderName === oldName
+        selectedView.value.folderPath === oldPath
       ) {
-        selectedView.value = {
-          kind: 'folder',
-          folderName: folderResult.folderName,
-        }
+        selectedView.value = { kind: 'folder', folderPath: newPath }
       }
 
-      return folderResult
+      return { ok: true, folderPath: newPath }
     } catch {
       return { ok: false, error: t('sidebarFolders.errorRenameFallback') }
     }
@@ -277,7 +349,8 @@ export function useSidebarNavigation() {
     selectedView,
     searchInput,
     accentColor,
-    topLevelFolders,
+    allFolderPaths,
+    folderTree,
     foldersExpanded,
     tagsExpanded,
     allTags,
@@ -291,6 +364,8 @@ export function useSidebarNavigation() {
     selectFavorites,
     selectTrashed,
     selectFolder,
+    isFolderExpanded,
+    toggleFolderExpanded,
     toggleFoldersExpanded,
     toggleTagsExpanded,
     createFolder,

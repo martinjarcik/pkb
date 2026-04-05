@@ -79,3 +79,7 @@ Remove `database` from the runtime `StorageType` union until a concrete adapter 
 ## D026 — 2026-04
 
 Derive sidebar folders from actual vault directories on disk (via `NoteStorage.loadFolderNames()` backed by a `list_directories` Tauri IPC command) instead of extracting folder names from loaded note ids or workspace metadata. Folder metadata (`meta.yaml`) provides enrichment (emoji icons) but is not a source of folder names. The configured assets folder name is still excluded from the sidebar list. Partially revises D019.
+
+## D027 — 2026-04
+
+Support nested subfolders in the sidebar. `list_directories` now recursively walks the vault and returns vault-relative paths for all directories (e.g. `Work`, `Work/Archive`, `Work/Archive/2024`). The sidebar view type uses `folderPath` (a vault-relative path string) instead of `folderName` (single segment). The sidebar renders folders as an expandable tree with per-node expand/collapse state. Folder views filter to direct children of the selected folder path. Subfolder creation, drag-and-drop move targets, and folder metadata all use full vault-relative paths. Extends D026.

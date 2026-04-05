@@ -1,4 +1,4 @@
-import { isDirectChildOfVaultFolder, isVaultRootNote } from './noteFilters'
+import { isDirectChildOfFolder, isVaultRootNote } from './noteFilters'
 import { catalogRowIsTrashed } from './trash'
 import type { NoteCatalogRow } from './types'
 import type { SidebarWorkspaceView } from './sidebarViewTypes'
@@ -90,7 +90,7 @@ export function filterCatalogForSidebarView(
 
   return rows.filter(
     (row) =>
-      isDirectChildOfVaultFolder(row.id, view.folderName) &&
+      isDirectChildOfFolder(row.id, view.folderPath) &&
       !catalogRowIsTrashed(row),
   )
 }

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, onBeforeUnmount, ref } from 'vue'
 import { useNotes } from '~/composables/useNotes'
 import { useSidebarNavigation } from '~/composables/useSidebarNavigation'
 import { useTranslations } from '~/composables/useTranslations'
@@ -21,7 +21,17 @@ type NotesListRow = {
   pinned?: boolean
 }
 
-const DRAG_PREVIEW_SCALE = 0.5
+type PointerDragState = {
+  noteId: string
+  startX: number
+  startY: number
+  active: boolean
+  grabOffsetX: number
+  grabOffsetY: number
+}
+
+const DRAG_THRESHOLD_PX = 6
+const DROP_TARGET_ACTIVE_CLASS = 'app-note-drop-target-active'
 
 const { t } = useTranslations()
 
@@ -35,10 +45,107 @@ function toListItem(row: NotesListRow): NotesListItem {
   }
 }
 
-const { isLoading, loadError, selectedNoteId, selectNoteById } = useNotes()
-const { accentColor, visibleCatalogRows } = useSidebarNavigation()
+const { isLoading, loadError, selectedNoteId, selectNoteById, moveNote } =
+  useNotes()
+const { visibleCatalogRows } = useSidebarNavigation()
 
-const dragPreview = ref<HTMLElement | null>(null)
+const pointerDrag = ref<PointerDragState | null>(null)
+const suppressNextClickNoteId = ref<string | null>(null)
+
+let draggingSourceEl: HTMLElement | null = null
+let dragGhostEl: HTMLElement | null = null
+
+const DRAG_GHOST_SCALE = 0.5
+
+function removeDragGhost(): void {
+  dragGhostEl?.remove()
+  dragGhostEl = null
+}
+
+function positionDragGhost(clientX: number, clientY: number): void {
+  if (!dragGhostEl || !pointerDrag.value) {
+    return
+  }
+
+  const { grabOffsetX, grabOffsetY } = pointerDrag.value
+  const tx = clientX - DRAG_GHOST_SCALE * grabOffsetX
+  const ty = clientY - DRAG_GHOST_SCALE * grabOffsetY
+
+  dragGhostEl.style.transform = `translate(${tx}px, ${ty}px) scale(${DRAG_GHOST_SCALE})`
+}
+
+function createDragGhost(clientX: number, clientY: number): void {
+  if (!draggingSourceEl) {
+    return
+  }
+
+  removeDragGhost()
+
+  const rect = draggingSourceEl.getBoundingClientRect()
+  const ghost = draggingSourceEl.cloneNode(true) as HTMLElement
+
+  ghost.classList.add('notes-list-drag-ghost')
+  ghost.removeAttribute('data-testid')
+  ghost.style.position = 'fixed'
+  ghost.style.left = '0'
+  ghost.style.top = '0'
+  ghost.style.right = 'auto'
+  ghost.style.bottom = 'auto'
+  ghost.style.width = `${rect.width}px`
+  ghost.style.boxSizing = 'border-box'
+  ghost.style.margin = '0'
+  ghost.style.zIndex = '10000'
+  ghost.style.pointerEvents = 'none'
+  ghost.style.transformOrigin = 'top left'
+  ghost.setAttribute('aria-hidden', 'true')
+  ghost.setAttribute('tabindex', '-1')
+  document.body.appendChild(ghost)
+  dragGhostEl = ghost
+  positionDragGhost(clientX, clientY)
+}
+
+function clearDropTargetHighlight(): void {
+  for (const el of document.querySelectorAll(`.${DROP_TARGET_ACTIVE_CLASS}`)) {
+    el.classList.remove(DROP_TARGET_ACTIVE_CLASS)
+  }
+}
+
+function updateDropTargetHighlight(clientX: number, clientY: number): void {
+  clearDropTargetHighlight()
+  const hit = document.elementFromPoint(clientX, clientY)
+  const folderRow = hit?.closest('[data-folder-path]')
+
+  if (
+    folderRow instanceof HTMLElement &&
+    folderRow.dataset.folderPath != null
+  ) {
+    folderRow.classList.add(DROP_TARGET_ACTIVE_CLASS)
+
+    return
+  }
+
+  const inbox = hit?.closest('[data-sidebar-drop-inbox]')
+
+  if (inbox instanceof HTMLElement) {
+    inbox.classList.add(DROP_TARGET_ACTIVE_CLASS)
+  }
+}
+
+function activatePointerDragVisuals(): void {
+  document.documentElement.classList.add('app-note-pointer-dragging')
+  document.body.style.userSelect = 'none'
+  draggingSourceEl?.classList.add('notes-list-item-pointer-dragging')
+}
+
+function clearPointerDragUi(): void {
+  clearDropTargetHighlight()
+  removeDragGhost()
+  draggingSourceEl?.classList.remove('notes-list-item-pointer-dragging')
+  draggingSourceEl = null
+  document.documentElement.classList.remove('app-note-pointer-dragging')
+  document.body.style.userSelect = ''
+}
+
 const listItems = computed(() => visibleCatalogRows.value.map(toListItem))
 const {
   listViewport,
@@ -50,56 +157,129 @@ const {
   items: listItems,
 })
 
+function bindDocumentPointerDrag(): void {
+  document.addEventListener('pointermove', onDocumentPointerMove, true)
+  document.addEventListener('pointerup', onDocumentPointerUp, true)
+  document.addEventListener('pointercancel', onDocumentPointerCancel, true)
+}
+
+function unbindDocumentPointerDrag(): void {
+  document.removeEventListener('pointermove', onDocumentPointerMove, true)
+  document.removeEventListener('pointerup', onDocumentPointerUp, true)
+  document.removeEventListener('pointercancel', onDocumentPointerCancel, true)
+}
+
+function onDocumentPointerMove(event: PointerEvent): void {
+  const s = pointerDrag.value
+
+  if (!s) {
+    return
+  }
+
+  const dx = event.clientX - s.startX
+  const dy = event.clientY - s.startY
+
+  if (!s.active) {
+    if (Math.abs(dx) + Math.abs(dy) < DRAG_THRESHOLD_PX) {
+      return
+    }
+
+    pointerDrag.value = { ...s, active: true }
+    activatePointerDragVisuals()
+    createDragGhost(event.clientX, event.clientY)
+    updateDropTargetHighlight(event.clientX, event.clientY)
+
+    return
+  }
+
+  positionDragGhost(event.clientX, event.clientY)
+  updateDropTargetHighlight(event.clientX, event.clientY)
+}
+
+function onDocumentPointerUp(event: PointerEvent): void {
+  const s = pointerDrag.value
+
+  unbindDocumentPointerDrag()
+  pointerDrag.value = null
+
+  if (!s?.active) {
+    draggingSourceEl = null
+
+    return
+  }
+
+  const el = document.elementFromPoint(event.clientX, event.clientY)
+
+  clearPointerDragUi()
+
+  const folderRow = el?.closest('[data-folder-path]')
+
+  if (
+    folderRow instanceof HTMLElement &&
+    folderRow.dataset.folderPath != null
+  ) {
+    suppressNextClickNoteId.value = s.noteId
+    void moveNote(s.noteId, folderRow.dataset.folderPath)
+
+    return
+  }
+
+  const inbox = el?.closest('[data-sidebar-drop-inbox]')
+
+  if (inbox) {
+    suppressNextClickNoteId.value = s.noteId
+    void moveNote(s.noteId, '')
+  }
+}
+
+function onDocumentPointerCancel(): void {
+  const s = pointerDrag.value
+
+  unbindDocumentPointerDrag()
+  pointerDrag.value = null
+
+  if (s?.active) {
+    clearPointerDragUi()
+  } else {
+    draggingSourceEl = null
+  }
+}
+
+function onNotePointerDown(event: PointerEvent, noteId: string): void {
+  if (event.button !== 0) {
+    return
+  }
+
+  const row =
+    event.currentTarget instanceof HTMLElement ? event.currentTarget : null
+  const rect = row?.getBoundingClientRect() ?? { left: 0, top: 0 }
+
+  draggingSourceEl = row
+  pointerDrag.value = {
+    noteId,
+    startX: event.clientX,
+    startY: event.clientY,
+    active: false,
+    grabOffsetX: event.clientX - rect.left,
+    grabOffsetY: event.clientY - rect.top,
+  }
+  bindDocumentPointerDrag()
+}
+
+onBeforeUnmount(() => {
+  unbindDocumentPointerDrag()
+  pointerDrag.value = null
+  clearPointerDragUi()
+})
+
 async function handleSelectNote(id: string): Promise<void> {
+  if (suppressNextClickNoteId.value === id) {
+    suppressNextClickNoteId.value = null
+
+    return
+  }
+
   await selectNoteById(id)
-}
-
-function handleDragStart(event: DragEvent, id: string): void {
-  const source = event.currentTarget
-
-  if (!(source instanceof HTMLElement) || !event.dataTransfer) {
-    return
-  }
-
-  event.dataTransfer.effectAllowed = 'move'
-  event.dataTransfer.setData('text/plain', id)
-
-  dragPreview.value?.remove()
-
-  const nextPreview = source.cloneNode(true)
-
-  if (!(nextPreview instanceof HTMLElement)) {
-    return
-  }
-
-  const { width } = source.getBoundingClientRect()
-
-  nextPreview.style.position = 'fixed'
-  nextPreview.style.top = '-10000px'
-  nextPreview.style.left = '-10000px'
-  nextPreview.style.width = `${width * DRAG_PREVIEW_SCALE}px`
-  nextPreview.style.minWidth = `${width * DRAG_PREVIEW_SCALE}px`
-  nextPreview.style.maxWidth = `${width * DRAG_PREVIEW_SCALE}px`
-  nextPreview.style.margin = '0'
-  nextPreview.style.zoom = String(DRAG_PREVIEW_SCALE)
-  nextPreview.style.backgroundColor = 'hsl(var(--background))'
-  nextPreview.style.border = `1px solid ${accentColor.value}`
-  nextPreview.style.borderRight = '0'
-  nextPreview.style.pointerEvents = 'none'
-
-  document.body.append(nextPreview)
-  event.dataTransfer.setDragImage(
-    nextPreview,
-    12 * DRAG_PREVIEW_SCALE,
-    12 * DRAG_PREVIEW_SCALE,
-  )
-  dragPreview.value = nextPreview
-}
-
-function handleDragEnd(event: DragEvent): void {
-  event.dataTransfer?.clearData()
-  dragPreview.value?.remove()
-  dragPreview.value = null
 }
 
 function getRowStyle(
@@ -110,11 +290,13 @@ function getRowStyle(
   const style: { [key: string]: string } = {}
 
   if (isSelected) {
-    style['--notes-list-item-selected-border-color'] = accentColor.value
+    style['--notes-list-item-selected-border-color'] =
+      'var(--app-config-accent-color)'
   }
 
   if (pinned && !isSelected) {
-    style.backgroundColor = `color-mix(in srgb, ${accentColor.value} 5%, transparent)`
+    style.backgroundColor =
+      'color-mix(in srgb, var(--app-config-accent-color) 5%, transparent)'
   }
 
   return Object.keys(style).length > 0 ? style : undefined
@@ -175,7 +357,6 @@ function getVirtualRowStyle(offset: number): Record<string, string> {
         :data-pinned="row.item.pinned ? 'true' : 'false'"
         data-testid="notes-list-item"
         class="notes-list-item"
-        draggable="true"
         :class="{
           'notes-list-item-selected': row.item.id === selectedNoteId,
           'notes-list-item-pinned': row.item.pinned,
@@ -185,8 +366,7 @@ function getVirtualRowStyle(offset: number): Record<string, string> {
           getRowStyle(row.item.id, row.item.pinned),
         ]"
         @click="handleSelectNote(row.item.id)"
-        @dragstart="handleDragStart($event, row.item.id)"
-        @dragend="handleDragEnd"
+        @pointerdown="onNotePointerDown($event, row.item.id)"
       >
         <div class="notes-list-item-content">
           <p

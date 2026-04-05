@@ -3,8 +3,9 @@ import { onMounted, ref } from 'vue'
 import { useFolderMeta } from '~/composables/useFolderMeta'
 import { useNotes } from '~/composables/useNotes'
 import { useSidebarNavigation } from '~/composables/useSidebarNavigation'
+import { folderDisplayName } from '~/notes/folderTree'
 
-const { topLevelFolders, foldersExpanded, createFolder, renameFolder } =
+const { allFolderPaths, foldersExpanded, createFolder, renameFolder } =
   useSidebarNavigation()
 const { loadMeta, renameFolderMeta, setFolderIcon, folderIcon } =
   useFolderMeta()
@@ -14,7 +15,8 @@ const showFolderDialog = ref(false)
 const folderDialogMode = ref<'create' | 'edit'>('create')
 const folderNameInput = ref('')
 const folderIconEmoji = ref('')
-const editTargetFolderName = ref('')
+const editTargetFolderPath = ref('')
+const createParentPath = ref('')
 const createError = ref<string | null>(null)
 const isFolderDialogBusy = ref(false)
 
@@ -24,18 +26,29 @@ onMounted(() => {
 
 function openCreateFolderDialog(): void {
   folderDialogMode.value = 'create'
-  editTargetFolderName.value = ''
+  editTargetFolderPath.value = ''
+  createParentPath.value = ''
   folderNameInput.value = ''
   folderIconEmoji.value = ''
   createError.value = null
   showFolderDialog.value = true
 }
 
-function openEditFolderDialog(name: string): void {
+function openCreateSubfolderDialog(parentPath: string): void {
+  folderDialogMode.value = 'create'
+  editTargetFolderPath.value = ''
+  createParentPath.value = parentPath
+  folderNameInput.value = ''
+  folderIconEmoji.value = ''
+  createError.value = null
+  showFolderDialog.value = true
+}
+
+function openEditFolderDialog(folderPath: string): void {
   folderDialogMode.value = 'edit'
-  editTargetFolderName.value = name
-  folderNameInput.value = name
-  folderIconEmoji.value = folderIcon(name) ?? ''
+  editTargetFolderPath.value = folderPath
+  folderNameInput.value = folderDisplayName(folderPath)
+  folderIconEmoji.value = folderIcon(folderPath) ?? ''
   createError.value = null
   showFolderDialog.value = true
 }
@@ -50,37 +63,41 @@ async function handleFolderDialogConfirm(): Promise<void> {
 
   try {
     if (folderDialogMode.value === 'create') {
-      const result = await createFolder(folderNameInput.value)
+      const result = await createFolder(
+        folderNameInput.value,
+        createParentPath.value,
+      )
 
       if (!result.ok) {
         createError.value = result.error
         return
       }
 
-      await setFolderIcon(result.folderName, folderIconEmoji.value || undefined)
+      await setFolderIcon(result.folderPath, folderIconEmoji.value || undefined)
       closeFolderDialog()
 
       return
     }
 
-    const oldName = editTargetFolderName.value
+    const oldPath = editTargetFolderPath.value
+    const oldDisplayName = folderDisplayName(oldPath)
     const newName = folderNameInput.value
-    const nameChanged = newName !== oldName
+    const nameChanged = newName !== oldDisplayName
 
     if (nameChanged) {
-      const result = await renameFolder(oldName, newName)
+      const result = await renameFolder(oldPath, newName)
 
       if (!result.ok) {
         createError.value = result.error
         return
       }
 
-      await renameFolderMeta(oldName, result.folderName)
-      await setFolderIcon(result.folderName, folderIconEmoji.value || undefined)
+      await renameFolderMeta(oldPath, result.folderPath)
+      await setFolderIcon(result.folderPath, folderIconEmoji.value || undefined)
 
       await loadNotes()
     } else {
-      await setFolderIcon(oldName, folderIconEmoji.value || undefined)
+      await setFolderIcon(oldPath, folderIconEmoji.value || undefined)
     }
 
     closeFolderDialog()
@@ -103,9 +120,10 @@ function handleInputKeydown(event: KeyboardEvent): void {
   >
     <SidebarFoldersControls @open-create="openCreateFolderDialog" />
     <SidebarFoldersActions
-      v-if="foldersExpanded && topLevelFolders.length > 0"
+      v-if="foldersExpanded && allFolderPaths.length > 0"
       :folder-icon="folderIcon"
       @edit-folder="openEditFolderDialog"
+      @create-subfolder="openCreateSubfolderDialog"
     />
 
     <FolderDialog

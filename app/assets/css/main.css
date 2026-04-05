@@ -116,7 +116,11 @@
     );
     color: hsl(var(--sidebar-foreground));
     padding: var(--app-space-xl);
-    padding-top: var(--app-panel-top-offset);
+    padding-top: 0;
+  }
+
+  .sidebar-drag-region {
+    height: var(--app-panel-top-offset);
   }
 
   .sidebar-navigation-shell {
@@ -128,6 +132,7 @@
     background: transparent;
     border: 0;
     border-radius: 5px;
+    box-sizing: border-box;
     color: var(--app-config-sidebar-text-color, var(--app-sidebar-text));
     cursor: pointer;
     display: flex;
@@ -137,6 +142,7 @@
     line-height: 2.5;
     padding-left: 10px;
     text-align: left;
+    width: 100%;
   }
 
   .sidebar-navigation-item-shell:hover:not(.sidebar-navigation-item-selected) {
@@ -155,6 +161,18 @@
   .sidebar-navigation-item-drop-active {
     background-color: hsl(var(--accent) / 0.8);
     box-shadow: inset 0 0 0 1px hsl(var(--ring));
+  }
+
+  [data-folder-path].app-note-drop-target-active .sidebar-navigation-item-shell,
+  [data-sidebar-drop-inbox].app-note-drop-target-active
+    .sidebar-navigation-item-shell {
+    background-color: hsl(var(--accent) / 0.8);
+    box-shadow: inset 0 0 0 1px hsl(var(--ring));
+  }
+
+  html.app-note-pointer-dragging,
+  html.app-note-pointer-dragging * {
+    cursor: grabbing !important;
   }
 
   .sidebar-navigation-item-icon {
@@ -631,7 +649,7 @@
     border: 0;
     border-bottom: 1px solid hsl(var(--border));
     border-left: var(--app-notes-list-item-accent-width) solid transparent;
-    cursor: pointer;
+    cursor: grab;
     padding: var(--app-space-xl) var(--app-space-xl) var(--app-space-xl)
       calc(var(--app-space-xl) - var(--app-notes-list-item-accent-width));
     text-align: left;
@@ -642,11 +660,7 @@
     background: hsl(var(--accent) / 0.5);
   }
 
-  .notes-list-item[draggable='true'] {
-    cursor: grab;
-  }
-
-  .notes-list-item[draggable='true']:active {
+  .notes-list-item:active {
     cursor: grabbing;
   }
 
@@ -661,6 +675,21 @@
       --notes-list-item-selected-border-color,
       hsl(var(--primary))
     );
+  }
+
+  .notes-list-item-pointer-dragging {
+    cursor: grabbing !important;
+    opacity: 0.55;
+  }
+
+  .notes-list-drag-ghost {
+    background: hsl(var(--background));
+    border-radius: 4px;
+    box-shadow:
+      0 10px 30px hsl(var(--foreground) / 0.12),
+      0 0 0 1px hsl(var(--border));
+    cursor: grabbing !important;
+    opacity: 0.95;
   }
 
   .notes-list-item-content {

@@ -75,7 +75,7 @@ function toggleLayoutMenu(): void {
 
 async function handleCreateNote(): Promise<void> {
   const view = selectedView.value
-  const parentPath = view.kind === 'folder' ? view.folderName : ''
+  const parentPath = view.kind === 'folder' ? view.folderPath : ''
   const tags = selectedTags.value
   const initialProperties: CreateNoteInitialProperties =
     tags.length > 0 ? { tags } : {}

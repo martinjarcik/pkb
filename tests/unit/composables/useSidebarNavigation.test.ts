@@ -29,7 +29,14 @@ vi.mock('~/composables/useNoteStorage', () => ({
         renameFolder: vi.fn(),
         loadFolderNames: vi
           .fn()
-          .mockResolvedValue(['Keep', 'Projects', 'assets']),
+          .mockResolvedValue([
+            'Keep',
+            'Keep/Archive',
+            'Projects',
+            'Projects/Work',
+            'assets',
+            'assets/images',
+          ]),
       },
     },
   }),
@@ -48,13 +55,18 @@ vi.mock('~/composables/useAppConfigDisk', () => ({
 }))
 
 describe('useSidebarNavigation', () => {
-  it('lists vault directories after loading and excludes the configured assets folder', async () => {
-    const { topLevelFolders, loadVaultFolders } = useSidebarNavigation()
+  it('lists vault directories after loading and excludes the configured assets folder tree', async () => {
+    const { allFolderPaths, loadVaultFolders } = useSidebarNavigation()
 
-    expect(topLevelFolders.value).toEqual([])
+    expect(allFolderPaths.value).toEqual([])
 
     await loadVaultFolders()
 
-    expect(topLevelFolders.value).toEqual(['Keep', 'Projects'])
+    expect(allFolderPaths.value).toEqual([
+      'Keep',
+      'Keep/Archive',
+      'Projects',
+      'Projects/Work',
+    ])
   })
 })

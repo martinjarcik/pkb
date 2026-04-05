@@ -14,5 +14,5 @@ export type SidebarNonSearchView =
   | { kind: 'tasks' }
   | { kind: 'favorites' }
   | { kind: 'trashed' }
-  | { kind: 'folder'; folderName: string }
+  | { kind: 'folder'; folderPath: string }
   | { kind: 'tags'; activeTags: string[]; pinnedTags: string[] }

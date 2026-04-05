@@ -95,10 +95,14 @@ shape because the app now keeps full note bodies in shared client state.
       (`app/components/SidebarFoldersControls.vue`) — folders header with
       hover-reveal "create folder" and "collapse/expand" controls.
     - `SidebarFoldersActions`
-      (`app/components/SidebarFoldersActions.vue`) — top-level Vault folder list.
-      - `SidebarFolderItem`
-        (`app/components/SidebarFolderItem.vue`) — individual folder view item
-        (hover-reveal edit control, optional emoji icon from workspace meta).
+      (`app/components/SidebarFoldersActions.vue`) — Vault folder tree list.
+      - `SidebarFolderSubtree`
+        (`app/components/SidebarFolderSubtree.vue`) — recursive subtree renderer
+        for nested folders.
+        - `SidebarFolderItem`
+          (`app/components/SidebarFolderItem.vue`) — individual folder view item
+          with depth indentation, expand/collapse toggle, subfolder creation,
+          hover-reveal edit control, and optional emoji icon from workspace meta.
   - `SidebarTags` (`app/components/SidebarTags.vue`) — tag filter section.
     - `SidebarTagsControls`
       (`app/components/SidebarTagsControls.vue`) — tag section header.
@@ -188,8 +192,10 @@ those rules.
   vault root. The `Favorites` view (when enabled in config) filters across the
   whole catalog to notes whose `favorite` Application Property is `true`,
   excluding trashed notes. The `Tasks` view filters across the whole catalog to
-  notes whose `hasTasks` Application Property is `true`, while folder views filter to notes
-  that are direct children of a selected top-level Vault folder. Tag views
+  notes whose `hasTasks` Application Property is `true`, while folder views
+  filter to notes that are direct children of the selected folder path (which
+  can be a top-level or nested vault folder). The sidebar renders folders as an
+  expandable tree; each node can be expanded to reveal subfolders. Tag views
   filter across the whole catalog to notes whose `tags` Property contains all
   active and pinned Tags (AND logic). Each Tag has a tri-state filter cycle
   (idle -> active -> pinned -> idle): at most one Tag can be active; pinned
@@ -234,8 +240,9 @@ those rules.
   notes.
 - The `Tasks` sidebar view narrows the broad note set to notes whose
   `hasTasks` Application Property is `true`, regardless of folder.
-- Folder sidebar views narrow the broad note set to notes whose `id` has the
-  shape `<topLevelFolder>/<note>.md`, excluding deeper descendants.
+- Folder sidebar views narrow the broad note set to notes that are direct
+  children of the selected folder path (e.g. `Work/Archive/plan.md` matches
+  the `Work/Archive` folder view but not the `Work` folder view).
 - Tag sidebar views narrow the broad note set to notes whose `tags` Property
   contains every active or pinned Tag. Tags cycle through idle, active, and
   pinned states on click. Switching to Inbox or a folder clears all tag states.

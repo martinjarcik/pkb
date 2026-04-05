@@ -1,8 +1,6 @@
 <script setup lang="ts">
 import { Inbox, ListTodo, Star, Trash2 } from 'lucide-vue-next'
 import { useAppFeatures } from '~/composables/useAppFeatures'
-import { useNoteDropTarget } from '~/composables/useNoteDropTarget'
-import { useNotes } from '~/composables/useNotes'
 import { useSidebarNavigation } from '~/composables/useSidebarNavigation'
 import { useTranslations } from '~/composables/useTranslations'
 
@@ -17,16 +15,6 @@ const {
 } = useSidebarNavigation()
 
 const { favorites: favoritesEnabled, tasks: tasksEnabled } = useAppFeatures()
-const { moveNote } = useNotes()
-const {
-  isDropActive: isInboxDropActive,
-  handleDragEnter,
-  handleDragLeave,
-  handleDragOver,
-  handleDrop,
-} = useNoteDropTarget(async (noteId) => {
-  await moveNote(noteId, '')
-})
 </script>
 
 <template>
@@ -34,19 +22,16 @@ const {
     data-testid="sidebar-navigation"
     class="sidebar-navigation-shell flex flex-col"
   >
-    <SidebarNavigationItem
-      navigation-id="inbox"
-      :icon="Inbox"
-      :label="t('sidebarNavigation.inbox')"
-      :selected="selectedView.kind === 'inbox'"
-      :accent-color="accentColor"
-      :drop-active="isInboxDropActive"
-      @activate="selectInbox"
-      @dragenter="handleDragEnter"
-      @dragleave="handleDragLeave"
-      @dragover="handleDragOver"
-      @drop="handleDrop"
-    />
+    <div data-sidebar-drop-inbox>
+      <SidebarNavigationItem
+        navigation-id="inbox"
+        :icon="Inbox"
+        :label="t('sidebarNavigation.inbox')"
+        :selected="selectedView.kind === 'inbox'"
+        :accent-color="accentColor"
+        @activate="selectInbox"
+      />
+    </div>
     <SidebarNavigationItem
       v-if="tasksEnabled"
       navigation-id="tasks"

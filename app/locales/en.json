@@ -142,7 +142,10 @@
   "sidebarFolders": {
     "title": "Folders",
     "createFolder": "Create folder",
+    "createSubfolder": "Create subfolder",
     "editFolder": "Edit folder",
+    "expandFolder": "Expand folder",
+    "collapseFolder": "Collapse folder",
     "toggleFolders": "Toggle folders",
     "folderNameLabel": "Folder name",
     "folderNamePlaceholder": "Enter folder name",

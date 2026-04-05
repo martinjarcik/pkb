@@ -12,15 +12,19 @@ export function vaultTopLevelFolderNames(noteIds: string[]): string[] {
   ].sort((left, right) => left.localeCompare(right))
 }
 
-export function isDirectChildOfVaultFolder(
+export function isDirectChildOfFolder(
   noteId: string,
-  folderName: string,
+  folderPath: string,
 ): boolean {
-  if (folderName.length === 0 || folderName.includes('/')) {
+  if (folderPath.length === 0) {
     return false
   }
 
-  const pathSegments = noteId.split('/')
+  const prefix = folderPath + '/'
 
-  return pathSegments.length === 2 && pathSegments[0] === folderName
+  if (!noteId.startsWith(prefix)) {
+    return false
+  }
+
+  return !noteId.slice(prefix.length).includes('/')
 }
