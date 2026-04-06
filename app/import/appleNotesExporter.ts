@@ -10,6 +10,7 @@ import {
   type ImportPlugin,
   type ImportResult,
   type PlatformTextFile,
+  resolveUniqueImportLogPath,
 } from './types'
 
 const RESERVED_ASSET_FOLDERS = new Set(['images', 'attachments'])
@@ -111,11 +112,7 @@ export const appleNotesExporterPlugin: ImportPlugin = {
     }
 
     const importLogTitle = `${importTimestamp} import ${appleNotesExporterPlugin.label}`
-    const importLogId = resolveUniqueNoteIdForParentPath(
-      '',
-      importLogTitle,
-      existingIds,
-    )
+    const importLogId = resolveUniqueImportLogPath(importLogTitle, existingIds)
 
     await invoke<PlatformTextFile>('write_text_file', {
       dir: resolvedVaultPath,

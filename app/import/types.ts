@@ -1,3 +1,5 @@
+import { sanitizeNoteTitleForFilename } from '~/notes/noteId'
+
 export type CopyFilesResult = {
   files_copied: number
   files_skipped: number
@@ -74,4 +76,30 @@ export function buildImportLogContent(
     `- Assets skipped: ${result.assetsSkipped}`,
     '',
   ].join('\n')
+}
+
+export function resolveUniqueImportLogPath(
+  title: string,
+  existingIds: Iterable<string>,
+): string {
+  const sanitizedTitle = sanitizeNoteTitleForFilename(title)
+
+  if (sanitizedTitle.length === 0) {
+    throw new Error('Import log title must contain valid filename characters')
+  }
+
+  const ids = new Set(existingIds)
+  const nextPath = `${sanitizedTitle}.log`
+
+  if (!ids.has(nextPath)) {
+    return nextPath
+  }
+
+  for (let duplicateIndex = 2; ; duplicateIndex += 1) {
+    const candidatePath = `${sanitizedTitle} (${duplicateIndex}).log`
+
+    if (!ids.has(candidatePath)) {
+      return candidatePath
+    }
+  }
 }

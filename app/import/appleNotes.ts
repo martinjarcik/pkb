@@ -10,6 +10,7 @@ import {
   type ImportPlugin,
   type ImportResult,
   type PlatformTextFile,
+  resolveUniqueImportLogPath,
 } from './types'
 
 function rewriteAttachmentLinks(content: string, assetsFolder: string): string {
@@ -81,11 +82,7 @@ export const appleNotesPlugin: ImportPlugin = {
     }
 
     const importLogTitle = `${importTimestamp} import ${appleNotesPlugin.label}`
-    const importLogId = resolveUniqueNoteIdForParentPath(
-      '',
-      importLogTitle,
-      existingIds,
-    )
+    const importLogId = resolveUniqueImportLogPath(importLogTitle, existingIds)
 
     await invoke<PlatformTextFile>('write_text_file', {
       dir: resolvedVaultPath,
