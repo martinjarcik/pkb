@@ -26,11 +26,6 @@ const categoryItems = computed<
   Array<{ id: SettingsCategory; label: string; description: string }>
 >(() => [
   {
-    id: 'general',
-    label: t('settings.categories.general'),
-    description: t('settings.categories.generalDescription'),
-  },
-  {
     id: 'features',
     label: t('settings.categories.features'),
     description: t('settings.categories.featuresDescription'),
@@ -44,6 +39,11 @@ const categoryItems = computed<
     id: 'theme',
     label: t('settings.categories.theme'),
     description: t('settings.categories.themeDescription'),
+  },
+  {
+    id: 'general',
+    label: t('settings.categories.general'),
+    description: t('settings.categories.generalDescription'),
   },
 ])
 
@@ -322,17 +322,8 @@ function handleDefaultEditorColorSelected(value: string | undefined): void {
         <Separator orientation="vertical" />
 
         <div class="min-h-0 flex-1 overflow-y-auto px-1 py-1">
-          <SettingsGeneralSection
-            v-if="activeCategory === 'general'"
-            :is-saving="isSaving"
-            :vault-draft="vaultDraft"
-            :assets-folder-draft="assetsFolderDraft"
-            @choose-vault="void chooseVaultDirectory()"
-            @choose-assets-folder="void chooseAssetsFolderDirectory()"
-          />
-
           <SettingsFeaturesSection
-            v-else-if="activeCategory === 'features'"
+            v-if="activeCategory === 'features'"
             :app-config="appConfigDisk"
             :is-saving="isSaving"
             @update-feature="handleFeatureChecked"
@@ -356,7 +347,7 @@ function handleDefaultEditorColorSelected(value: string | undefined): void {
           />
 
           <SettingsThemeSection
-            v-else
+            v-else-if="activeCategory === 'theme'"
             :app-config="appConfigDisk"
             :is-saving="isSaving"
             @update-accent-color="void updateAccentColor($event)"
@@ -364,6 +355,15 @@ function handleDefaultEditorColorSelected(value: string | undefined): void {
               void updateSidebarBackgroundColor($event)
             "
             @update-sidebar-text-color="void updateSidebarTextColor($event)"
+          />
+
+          <SettingsGeneralSection
+            v-else-if="activeCategory === 'general'"
+            :is-saving="isSaving"
+            :vault-draft="vaultDraft"
+            :assets-folder-draft="assetsFolderDraft"
+            @choose-vault="void chooseVaultDirectory()"
+            @choose-assets-folder="void chooseAssetsFolderDirectory()"
           />
         </div>
       </div>

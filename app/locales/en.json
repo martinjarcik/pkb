@@ -28,8 +28,8 @@
     "title": "Settings",
     "description": "Configure the workspace, features, editing behavior, and theme.",
     "categories": {
-      "general": "General",
-      "generalDescription": "Workspace paths",
+      "general": "Storage & Import",
+      "generalDescription": "Vault and attachments",
       "features": "Features",
       "featuresDescription": "Feature flags and panels",
       "editing": "Editing",

@@ -60,11 +60,11 @@ The notes list toolbar also includes a search field.
 The `NotesListActions` menu also includes a `Settings` action. It opens a
 centered dialog with four categories:
 
-- `General` — vault path.
 - `Features` — feature flags and default panel visibility.
 - `Editing` — trash retention, autosave delay, default editor color, and editor
   color preview.
 - `Theme` — accent color.
+- `Storage & Import` — vault path.
 
 Settings are persisted in the desktop app settings directory as
 `app-config.yaml` and applied at runtime. Changing the vault path reloads the
