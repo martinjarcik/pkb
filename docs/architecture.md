@@ -58,6 +58,8 @@ shape because the app now keeps full note bodies in shared client state.
 - `app/storage/tauriPlatformApi.ts` — desktop `PlatformApi` implementation
   using Tauri IPC commands plus desktop asset URLs for note images.
 - `app/storage/router.ts` — active storage selection from `storageType`.
+- `app/import/appleNotes.ts` — Apple Notes import guide that composes generic
+  file-copy IPC calls into a user-triggered import routine.
 - `app/config/loader.ts` — typed `AppConfig` parsed from `app/config/default.yaml`,
   including the active locale, theme settings, and `notes.trashRetentionDays`.
 - `app/AppRoot.vue` — desktop app shell that applies the configured accent color
@@ -136,6 +138,7 @@ shape because the app now keeps full note bodies in shared client state.
 - `Workspace Catalog` — folders, note list, selection, filters, search
 - `Note Storage` — the canonical storage contract plus backend adapters
 - `Configuration` — feature flags, layout config, storage configuration
+- `Import Guides` — user-triggered import flows for external note exports
 
 Context-to-folder mapping:
 
@@ -144,6 +147,7 @@ Context-to-folder mapping:
 | Note Authoring, Workspace Catalog | `app/notes/`   | `app/composables/` |
 | Note Storage                      | `app/storage/` | —                  |
 | Configuration                     | `app/config/`  | `app/composables/` |
+| Import Guides                     | `app/import/`  | `app/components/`  |
 
 New contexts may be introduced when corresponding features are specified.
 `app/notes/tagFilterMachine.ts` and `app/notes/sidebarViewFilters.ts` stay in

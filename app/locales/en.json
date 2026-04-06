@@ -42,7 +42,8 @@
     },
     "sections": {
       "features": "Workspace features",
-      "layout": "Panel visibility"
+      "layout": "Panel visibility",
+      "import": "Import"
     },
     "fields": {
       "vault": {
@@ -212,5 +213,24 @@
   },
   "noteControls": {
     "nonDistraction": "Non-distraction mode"
+  },
+  "import": {
+    "cancel": "Cancel",
+    "importAction": "Import",
+    "selectFolder": "Select folder",
+    "sourceDirectoryLabel": "Source folder",
+    "sourceDirectoryPlaceholder": "Choose a folder to import from",
+    "successMessage": "Import completed.",
+    "errorFallback": "Import failed.",
+    "errors": {
+      "sourceDirectoryRequired": "Choose a folder to import from."
+    },
+    "summary": {
+      "notes": "Notes",
+      "assets": "Assets",
+      "copied": "copied",
+      "skipped": "skipped",
+      "renamed": "renamed"
+    }
   }
 }

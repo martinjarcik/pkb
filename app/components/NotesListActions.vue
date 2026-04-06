@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { ref, type CSSProperties } from 'vue'
+import { ref, watch, type CSSProperties } from 'vue'
 import { useEventListener } from '@vueuse/core'
 import { MoreVertical } from 'lucide-vue-next'
+import type { ImportPlugin } from '~/import/appleNotes'
 import { useLayout } from '~/composables/useLayout'
 import { useNotes } from '~/composables/useNotes'
 import { useSettings } from '~/composables/useSettings'
@@ -20,6 +21,8 @@ const layoutMenuOpen = ref(false)
 const layoutMenuTriggerRef = ref<HTMLElement | null>(null)
 const layoutMenuPanelRef = ref<HTMLElement | null>(null)
 const layoutMenuPositionStyle = ref<CSSProperties>({})
+const importDialogOpen = ref(false)
+const activeImportPlugin = ref<ImportPlugin | null>(null)
 
 function closeLayoutMenuOnOutsidePointer(event: PointerEvent): void {
   if (!layoutMenuOpen.value) {
@@ -92,6 +95,17 @@ function handleOpenSettings(): void {
   openSettings()
   layoutMenuOpen.value = false
 }
+
+function handleStartImport(plugin: ImportPlugin): void {
+  activeImportPlugin.value = plugin
+  importDialogOpen.value = true
+}
+
+watch(importDialogOpen, (isOpen) => {
+  if (!isOpen) {
+    activeImportPlugin.value = null
+  }
+})
 </script>
 
 <template>
@@ -170,6 +184,10 @@ function handleOpenSettings(): void {
         </div>
       </Teleport>
     </div>
-    <SettingsDialog />
+    <SettingsDialog @start-import="handleStartImport" />
+    <ImportDialog
+      v-model:open="importDialogOpen"
+      :plugin="activeImportPlugin"
+    />
   </div>
 </template>

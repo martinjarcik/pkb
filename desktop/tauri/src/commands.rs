@@ -6,6 +6,8 @@ use std::sync::OnceLock;
 pub(crate) mod assets;
 #[path = "commands/bootstrap.rs"]
 pub(crate) mod bootstrap;
+#[path = "commands/import.rs"]
+pub(crate) mod import;
 #[path = "commands/note_files.rs"]
 pub(crate) mod note_files;
 #[path = "commands/paths.rs"]
@@ -34,4 +36,10 @@ pub struct PlatformTextFile {
 pub struct PrepareAssetPathResult {
     pub(crate) absolute_path: String,
     pub(crate) relative_path: String,
+}
+
+#[derive(Serialize)]
+pub struct CopyFilesResult {
+    pub(crate) files_copied: u32,
+    pub(crate) files_skipped: u32,
 }

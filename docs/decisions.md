@@ -87,3 +87,7 @@ Support nested subfolders in the sidebar. `list_directories` now recursively wal
 ## D028 — 2026-04
 
 Stop persisting `hasTasks` as an Application Property. The `Tasks` sidebar view now derives its note set directly from loaded note content by scanning for unchecked markdown checklist items, which removes stale frontmatter and makes externally authored notes show up without an app save. Partially supersedes D013.
+
+## D029 — 2026-04
+
+Introduce `app/import/` as a problem-domain folder for note import guides. Each guide is a single `.ts` file that owns its user-facing label/title/description plus a `run` function built from generic Tauri file-copy commands. The first guide is Apple Notes.

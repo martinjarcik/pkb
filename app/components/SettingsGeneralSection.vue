@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { appleNotesPlugin, type ImportPlugin } from '~/import/appleNotes'
 import { useTranslations } from '~/composables/useTranslations'
 
 defineProps<{
@@ -7,12 +8,14 @@ defineProps<{
   assetsFolderDraft: string
 }>()
 
-defineEmits<{
+const emit = defineEmits<{
   chooseVault: []
   chooseAssetsFolder: []
+  startImport: [plugin: ImportPlugin]
 }>()
 
 const { t } = useTranslations()
+const importPlugins = [appleNotesPlugin]
 </script>
 
 <template>
@@ -69,6 +72,22 @@ const { t } = useTranslations()
       <p class="text-sm text-muted-foreground">
         {{ t('settings.fields.assetsFolder.description') }}
       </p>
+    </div>
+
+    <div class="space-y-3">
+      <Label>{{ t('settings.sections.import') }}</Label>
+      <div class="flex flex-wrap gap-3">
+        <Button
+          v-for="plugin in importPlugins"
+          :key="plugin.id"
+          type="button"
+          variant="outline"
+          :disabled="isSaving"
+          @click="emit('startImport', plugin)"
+        >
+          {{ plugin.label }}
+        </Button>
+      </div>
     </div>
   </div>
 </template>

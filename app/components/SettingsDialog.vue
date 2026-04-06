@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
+import type { ImportPlugin } from '~/import/appleNotes'
 import {
   useAppConfigDisk,
   type AppConfig,
@@ -14,6 +15,9 @@ const { data: appConfigDisk, saveAppConfigPatch } = useAppConfigDisk()
 const { activeCategory, settingsOpen } = useSettings()
 const { syncLayoutFromConfig } = useLayout()
 const { startApp } = useAppStartup()
+const emit = defineEmits<{
+  startImport: [plugin: ImportPlugin]
+}>()
 
 const saveError = ref<string | null>(null)
 const isSaving = ref(false)
@@ -286,6 +290,11 @@ function handleLayoutChecked(
 function handleDefaultEditorColorSelected(value: string | undefined): void {
   void updateDefaultEditorColor(String(value ?? ''))
 }
+
+function handleStartImport(plugin: ImportPlugin): void {
+  settingsOpen.value = false
+  emit('startImport', plugin)
+}
 </script>
 
 <template>
@@ -364,6 +373,7 @@ function handleDefaultEditorColorSelected(value: string | undefined): void {
             :assets-folder-draft="assetsFolderDraft"
             @choose-vault="void chooseVaultDirectory()"
             @choose-assets-folder="void chooseAssetsFolderDirectory()"
+            @start-import="handleStartImport"
           />
         </div>
       </div>
