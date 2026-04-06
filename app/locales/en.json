@@ -63,10 +63,6 @@
         "label": "Autosave delay (ms)",
         "description": "Controls how long the editor waits before saving content changes."
       },
-      "editorColors": {
-        "label": "Editor colors",
-        "description": "Preview the configured highlight and block background palette."
-      },
       "accentColor": {
         "label": "Accent color",
         "description": "Used for primary highlights across the app."

@@ -215,8 +215,10 @@ those rules.
 - `NoteEditor.vue` applies `patchExecCommandForInlineHighlight()` during
   mount so inline highlight operations stay in sync with autosave. It must call
   `restoreExecCommand()` during `onBeforeUnmount`.
-- `BigEmojiTool` registers a capture-phase `mousedown` listener on `document`
-  in its constructor. Cleanup happens through the Editor.js tool `destroy()`
+- `BigEmojiTool` registers a capture-phase `click` listener on `document`
+  in its constructor to toggle between regular emoji text and big emoji
+  `<strong>` blocks. Clicking a plain emoji wraps it; clicking an existing
+  big emoji unwraps it. Cleanup happens through the Editor.js tool `destroy()`
   path when `NoteEditor` destroys the editor instance on unmount.
 - `useEditorSync()` owns the pending autosave timer. `NoteEditor.vue`
   must call `clearPendingContentSync()` during prop-driven re-renders and

@@ -14,6 +14,7 @@ import {
   selectionIsInsideHighlight,
   toggleInlineTagInsideHighlight,
 } from '~/lib/editorjsHighlightExecPatch'
+import { setBigEmojiChangeHandler } from '~/lib/bigEmojiTool'
 import InlineHighlightTool from '~/lib/inlineHighlightTool'
 import InlineHashtagTool from '~/lib/inlineHashtagTool'
 import { t as translate } from '~/composables/useTranslations'
@@ -90,6 +91,8 @@ const { editorError, isEditorLoading, focusTitle } = useEditorLifecycle({
   resetPendingExternalRender,
   handleEditorChange,
 })
+
+setBigEmojiChangeHandler(scheduleContentSync)
 
 function handleHolderKeydown(event: KeyboardEvent): void {
   const modKey = event.metaKey || event.ctrlKey
@@ -189,6 +192,10 @@ watch(
 
 defineExpose({
   focusTitle,
+  flushEditorState: async () => {
+    await commitTitleChange()
+    await flushContentSync()
+  },
   flushContentSync,
 })
 
@@ -196,6 +203,7 @@ onBeforeUnmount(() => {
   holder.value?.removeEventListener('focusout', handleHolderFocusout)
   holder.value?.removeEventListener('keydown', handleHolderKeydown, true)
   holder.value?.removeEventListener('keyup', handleHolderKeyup)
+  setBigEmojiChangeHandler(null)
 })
 </script>
 

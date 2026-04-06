@@ -110,55 +110,5 @@ function handleEnterKey(
         {{ t('settings.fields.defaultEditorColor.description') }}
       </p>
     </div>
-
-    <Separator />
-
-    <div class="space-y-4">
-      <div class="space-y-1">
-        <h3 class="text-sm font-semibold">
-          {{ t('settings.fields.editorColors.label') }}
-        </h3>
-        <p class="text-sm text-muted-foreground">
-          {{ t('settings.fields.editorColors.description') }}
-        </p>
-      </div>
-
-      <div class="grid gap-3 sm:grid-cols-2">
-        <div
-          v-for="[colorName, colorMeta] in editorColors"
-          :key="colorName"
-          class="rounded-lg border border-border p-3"
-        >
-          <div class="flex items-center gap-3">
-            <div
-              class="h-10 w-10 rounded-md border border-border"
-              :style="{ backgroundColor: colorMeta.background }"
-            />
-            <div class="min-w-0">
-              <p class="truncate text-sm font-medium">
-                {{ colorMeta.emoji }} {{ colorMeta.label }}
-              </p>
-              <p class="truncate text-xs text-muted-foreground">
-                {{ colorName }}
-              </p>
-            </div>
-          </div>
-          <div class="mt-3 flex items-center gap-2 text-xs">
-            <span
-              class="rounded px-2 py-1"
-              :style="{
-                backgroundColor: colorMeta.background,
-                color: colorMeta.text,
-              }"
-            >
-              Aa
-            </span>
-            <span class="text-muted-foreground">
-              {{ colorMeta.background }}
-            </span>
-          </div>
-        </div>
-      </div>
-    </div>
   </div>
 </template>

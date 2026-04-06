@@ -5,6 +5,7 @@ import { useNotes } from '~/composables/useNotes'
 
 type NoteEditorHandle = {
   focusTitle(): Promise<void>
+  flushEditorState(): Promise<void>
   flushContentSync(): Promise<void>
 }
 
@@ -33,13 +34,13 @@ async function handleTitleChange(title: string): Promise<void> {
   await renameSelectedNoteTitle(title)
 }
 
-async function flushPendingContentSync(): Promise<void> {
-  await noteEditor.value?.flushContentSync()
+async function flushPendingEditorSync(): Promise<void> {
+  await noteEditor.value?.flushEditorState()
   await pendingContentSave
 }
 
 onMounted(() => {
-  registerEditorFlush(flushPendingContentSync)
+  registerEditorFlush(flushPendingEditorSync)
 })
 
 onBeforeUnmount(() => {
