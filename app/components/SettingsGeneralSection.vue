@@ -1,5 +1,7 @@
 <script setup lang="ts">
-import { appleNotesPlugin, type ImportPlugin } from '~/import/appleNotes'
+import { appleNotesPlugin } from '~/import/appleNotes'
+import { appleNotesExporterPlugin } from '~/import/appleNotesExporter'
+import type { ImportPlugin } from '~/import/types'
 import { useTranslations } from '~/composables/useTranslations'
 
 defineProps<{
@@ -15,7 +17,7 @@ const emit = defineEmits<{
 }>()
 
 const { t } = useTranslations()
-const importPlugins = [appleNotesPlugin]
+const importPlugins = [appleNotesPlugin, appleNotesExporterPlugin]
 </script>
 
 <template>

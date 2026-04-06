@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
-import type { ImportPlugin } from '~/import/appleNotes'
+import type { ImportPlugin } from '~/import/types'
 import {
   useAppConfigDisk,
   type AppConfig,

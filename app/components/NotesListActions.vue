@@ -2,7 +2,7 @@
 import { ref, watch, type CSSProperties } from 'vue'
 import { useEventListener } from '@vueuse/core'
 import { MoreVertical } from 'lucide-vue-next'
-import type { ImportPlugin } from '~/import/appleNotes'
+import type { ImportPlugin } from '~/import/types'
 import { useLayout } from '~/composables/useLayout'
 import { useNotes } from '~/composables/useNotes'
 import { useSettings } from '~/composables/useSettings'
