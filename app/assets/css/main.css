@@ -181,7 +181,9 @@
 
   .sidebar-navigation-item-label {
     display: block;
+    height: 37px;
     line-height: 2.5;
+    overflow: hidden;
   }
 
   .sidebar-section-controls-shell {

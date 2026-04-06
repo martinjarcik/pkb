@@ -34,6 +34,19 @@ function decodeAssetPathname(pathname: string): string {
   return decoded.replace(/^\/\/+/, '/')
 }
 
+function decodeRelativeAssetPath(relativePath: string): string {
+  return relativePath
+    .split('/')
+    .map((segment) => {
+      try {
+        return decodeURIComponent(segment)
+      } catch {
+        return segment
+      }
+    })
+    .join('/')
+}
+
 function parseErrorMessage(error: unknown): string {
   if (error instanceof Error && error.message.length > 0) {
     return error.message
@@ -148,7 +161,9 @@ function assetUrlForRelative(
   ctx: ResolvedContext,
   relativePath: string,
 ): string {
-  const cleaned = normalizeSlashes(relativePath).replace(/^\/+/, '')
+  const cleaned = decodeRelativeAssetPath(
+    normalizeSlashes(relativePath).replace(/^\/+/, ''),
+  )
 
   return toAssetUrl(ctx, `${ctx.absoluteVault}/${cleaned}`)
 }

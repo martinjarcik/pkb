@@ -63,5 +63,9 @@ describe('tauriPlatformApi', () => {
     expect(notesApi.assetUrl('assets/test.png')).toBe(
       'asset://localhost/%2FUsers%2Fm.jarcik%2FDocuments%2FNotes%2Fassets%2Ftest.png',
     )
+
+    expect(notesApi.assetUrl('assets/image%201.png')).toBe(
+      'asset://localhost/%2FUsers%2Fm.jarcik%2FDocuments%2FNotes%2Fassets%2Fimage%201.png',
+    )
   })
 })

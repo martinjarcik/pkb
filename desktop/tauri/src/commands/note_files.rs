@@ -1,5 +1,6 @@
 use chrono::{DateTime, SecondsFormat, Utc};
 use std::fs;
+use std::collections::HashSet;
 use std::path::Path;
 
 use walkdir::WalkDir;
@@ -30,17 +31,30 @@ pub(crate) fn text_file_with_stats(path: &Path) -> Result<PlatformTextFile, Stri
     })
 }
 
-#[tauri::command]
-pub fn read_all_notes(dir: String) -> Result<Vec<PlatformNoteFile>, String> {
+fn normalize_extensions(values: &[String]) -> HashSet<String> {
+    values.iter().map(|value| value.trim().to_lowercase()).collect()
+}
+
+fn read_text_files_with_extensions(
+    dir: String,
+    extensions: Vec<String>,
+) -> Result<Vec<PlatformNoteFile>, String> {
     let root = resolve_root_path(&dir);
+    let allowed_extensions = normalize_extensions(&extensions);
     let mut files = Vec::new();
 
     for entry in WalkDir::new(&root).into_iter().filter_map(Result::ok) {
         let path = entry.path();
 
-        if !entry.file_type().is_file()
-            || path.extension().and_then(|ext| ext.to_str()) != Some("md")
-        {
+        if !entry.file_type().is_file() {
+            continue;
+        }
+
+        let Some(extension) = path.extension().and_then(|ext| ext.to_str()) else {
+            continue;
+        };
+
+        if !allowed_extensions.contains(&extension.trim().to_lowercase()) {
             continue;
         }
 
@@ -63,6 +77,19 @@ pub fn read_all_notes(dir: String) -> Result<Vec<PlatformNoteFile>, String> {
     files.sort_by(|left, right| left.path.cmp(&right.path));
 
     Ok(files)
+}
+
+#[tauri::command]
+pub fn read_all_notes(dir: String) -> Result<Vec<PlatformNoteFile>, String> {
+    read_text_files_with_extensions(dir, vec!["md".to_string()])
+}
+
+#[tauri::command]
+pub fn read_text_files(
+    dir: String,
+    extensions: Vec<String>,
+) -> Result<Vec<PlatformNoteFile>, String> {
+    read_text_files_with_extensions(dir, extensions)
 }
 
 #[tauri::command]

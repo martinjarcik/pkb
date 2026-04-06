@@ -10,6 +10,7 @@ fn main() {
             commands::bootstrap::make_relative_to_vault,
             commands::import::copy_files,
             commands::note_files::read_all_notes,
+            commands::note_files::read_text_files,
             commands::note_files::write_text_file,
             commands::note_files::delete_text_file,
             commands::note_files::rename_text_file,

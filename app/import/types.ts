@@ -10,6 +10,11 @@ export type ImportedNoteFile = {
   content: string
 }
 
+export type TextFile = {
+  path: string
+  content: string
+}
+
 export type PlatformTextFile = {
   content: string
   birthtime: string

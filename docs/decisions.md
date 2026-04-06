@@ -91,3 +91,7 @@ Stop persisting `hasTasks` as an Application Property. The `Tasks` sidebar view 
 ## D029 — 2026-04
 
 Introduce `app/import/` as a problem-domain folder for note import guides. Each guide is a single `.ts` file that owns its user-facing label/title/description plus a `run` function built from generic Tauri file-copy commands. The first guide is Apple Notes.
+
+## D030 — 2026-04
+
+Support Notion imports with a generic `read_text_files` Tauri command so the guide can preserve note folders, convert CSV exports to Markdown tables, and flatten asset-only directories into the configured assets folder.
