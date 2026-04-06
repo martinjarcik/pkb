@@ -2,7 +2,11 @@ import { remark } from 'remark'
 import remarkGfm from 'remark-gfm'
 import { remarkHighlightMark } from 'remark-highlight-mark'
 import { createHashtagPattern } from '~/notes/extractTags'
-import { isBigEmojiContent, renderBigEmojiHtml } from './bigEmoji'
+import {
+  isBigEmojiContent,
+  renderBigEmojiHtml,
+  renderBigEmojiMarkdownAsEditorHtml,
+} from './bigEmoji'
 import { editorDisplayUrlForMarkdownImage } from './editorjsImageUrl'
 import { inlineHtmlToMarkdown } from './editorjsInlineNormalization'
 import {
@@ -17,10 +21,6 @@ import { normalizeSimpleQuoteText } from './simpleQuoteTool'
 const BLOCK_COMMENT_PATTERN = /^<!--\s*block:\s*(.*?)\s*-->$/s
 const LIST_ITEM_LINE = /^(\s*)([*+-]|\d+\.)(\s)/
 const markdownParser = remark().use(remarkGfm).use(remarkHighlightMark)
-
-type ParseMarkdownContext = {
-  didParseNoteTitle: boolean
-}
 
 type AssetUrlResolver = (relativePath: string) => string
 
@@ -192,9 +192,6 @@ function blocksFromRootWithBlankLines(
 ): EditorjsBlock[] {
   const children = root.children ?? []
   const output: EditorjsBlock[] = []
-  const parseContext: ParseMarkdownContext = {
-    didParseNoteTitle: false,
-  }
   let pendingCssClasses: string[] | null = null
 
   for (let index = 0; index < children.length; index += 1) {
@@ -236,7 +233,7 @@ function blocksFromRootWithBlankLines(
       }
     }
 
-    const blocks = parseMarkdownNode(node, parseContext, resolveAssetUrl)
+    const blocks = parseMarkdownNode(node, resolveAssetUrl)
 
     if (pendingCssClasses && blocks.length > 0) {
       const first = blocks[0]!
@@ -317,18 +314,9 @@ function parseInlineNodesToHtml(children: MarkdownNode[] | undefined): string {
   return (children ?? []).map((child) => parseInlineNodeToHtml(child)).join('')
 }
 
-function parseHeading(node: MarkdownNode, asNoteTitle: boolean): EditorjsBlock {
+function parseHeading(node: MarkdownNode): EditorjsBlock {
   const level = Math.min(Math.max(node.depth ?? 1, 1), 6)
   const text = parseInlineNodesToHtml(node.children)
-
-  if (asNoteTitle) {
-    return {
-      type: 'noteTitle',
-      data: {
-        text,
-      },
-    }
-  }
 
   return {
     type: 'header',
@@ -480,20 +468,11 @@ function parseTable(node: MarkdownNode): EditorjsBlock {
 
 function parseMarkdownNode(
   node: MarkdownNode,
-  context: ParseMarkdownContext,
   resolveAssetUrl: AssetUrlResolver | undefined,
 ): EditorjsBlock[] {
   switch (node.type) {
-    case 'heading': {
-      const shouldParseAsNoteTitle =
-        (node.depth ?? 1) === 1 && !context.didParseNoteTitle
-
-      if (shouldParseAsNoteTitle) {
-        context.didParseNoteTitle = true
-      }
-
-      return [parseHeading(node, shouldParseAsNoteTitle)]
-    }
+    case 'heading':
+      return [parseHeading(node)]
     case 'paragraph':
       return parseParagraph(node, resolveAssetUrl)
     case 'list':
@@ -523,12 +502,16 @@ export function markdownToEditorjsBlocks(
     markdown,
     normalizeMarkdownProse,
   )
-  const parsedMarkdown = parseMarkdown(normalizedMarkdown)
+  const editorPreparedMarkdown = transformProseOutsideFencedCodeBlocks(
+    normalizedMarkdown,
+    renderBigEmojiMarkdownAsEditorHtml,
+  )
+  const parsedMarkdown = parseMarkdown(editorPreparedMarkdown)
   const children = parsedMarkdown.children ?? []
 
   if (children.length === 0) {
-    if (!/\S/u.test(normalizedMarkdown)) {
-      const blankLines = countNewlines(normalizedMarkdown)
+    if (!/\S/u.test(editorPreparedMarkdown)) {
+      const blankLines = countNewlines(editorPreparedMarkdown)
       if (blankLines > 0) {
         return Array.from({ length: blankLines }, createEmptyParagraphBlock)
       }
@@ -538,7 +521,7 @@ export function markdownToEditorjsBlocks(
   }
 
   return blocksFromRootWithBlankLines(
-    normalizedMarkdown,
+    editorPreparedMarkdown,
     parsedMarkdown,
     resolveAssetUrl,
   )

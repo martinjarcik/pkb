@@ -20,13 +20,14 @@ const assetDisplayUrl = (path: string) => `asset://${path}`
 const markdownAssetUrl = (fileUrl: string) => fileUrl.replace('asset://', '')
 
 describe('editorjsMarkdown', () => {
-  it('converts the first markdown H1 into a note title block', () => {
+  it('keeps the first markdown H1 as a header block', () => {
     const blocks = markdownToEditorjsBlocks('# Title\n\nHello world')
 
     expect(blocks).toEqual([
       {
-        type: 'noteTitle',
+        type: 'header',
         data: {
+          level: 1,
           text: 'Title',
         },
       },
@@ -64,14 +65,15 @@ describe('editorjsMarkdown', () => {
     expect(markdown).toBe('Hello world')
   })
 
-  it('keeps later H1 blocks as regular headings', () => {
+  it('keeps multiple H1 blocks as headers', () => {
     const blocks = markdownToEditorjsBlocks('# Title\n\n# Section')
 
     expect(blocks).toEqual([
       {
-        type: 'noteTitle',
+        type: 'header',
         data: {
           text: 'Title',
+          level: 1,
         },
       },
       {
@@ -362,8 +364,8 @@ describe('editorjsMarkdown', () => {
       { type: 'paragraph', data: { text: '' } },
       { type: 'paragraph', data: { text: '' } },
       {
-        type: 'noteTitle',
-        data: { text: 'Title' },
+        type: 'header',
+        data: { text: 'Title', level: 1 },
       },
     ])
   })
@@ -555,7 +557,7 @@ describe('editorjsMarkdown', () => {
       {
         type: 'paragraph',
         data: {
-          text: 'Status <strong class="inline-big-emoji">🤖</strong> updated.',
+          text: 'Status <b class="inline-big-emoji" contenteditable="false">🤖</b> updated.',
         },
       },
     ])
@@ -566,7 +568,7 @@ describe('editorjsMarkdown', () => {
       {
         type: 'paragraph',
         data: {
-          text: 'Status <strong class="inline-big-emoji">🤖</strong> updated.',
+          text: 'Status <b class="inline-big-emoji inline-big-emoji-big" contenteditable="false" data-size="big">🤖\u2060</b> updated.',
         },
       },
     ])
@@ -650,17 +652,30 @@ describe('editorjsMarkdown', () => {
     ).toBe(`Use ==${altMeta.emoji}${altMeta.emoji}legacy== text.`)
   })
 
-  it('serializes big emoji html to asterisk bold markdown', () => {
+  it('serializes default big emoji html to asterisk bold markdown', () => {
     expect(
       editorjsBlocksToMarkdown([
         {
           type: 'paragraph',
           data: {
-            text: 'Status <strong class="inline-big-emoji">🤖</strong> updated.',
+            text: 'Status <b class="inline-big-emoji">🤖</b> updated.',
           },
         },
       ]),
     ).toBe('Status **🤖** updated.')
+  })
+
+  it('serializes big-size emoji html to underscore bold markdown', () => {
+    expect(
+      editorjsBlocksToMarkdown([
+        {
+          type: 'paragraph',
+          data: {
+            text: 'Status <b class="inline-big-emoji inline-big-emoji-big" contenteditable="false">🤖\u2060</b> updated.',
+          },
+        },
+      ]),
+    ).toBe('Status __🤖__ updated.')
   })
 
   it('removes big emoji caret anchors from markdown output', () => {
@@ -669,11 +684,128 @@ describe('editorjsMarkdown', () => {
         {
           type: 'paragraph',
           data: {
-            text: 'Status <strong class="inline-big-emoji">🤖</strong>\u200B updated.',
+            text: 'Status <b class="inline-big-emoji">🤖</b>\u200B updated.',
           },
         },
       ]),
     ).toBe('Status **🤖** updated.')
+  })
+
+  it('removes thin big emoji caret anchors from markdown output', () => {
+    expect(
+      editorjsBlocksToMarkdown([
+        {
+          type: 'paragraph',
+          data: {
+            text: 'Status <b class="inline-big-emoji">🤖</b>\u200A updated.',
+          },
+        },
+      ]),
+    ).toBe('Status **🤖** updated.')
+  })
+
+  it('serializes saved b-tag big emoji html to asterisk bold markdown', () => {
+    expect(
+      editorjsBlocksToMarkdown([
+        {
+          type: 'paragraph',
+          data: {
+            text: 'Status <b class="inline-big-emoji" contenteditable="false">🤖</b> updated.',
+          },
+        },
+      ]),
+    ).toBe('Status **🤖** updated.')
+  })
+
+  it('serializes saved span-tag big emoji html to asterisk bold markdown', () => {
+    expect(
+      editorjsBlocksToMarkdown([
+        {
+          type: 'paragraph',
+          data: {
+            text: 'Status <span class="inline-big-emoji" contenteditable="false">🤖</span> updated.',
+          },
+        },
+      ]),
+    ).toBe('Status **🤖** updated.')
+  })
+
+  it('serializes saved span-tag big-size emoji html to underscore markdown', () => {
+    expect(
+      editorjsBlocksToMarkdown([
+        {
+          type: 'paragraph',
+          data: {
+            text: 'Status <span class="inline-big-emoji" contenteditable="false" data-size="big">🤖</span> updated.',
+          },
+        },
+      ]),
+    ).toBe('Status __🤖__ updated.')
+  })
+
+  it('serializes saved strong-tag big-size emoji html to underscore markdown', () => {
+    expect(
+      editorjsBlocksToMarkdown([
+        {
+          type: 'paragraph',
+          data: {
+            text: 'Status <strong class="inline-big-emoji" contenteditable="false">🤖</strong> updated.',
+          },
+        },
+      ]),
+    ).toBe('Status __🤖__ updated.')
+  })
+
+  it('does not add outer bold markdown around a strong-tag big emoji', () => {
+    expect(
+      editorjsBlocksToMarkdown([
+        {
+          type: 'paragraph',
+          data: {
+            text: 'Status <strong><strong class="inline-big-emoji" contenteditable="false">🤖</strong></strong> updated.',
+          },
+        },
+      ]),
+    ).toBe('Status __🤖__ updated.')
+  })
+
+  it('serializes strong-tag emoji with big marker to underscore markdown', () => {
+    expect(
+      editorjsBlocksToMarkdown([
+        {
+          type: 'paragraph',
+          data: {
+            text: 'Status <strong>🤖\u2060</strong> updated.',
+          },
+        },
+      ]),
+    ).toBe('Status __🤖__ updated.')
+  })
+
+  it('serializes saved b-tag big-size emoji html to underscore markdown', () => {
+    expect(
+      editorjsBlocksToMarkdown([
+        {
+          type: 'paragraph',
+          data: {
+            text: 'Status <b class="inline-big-emoji inline-big-emoji-big" contenteditable="false">🤖\u2060</b> updated.',
+          },
+        },
+      ]),
+    ).toBe('Status __🤖__ updated.')
+  })
+
+  it('serializes plain emoji with big marker fallback to underscore markdown', () => {
+    expect(
+      editorjsBlocksToMarkdown([
+        {
+          type: 'paragraph',
+          data: {
+            text: 'Status 🤖\u2060 updated.',
+          },
+        },
+      ]),
+    ).toBe('Status __🤖__ updated.')
   })
 
   it('inserts separator between adjacent big emoji and bold in markdown output', () => {
@@ -682,7 +814,7 @@ describe('editorjsMarkdown', () => {
         {
           type: 'paragraph',
           data: {
-            text: 'Status <strong class="inline-big-emoji">🤖</strong><b>bold</b> updated.',
+            text: 'Status <span class="inline-big-emoji" contenteditable="false">🤖</span><b>bold</b> updated.',
           },
         },
       ]),
@@ -741,12 +873,12 @@ describe('editorjsMarkdown', () => {
     )
   })
 
-  it('normalizes underscore bold emoji to asterisk bold on round-trip', () => {
+  it('round-trips underscore bold emoji as big-size emoji', () => {
     expect(
       editorjsBlocksToMarkdown(
         markdownToEditorjsBlocks('Status __🤖__ updated.'),
       ),
-    ).toBe('Status **🤖** updated.')
+    ).toBe('Status __🤖__ updated.')
   })
 
   it('round-trips big emoji immediately followed by bold text', () => {

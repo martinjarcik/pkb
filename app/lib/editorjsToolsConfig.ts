@@ -31,7 +31,6 @@ export const inlineToolbarTools = [
   'bold',
   'italic',
   'inlineCode',
-  'bigEmoji',
   'inlineHighlight',
 ]
 
