@@ -10,6 +10,8 @@ import { useLayout } from '~/composables/useLayout'
 import { useSettings, type SettingsCategory } from '~/composables/useSettings'
 import { useTranslations } from '~/composables/useTranslations'
 
+type LayoutVisibilityKey = 'showSidebarPanel' | 'showNotesListPanel'
+
 const { t } = useTranslations()
 const { data: appConfigDisk, saveAppConfigPatch } = useAppConfigDisk()
 const { activeCategory, settingsOpen } = useSettings()
@@ -192,7 +194,7 @@ async function updateFeature(
 }
 
 async function updateLayout(
-  key: keyof AppConfig['layout'],
+  key: LayoutVisibilityKey,
   checked: boolean,
 ): Promise<void> {
   if (checked === appConfigDisk.value.layout[key]) {
@@ -280,10 +282,7 @@ function handleFeatureChecked(
   void updateFeature(key, checked)
 }
 
-function handleLayoutChecked(
-  key: keyof AppConfig['layout'],
-  checked: boolean,
-): void {
+function handleLayoutChecked(key: LayoutVisibilityKey, checked: boolean): void {
   void updateLayout(key, checked)
 }
 

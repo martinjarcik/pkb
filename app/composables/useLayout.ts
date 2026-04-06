@@ -11,6 +11,8 @@ type LayoutVisibilitySnapshot = {
 
 const showSidebarPanel = ref(defaultLayout.showSidebarPanel)
 const showNotesListPanel = ref(defaultLayout.showNotesListPanel)
+const sidebarPanelWidth = ref(defaultLayout.sidebarPanelWidth)
+const notesListPanelWidth = ref(defaultLayout.notesListPanelWidth)
 const nonDistractionMode = ref(false)
 const nonDistractionSnapshot = ref<LayoutVisibilitySnapshot | null>(null)
 
@@ -27,6 +29,8 @@ export function useLayout() {
   function syncLayoutFromConfig(layout: AppConfig['layout']): void {
     showSidebarPanel.value = layout.showSidebarPanel
     showNotesListPanel.value = layout.showNotesListPanel
+    sidebarPanelWidth.value = layout.sidebarPanelWidth
+    notesListPanelWidth.value = layout.notesListPanelWidth
   }
 
   function toggleSidebarPanel(): void {
@@ -56,10 +60,32 @@ export function useLayout() {
     nonDistractionMode.value = true
   }
 
+  function setSidebarPanelWidth(width: number): void {
+    sidebarPanelWidth.value = width
+  }
+
+  function setNotesListPanelWidth(width: number): void {
+    notesListPanelWidth.value = width
+  }
+
+  function persistSidebarPanelWidth(width: number): void {
+    persistAppConfigPatch({ layout: { sidebarPanelWidth: width } })
+  }
+
+  function persistNotesListPanelWidth(width: number): void {
+    persistAppConfigPatch({ layout: { notesListPanelWidth: width } })
+  }
+
   return {
     nonDistractionMode,
+    notesListPanelWidth,
+    persistNotesListPanelWidth,
+    persistSidebarPanelWidth,
     showSidebarPanel,
     showNotesListPanel,
+    sidebarPanelWidth,
+    setNotesListPanelWidth,
+    setSidebarPanelWidth,
     syncLayoutFromConfig,
     toggleNonDistractionMode,
     toggleSidebarPanel,

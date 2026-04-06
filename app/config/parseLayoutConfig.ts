@@ -1,5 +1,24 @@
 import type { AppConfig } from './parseAppConfig'
 
+export const DEFAULT_SIDEBAR_PANEL_WIDTH = 300
+export const DEFAULT_NOTES_LIST_PANEL_WIDTH = 370
+
+function parsePanelWidth(
+  value: unknown,
+  fallback: number,
+  key: 'sidebarPanelWidth' | 'notesListPanelWidth',
+): number {
+  if (value === undefined) {
+    return fallback
+  }
+
+  if (typeof value !== 'number' || !Number.isFinite(value) || value <= 0) {
+    throw new Error(`Config layout.${key} must be a positive number`)
+  }
+
+  return value
+}
+
 export function parseLayoutConfig(
   obj: Record<string, unknown>,
 ): AppConfig['layout'] {
@@ -18,5 +37,15 @@ export function parseLayoutConfig(
   return {
     showSidebarPanel: layout.showSidebarPanel as boolean,
     showNotesListPanel: layout.showNotesListPanel as boolean,
+    sidebarPanelWidth: parsePanelWidth(
+      layout.sidebarPanelWidth,
+      DEFAULT_SIDEBAR_PANEL_WIDTH,
+      'sidebarPanelWidth',
+    ),
+    notesListPanelWidth: parsePanelWidth(
+      layout.notesListPanelWidth,
+      DEFAULT_NOTES_LIST_PANEL_WIDTH,
+      'notesListPanelWidth',
+    ),
   }
 }

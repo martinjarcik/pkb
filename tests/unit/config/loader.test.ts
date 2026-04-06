@@ -17,6 +17,8 @@ describe('loadConfig', () => {
       layout: {
         showSidebarPanel: true,
         showNotesListPanel: true,
+        sidebarPanelWidth: 300,
+        notesListPanelWidth: 370,
       },
       theme: {
         accentColor: '#3f57dfff',

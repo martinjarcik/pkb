@@ -16,6 +16,8 @@ function createBaseConfig() {
     layout: {
       showSidebarPanel: true,
       showNotesListPanel: true,
+      sidebarPanelWidth: 300,
+      notesListPanelWidth: 370,
     },
     theme: {
       accentColor: '#3f57dfff',
@@ -77,6 +79,18 @@ describe('parseAppConfig', () => {
       pinned: true,
       nonDistractionMode: true,
       noteWebhook: true,
+    })
+  })
+
+  it('defaults missing persisted panel widths for older configs', () => {
+    const config = createBaseConfig()
+    delete (config.layout as { sidebarPanelWidth?: number }).sidebarPanelWidth
+    delete (config.layout as { notesListPanelWidth?: number })
+      .notesListPanelWidth
+
+    expect(parseAppConfig(config).layout).toMatchObject({
+      sidebarPanelWidth: 300,
+      notesListPanelWidth: 370,
     })
   })
 

@@ -52,6 +52,8 @@ vi.mock('~/composables/useAppConfigDisk', () => ({
         layout: {
           showSidebarPanel: true,
           showNotesListPanel: true,
+          sidebarPanelWidth: 300,
+          notesListPanelWidth: 370,
         },
         theme: { accentColor: '#000000', defaultEditorColor: 'yellow' },
         editorColors: {},

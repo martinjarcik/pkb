@@ -30,6 +30,8 @@ export type AppConfig = {
   layout: {
     showSidebarPanel: boolean
     showNotesListPanel: boolean
+    sidebarPanelWidth: number
+    notesListPanelWidth: number
   }
   theme: {
     accentColor: string

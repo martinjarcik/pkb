@@ -3,6 +3,8 @@ import { computed } from 'vue'
 import { useTranslations } from '~/composables/useTranslations'
 import type { AppConfig } from '~/composables/useAppConfigDisk'
 
+type LayoutVisibilityKey = 'showSidebarPanel' | 'showNotesListPanel'
+
 const props = defineProps<{
   appConfig: AppConfig
   isSaving: boolean
@@ -10,7 +12,7 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   updateFeature: [key: keyof AppConfig['features'], value: boolean]
-  updateLayout: [key: keyof AppConfig['layout'], value: boolean]
+  updateLayout: [key: LayoutVisibilityKey, value: boolean]
 }>()
 
 const { t } = useTranslations()
