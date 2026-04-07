@@ -37,7 +37,18 @@ export type AppConfig = {
     accentColor: string
     sidebarBackgroundColor: string
     sidebarTextColor: string
+    sidebarBadge: string
     defaultEditorColor: string
+    typography: {
+      application: {
+        typeface: string
+        fontSize: string
+      }
+      editor: {
+        typeface: string
+        fontSize: string
+      }
+    }
   }
   editorColors: EditorColors
   features: {

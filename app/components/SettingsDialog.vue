@@ -264,6 +264,14 @@ async function updateSidebarTextColor(color: string): Promise<void> {
   await savePatch({ theme: { sidebarTextColor: color } })
 }
 
+async function updateSidebarBadge(badge: string): Promise<void> {
+  if (badge === appConfigDisk.value.theme.sidebarBadge) {
+    return
+  }
+
+  await savePatch({ theme: { sidebarBadge: badge } })
+}
+
 async function updateDefaultEditorColor(color: string): Promise<void> {
   if (
     color.length === 0 ||
@@ -273,6 +281,82 @@ async function updateDefaultEditorColor(color: string): Promise<void> {
   }
 
   await savePatch({ theme: { defaultEditorColor: color } })
+}
+
+async function updateApplicationTypeface(value: string): Promise<void> {
+  if (
+    value.length === 0 ||
+    value === appConfigDisk.value.theme.typography.application.typeface
+  ) {
+    return
+  }
+
+  await savePatch({
+    theme: {
+      typography: {
+        application: {
+          typeface: value,
+        },
+      },
+    },
+  })
+}
+
+async function updateApplicationFontSize(value: string): Promise<void> {
+  if (
+    value.length === 0 ||
+    value === appConfigDisk.value.theme.typography.application.fontSize
+  ) {
+    return
+  }
+
+  await savePatch({
+    theme: {
+      typography: {
+        application: {
+          fontSize: value,
+        },
+      },
+    },
+  })
+}
+
+async function updateEditorTypeface(value: string): Promise<void> {
+  if (
+    value.length === 0 ||
+    value === appConfigDisk.value.theme.typography.editor.typeface
+  ) {
+    return
+  }
+
+  await savePatch({
+    theme: {
+      typography: {
+        editor: {
+          typeface: value,
+        },
+      },
+    },
+  })
+}
+
+async function updateEditorFontSize(value: string): Promise<void> {
+  if (
+    value.length === 0 ||
+    value === appConfigDisk.value.theme.typography.editor.fontSize
+  ) {
+    return
+  }
+
+  await savePatch({
+    theme: {
+      typography: {
+        editor: {
+          fontSize: value,
+        },
+      },
+    },
+  })
 }
 
 function handleFeatureChecked(
@@ -288,6 +372,22 @@ function handleLayoutChecked(key: LayoutVisibilityKey, checked: boolean): void {
 
 function handleDefaultEditorColorSelected(value: string | undefined): void {
   void updateDefaultEditorColor(String(value ?? ''))
+}
+
+function handleApplicationTypefaceSelected(value: string | undefined): void {
+  void updateApplicationTypeface(String(value ?? ''))
+}
+
+function handleApplicationFontSizeSelected(value: string | undefined): void {
+  void updateApplicationFontSize(String(value ?? ''))
+}
+
+function handleEditorTypefaceSelected(value: string | undefined): void {
+  void updateEditorTypeface(String(value ?? ''))
+}
+
+function handleEditorFontSizeSelected(value: string | undefined): void {
+  void updateEditorFontSize(String(value ?? ''))
 }
 
 function handleStartImport(plugin: ImportPlugin): void {
@@ -363,6 +463,11 @@ function handleStartImport(plugin: ImportPlugin): void {
               void updateSidebarBackgroundColor($event)
             "
             @update-sidebar-text-color="void updateSidebarTextColor($event)"
+            @update-sidebar-badge="void updateSidebarBadge($event)"
+            @update-application-typeface="handleApplicationTypefaceSelected"
+            @update-application-font-size="handleApplicationFontSizeSelected"
+            @update-editor-typeface="handleEditorTypefaceSelected"
+            @update-editor-font-size="handleEditorFontSizeSelected"
           />
 
           <SettingsGeneralSection

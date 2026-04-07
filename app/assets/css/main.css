@@ -48,6 +48,9 @@
     --app-notes-list-item-accent-width: 5px;
     --app-notes-list-item-gap: 0.3125rem;
     --app-notes-list-description-lines: 2;
+    --app-config-editor-font-family:
+      system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    --app-config-editor-font-size: 14px;
     --app-sidebar-text: #444444;
     --app-sidebar-section-title: #414244;
     --app-sidebar-control: #989999;
@@ -409,7 +412,6 @@
     min-width: 0;
     padding-top: 30px;
     width: 100%;
-    font-size: 0.9rem;
   }
 
   .note-editor-wide.note-editor-shell {
@@ -419,6 +421,8 @@
 
   .note-editor-surface {
     flex: 1 1 0;
+    font-family: var(--app-config-editor-font-family);
+    font-size: var(--app-config-editor-font-size);
     min-height: 0;
     min-width: 0;
     overflow-y: auto;

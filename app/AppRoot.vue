@@ -1,9 +1,17 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref, watchEffect } from 'vue'
+import {
+  computed,
+  onBeforeUnmount,
+  onMounted,
+  ref,
+  watch,
+  watchEffect,
+} from 'vue'
 import NotePanel from '~/components/NotePanel.vue'
 import NotesListPanel from '~/components/NotesListPanel.vue'
 import SidebarPanel from '~/components/SidebarPanel.vue'
 import { useAppConfigDisk } from '~/composables/useAppConfigDisk'
+import { useFontLoader } from '~/composables/useFontLoader'
 import { useAppStartup } from '~/composables/useAppStartup'
 import { useAppTheme } from '~/composables/useAppTheme'
 import { useLayout } from '~/composables/useLayout'
@@ -17,7 +25,15 @@ const MIN_EDITOR_PANEL_WIDTH = 360
 
 const { data: appConfigDisk } = useAppConfigDisk()
 const { startApp } = useAppStartup()
-const { accentColor, sidebarBackgroundColor, sidebarTextColor } = useAppTheme()
+const {
+  accentColor,
+  sidebarBackgroundColor,
+  sidebarTextColor,
+  applicationTypeface,
+  applicationFontSize,
+  editorTypeface,
+  editorFontSize,
+} = useAppTheme()
 const {
   notesListPanelWidth,
   persistNotesListPanelWidth,
@@ -28,6 +44,7 @@ const {
   showNotesListPanel,
   sidebarPanelWidth,
 } = useLayout()
+const { ensureFontLoaded, ensureSidebarBadgeFontLoaded } = useFontLoader()
 
 const workspaceShellRef = ref<HTMLElement | null>(null)
 const activeResizeTarget = ref<ResizeTarget | null>(null)
@@ -45,6 +62,27 @@ const notesListPanelStyle = computed(() => ({
 watchEffect(() => {
   syncEditorColors(appConfigDisk.value)
 })
+
+watchEffect(() => {
+  document.documentElement.style.fontFamily = applicationTypeface.value
+  document.documentElement.style.fontSize = applicationFontSize.value
+})
+
+watch(
+  [applicationTypeface, editorTypeface],
+  ([nextApplicationTypeface, nextEditorTypeface]) => {
+    void ensureFontLoaded(nextApplicationTypeface)
+
+    if (nextEditorTypeface === nextApplicationTypeface) {
+      return
+    }
+
+    void ensureFontLoaded(nextEditorTypeface)
+  },
+  {
+    immediate: true,
+  },
+)
 
 function clampWidth(value: number, minWidth: number, maxWidth: number): number {
   const upperBound = Math.max(minWidth, maxWidth)
@@ -157,11 +195,14 @@ function startResize(target: ResizeTarget, event: PointerEvent): void {
 }
 
 onMounted(() => {
+  void ensureSidebarBadgeFontLoaded()
   void startApp()
 })
 
 onBeforeUnmount(() => {
   stopResize()
+  document.documentElement.style.removeProperty('font-family')
+  document.documentElement.style.removeProperty('font-size')
 })
 </script>
 
@@ -172,6 +213,8 @@ onBeforeUnmount(() => {
       '--app-config-accent-color': accentColor,
       '--app-config-sidebar-background-color': sidebarBackgroundColor,
       '--app-config-sidebar-text-color': sidebarTextColor,
+      '--app-config-editor-font-family': editorTypeface,
+      '--app-config-editor-font-size': editorFontSize,
     }"
   >
     <div

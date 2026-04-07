@@ -13,5 +13,18 @@ export function useAppTheme() {
     sidebarTextColor: computed(
       () => appConfigDisk.value.theme.sidebarTextColor,
     ),
+    sidebarBadge: computed(() => appConfigDisk.value.theme.sidebarBadge),
+    applicationTypeface: computed(
+      () => appConfigDisk.value.theme.typography.application.typeface,
+    ),
+    applicationFontSize: computed(
+      () => appConfigDisk.value.theme.typography.application.fontSize,
+    ),
+    editorTypeface: computed(
+      () => appConfigDisk.value.theme.typography.editor.typeface,
+    ),
+    editorFontSize: computed(
+      () => appConfigDisk.value.theme.typography.editor.fontSize,
+    ),
   }
 }

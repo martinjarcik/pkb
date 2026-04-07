@@ -35,7 +35,7 @@
       "editing": "Editing",
       "editingDescription": "Notes, editor, and colors",
       "theme": "Theme",
-      "themeDescription": "Accent color"
+      "themeDescription": "Colors and typography"
     },
     "actions": {
       "chooseDirectory": "Choose directory"
@@ -74,6 +74,27 @@
       "sidebarTextColor": {
         "label": "Sidebar text color",
         "description": "Used for sidebar labels, section titles, and controls."
+      },
+      "sidebarBadge": {
+        "label": "Sidebar Badge",
+        "pick": "Choose sidebar badge emoji",
+        "clear": "Clear",
+        "description": "Used for the decorative emoji badge at the bottom of the sidebar."
+      },
+      "applicationTypography": {
+        "label": "Application typeface",
+        "typefacePlaceholder": "Select an application typeface",
+        "sizePlaceholder": "Select an application text size",
+        "description": "Applied on the HTML element and cascades through the application UI."
+      },
+      "editorTypography": {
+        "label": "Editor typeface",
+        "typefacePlaceholder": "Select an editor typeface",
+        "sizePlaceholder": "Select an editor text size",
+        "description": "Applied on the note editor surface for note content editing."
+      },
+      "textSize": {
+        "label": "Text size"
       },
       "defaultEditorColor": {
         "label": "Default editor color",

@@ -23,7 +23,20 @@ function createBaseConfig() {
       accentColor: '#3f57dfff',
       sidebarBackgroundColor: '#fafafa',
       sidebarTextColor: '#444444',
+      sidebarBadge: '🦄',
       defaultEditorColor: 'yellow',
+      typography: {
+        application: {
+          typeface:
+            'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+          fontSize: '16px',
+        },
+        editor: {
+          typeface:
+            'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+          fontSize: '14px',
+        },
+      },
     },
     editorColors: {
       yellow: {
@@ -67,6 +80,31 @@ describe('parseAppConfig', () => {
     config.theme = { accentColor: '#3f57dfff' }
 
     expect(parseAppConfig(config).theme.sidebarTextColor).toBe('#444444')
+  })
+
+  it('defaults theme.sidebarBadge when missing', () => {
+    const config = createBaseConfig() as Record<string, unknown>
+    config.theme = { accentColor: '#3f57dfff' }
+
+    expect(parseAppConfig(config).theme.sidebarBadge).toBe('🦄')
+  })
+
+  it('defaults theme typography settings when missing', () => {
+    const config = createBaseConfig() as Record<string, unknown>
+    config.theme = { accentColor: '#3f57dfff' }
+
+    expect(parseAppConfig(config).theme.typography).toEqual({
+      application: {
+        typeface:
+          'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+        fontSize: '16px',
+      },
+      editor: {
+        typeface:
+          'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+        fontSize: '14px',
+      },
+    })
   })
 
   it('falls back to default feature flags when features are omitted', () => {

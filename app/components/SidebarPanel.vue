@@ -7,7 +7,7 @@ const { allTags } = useSidebarNavigation()
 <template>
   <aside
     data-testid="sidebar-panel"
-    class="sidebar-panel-shell flex h-full flex-col"
+    class="sidebar-panel-shell relative flex h-full flex-col overflow-hidden"
   >
     <div
       data-tauri-drag-region
@@ -23,5 +23,7 @@ const { allTags } = useSidebarNavigation()
     <template v-if="allTags.length > 0">
       <SidebarTags />
     </template>
+
+    <SidebarBadge />
   </aside>
 </template>
