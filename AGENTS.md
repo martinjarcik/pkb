@@ -4,11 +4,6 @@
 
 - Treat `AGENTS.md` as the canonical coding-rules contract for this repository.
 
-## Planning contract
-
-- Any alternative planning format is invalid.
-- Do not skip phases, compress phases together, or substitute your own planning structure.
-
 ## Consistency contract
 
 - If a required file is missing, contradictory, or stale, stop and call that out explicitly before proceeding.
@@ -210,8 +205,8 @@ Run after every change:
 - `npm run typecheck`
 - `npm run test:unit:ci`
 
-Git hooks enforce lint, format, typecheck, unit tests, and conventional commit
-messages automatically on commit.
+Git hooks enforce lint, format, typecheck, and unit tests automatically on
+commit.
 
 Allowed commit prefixes:
 

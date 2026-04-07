@@ -97,6 +97,63 @@ function sanitizedFolderResult(
   return { ok: true, folderPath: sanitized }
 }
 
+function renameFolderPathValue(
+  folderPath: string,
+  oldPath: string,
+  newPath: string,
+): string {
+  if (folderPath === oldPath) {
+    return newPath
+  }
+
+  if (folderPath.startsWith(oldPath + '/')) {
+    return newPath + folderPath.slice(oldPath.length)
+  }
+
+  return folderPath
+}
+
+function renameFolderPaths(
+  folderPaths: readonly string[],
+  oldPath: string,
+  newPath: string,
+): string[] {
+  return [
+    ...new Set(
+      folderPaths.map((path) => renameFolderPathValue(path, oldPath, newPath)),
+    ),
+  ]
+}
+
+function renameFolderView(
+  view: SidebarWorkspaceView,
+  oldPath: string,
+  newPath: string,
+): SidebarWorkspaceView {
+  if (view.kind === 'folder') {
+    return {
+      kind: 'folder',
+      folderPath: renameFolderPathValue(view.folderPath, oldPath, newPath),
+    }
+  }
+
+  if (view.kind !== 'search' || view.previousView.kind !== 'folder') {
+    return view
+  }
+
+  return {
+    ...view,
+    previousView: {
+      kind: 'folder',
+      folderPath: renameFolderPathValue(
+        view.previousView.folderPath,
+        oldPath,
+        newPath,
+      ),
+    },
+  }
+}
+
 /** Owns the shared sidebar view, tag filters, and folder tree actions. */
 export function useSidebarNavigation() {
   const { notes, allNotes, findNoteById } = useNoteCatalog()
@@ -188,6 +245,18 @@ export function useSidebarNavigation() {
       expandedFolderPaths.delete(folderPath)
     } else {
       expandedFolderPaths.add(folderPath)
+    }
+  }
+
+  function syncExpandedFolderPaths(oldPath: string, newPath: string): void {
+    const nextPaths = [...expandedFolderPaths].map((path) =>
+      renameFolderPathValue(path, oldPath, newPath),
+    )
+
+    expandedFolderPaths.clear()
+
+    for (const path of nextPaths) {
+      expandedFolderPaths.add(path)
     }
   }
 
@@ -335,26 +404,22 @@ export function useSidebarNavigation() {
     try {
       await storage.value.renameFolder(oldPath, newPath)
 
-      explicitFolders.value = explicitFolders.value
-        .map((f) => {
-          if (f === oldPath) {
-            return newPath
-          }
-
-          if (f.startsWith(oldPath + '/')) {
-            return newPath + f.slice(oldPath.length)
-          }
-
-          return f
-        })
-        .filter((f) => f !== newPath || !explicitFolders.value.includes(f))
-
-      if (
-        selectedView.value.kind === 'folder' &&
-        selectedView.value.folderPath === oldPath
-      ) {
-        selectedView.value = { kind: 'folder', folderPath: newPath }
-      }
+      vaultFolders.value = renameFolderPaths(
+        vaultFolders.value,
+        oldPath,
+        newPath,
+      )
+      explicitFolders.value = renameFolderPaths(
+        explicitFolders.value,
+        oldPath,
+        newPath,
+      )
+      syncExpandedFolderPaths(oldPath, newPath)
+      selectedView.value = renameFolderView(
+        selectedView.value,
+        oldPath,
+        newPath,
+      )
 
       return { ok: true, folderPath: newPath }
     } catch {

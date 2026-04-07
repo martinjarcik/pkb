@@ -176,6 +176,7 @@ function clearSidebarBadge(): void {
               <span
                 v-if="appConfig.theme.sidebarBadge.length > 0"
                 class="text-xl"
+                style="font-family: 'Noto Emoji', sans-serif"
               >
                 {{ appConfig.theme.sidebarBadge }}
               </span>
@@ -188,7 +189,10 @@ function clearSidebarBadge(): void {
           </PopoverTrigger>
           <PopoverContent class="w-auto max-w-[min(100vw-2rem,22rem)] p-0">
             <div :ref="(el: any) => bindPicker(el as HTMLElement)">
-              <emoji-picker class="folder-emoji-picker" />
+              <emoji-picker
+                class="folder-emoji-picker"
+                style="--emoji-font-family: 'Noto Emoji', sans-serif"
+              />
             </div>
           </PopoverContent>
         </Popover>

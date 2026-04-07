@@ -73,7 +73,12 @@ function handleConfirm(): void {
                 :aria-label="t('sidebarFolders.pickIcon')"
                 data-testid="folder-dialog-icon-trigger"
               >
-                <span v-if="iconEmoji.length > 0">{{ iconEmoji }}</span>
+                <span
+                  v-if="iconEmoji.length > 0"
+                  style="font-family: 'Noto Emoji', sans-serif"
+                >
+                  {{ iconEmoji }}
+                </span>
                 <Smile
                   v-else
                   :size="18"
@@ -83,7 +88,10 @@ function handleConfirm(): void {
             </PopoverTrigger>
             <PopoverContent class="w-auto max-w-[min(100vw-2rem,22rem)] p-0">
               <div :ref="(el: any) => bindPicker(el as HTMLElement)">
-                <emoji-picker class="folder-emoji-picker" />
+                <emoji-picker
+                  class="folder-emoji-picker"
+                  style="--emoji-font-family: 'Noto Emoji', sans-serif"
+                />
               </div>
             </PopoverContent>
           </Popover>

@@ -221,6 +221,7 @@
   .sidebar-navigation-item-icon {
     color: currentColor;
     flex-shrink: 0;
+    font-family: 'Noto Emoji', sans-serif;
   }
 
   .sidebar-navigation-item-label {
