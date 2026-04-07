@@ -7,6 +7,11 @@ import {
   type JsonObject,
 } from './isPlainObject'
 import { loadConfig } from './loader'
+import {
+  DEFAULT_ONBOARDING_STATE,
+  parseOnboardingState,
+  type OnboardingState,
+} from './parseOnboardingState'
 import { parseMeta, type WorkspaceMeta } from './parseMeta'
 import { parseAppConfig, type AppConfig } from './parseAppConfig'
 
@@ -46,6 +51,26 @@ export async function writeAppConfigPatchPersistence(
   const validated = parseAppConfig(merged)
 
   await platformApi.writeScopedTextFile('app-config', yaml.stringify(merged))
+
+  return validated
+}
+
+export async function readOnboardingPersistence(
+  platformApi: PlatformApi,
+): Promise<OnboardingState> {
+  return parseOnboardingState(
+    parseStoredYaml(await platformApi.readScopedTextFile('onboarding')) ??
+      DEFAULT_ONBOARDING_STATE,
+  )
+}
+
+export async function writeOnboardingPersistence(
+  platformApi: PlatformApi,
+  nextState: unknown,
+): Promise<OnboardingState> {
+  const validated = parseOnboardingState(nextState)
+
+  await platformApi.writeScopedTextFile('onboarding', yaml.stringify(validated))
 
   return validated
 }

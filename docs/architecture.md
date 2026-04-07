@@ -63,12 +63,16 @@ shape because the app now keeps full note bodies in shared client state.
 - `app/config/loader.ts` — typed `AppConfig` parsed from `app/config/default.yaml`,
   including the active locale, theme settings, and `notes.trashRetentionDays`.
 - `app/AppRoot.vue` — desktop app shell that applies the configured accent color
-  CSS variable, starts the app, and composes the three-panel workspace layout.
+  CSS variable, starts the app, composes the three-panel workspace layout, and
+  mounts the blocking first-run Onboarding guide when persisted onboarding
+  state is incomplete.
 - `app/main.ts` — plain Vue desktop entry that mounts `AppRoot.vue`.
 - `vite.config.ts` — build and alias configuration for the plain Vue frontend.
 - `app/composables/useLayout.ts` — layout panel visibility state initialized
   from config defaults, plus session-only non-distraction mode (snapshot and
   restore of the three panel flags).
+- `app/composables/useOnboarding.ts` — persisted first-run onboarding state,
+  slide navigation, storage/theme setup actions, and import-return handling.
 - `app/composables/useSidebarNavigation.ts` — sidebar view state initialized
   from config defaults, consuming the shared note catalog and selection state
   directly for Inbox, Tasks, Favorites (when `features.favorites` is true),
@@ -83,7 +87,7 @@ shape because the app now keeps full note bodies in shared client state.
 - `app/composables/useVirtualList.ts` — notes-list viewport virtualization for
   the scrollable note list.
 - `desktop/tauri/` — Tauri desktop host and Rust IPC commands for filesystem,
-  scoped config/meta, folder, and asset operations.
+  scoped config/meta/onboarding, folder, and asset operations.
 - `SidebarPanel` (`app/components/SidebarPanel.vue`) — sidebar shell.
   - `SidebarNavigation` (`app/components/SidebarNavigation.vue`) — view-selection
     navigation.
@@ -130,6 +134,9 @@ shape because the app now keeps full note bodies in shared client state.
     - `NoteEditor` — content editing surface (includes an EditorJS `noteTitle`
       block pinned at index 0 for inline title editing and an inline hashtag
       formatting tool).
+- `OnboardingGuide` (`app/components/OnboardingGuide.vue`) — blocking first-run
+  carousel overlay that collects storage, import, and theme choices before the
+  workspace becomes interactive.
 
 ## Bounded contexts
 

@@ -9,9 +9,11 @@ import {
 } from 'vue'
 import NotePanel from '~/components/NotePanel.vue'
 import NotesListPanel from '~/components/NotesListPanel.vue'
+import OnboardingGuide from '~/components/OnboardingGuide.vue'
 import SidebarPanel from '~/components/SidebarPanel.vue'
 import { useAppConfigDisk } from '~/composables/useAppConfigDisk'
 import { useFontLoader } from '~/composables/useFontLoader'
+import { useOnboarding } from '~/composables/useOnboarding'
 import { useAppStartup } from '~/composables/useAppStartup'
 import { useAppTheme } from '~/composables/useAppTheme'
 import { useLayout } from '~/composables/useLayout'
@@ -25,6 +27,7 @@ const MIN_EDITOR_PANEL_WIDTH = 360
 
 const { data: appConfigDisk } = useAppConfigDisk()
 const { startApp } = useAppStartup()
+const { loadOnboarding, onboardingOpen } = useOnboarding()
 const {
   accentColor,
   sidebarBackgroundColor,
@@ -196,7 +199,10 @@ function startResize(target: ResizeTarget, event: PointerEvent): void {
 
 onMounted(() => {
   void ensureSidebarBadgeFontLoaded()
-  void startApp()
+  void (async () => {
+    await startApp()
+    await loadOnboarding()
+  })()
 })
 
 onBeforeUnmount(() => {
@@ -219,7 +225,10 @@ onBeforeUnmount(() => {
   >
     <div
       ref="workspaceShellRef"
-      class="flex h-screen overflow-hidden text-foreground"
+      :class="[
+        'flex h-screen overflow-hidden text-foreground',
+        { 'pointer-events-none select-none': onboardingOpen },
+      ]"
     >
       <SidebarPanel
         v-show="showSidebarPanel"
@@ -265,5 +274,7 @@ onBeforeUnmount(() => {
         <NotePanel />
       </div>
     </div>
+
+    <OnboardingGuide v-if="onboardingOpen" />
   </div>
 </template>

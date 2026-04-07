@@ -1,4 +1,4 @@
-export type PlatformFileScope = 'app-config' | 'meta'
+export type PlatformFileScope = 'app-config' | 'meta' | 'onboarding'
 
 export type PlatformNoteFile = {
   path: string

@@ -43,3 +43,9 @@ pub struct CopyFilesResult {
     pub(crate) files_copied: u32,
     pub(crate) files_skipped: u32,
 }
+
+#[derive(Serialize)]
+pub struct PrepareIcloudVaultResult {
+    pub(crate) status: String,
+    pub(crate) absolute_path: Option<String>,
+}

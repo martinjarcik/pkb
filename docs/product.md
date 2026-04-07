@@ -32,6 +32,12 @@ from the vault root in `NotesListPanel`. Each visible row is derived from the
 loaded in-memory note, including the note title derived from its `id` and the
 modified date.
 
+On the first run, or until setup is completed, the app opens a blocking
+**Onboarding guide** above the workspace shell. It collects the initial Vault
+location, optional import choice, accent color, and sidebar badge emoji. Its
+progress is persisted outside the Vault and resumes on the next launch until
+the final confirmation step is completed.
+
 After notes load, the first note in the Inbox view becomes the active note
 automatically and is highlighted in `NotesListPanel`. Selecting a note reuses
 the already loaded in-memory note object when rendering that note in

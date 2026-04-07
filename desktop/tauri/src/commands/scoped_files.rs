@@ -34,6 +34,7 @@ fn scoped_file_path(handle: &tauri::AppHandle, scope: &str) -> Result<PathBuf, S
     match scope {
         "app-config" => Ok(data_dir.join("app-config.yaml")),
         "meta" => Ok(data_dir.join("meta.yaml")),
+        "onboarding" => Ok(data_dir.join("onboarding.yaml")),
         _ => Err("Invalid file scope".to_string()),
     }
 }
@@ -53,6 +54,7 @@ pub fn read_scoped_text_file(
     let legacy_path = match scope.as_str() {
         "app-config" => legacy_app_config_path(&vault_path)?,
         "meta" => legacy_meta_path(&vault_path)?,
+        "onboarding" => return Ok(None),
         _ => return Err("Invalid file scope".to_string()),
     };
 

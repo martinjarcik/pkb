@@ -95,3 +95,7 @@ Introduce `app/import/` as a problem-domain folder for note import guides. Each 
 ## D030 — 2026-04
 
 Support Notion imports with a generic `read_text_files` Tauri command so the guide can preserve note folders, convert CSV exports to Markdown tables, and flatten asset-only directories into the configured assets folder.
+
+## D031 — 2026-04
+
+Persist first-run onboarding progress and completion as an app-scoped YAML file outside the Vault so the blocking setup guide can resume across launches without depending on note storage contents.

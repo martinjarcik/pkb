@@ -10,6 +10,11 @@ const open = defineModel<boolean>('open', { required: true })
 
 const props = defineProps<{
   plugin: ImportPlugin | null
+  contentClass?: string
+}>()
+
+const emit = defineEmits<{
+  imported: [pluginId: string]
 }>()
 
 const { t } = useTranslations()
@@ -100,6 +105,7 @@ async function handleImport(): Promise<void> {
     )
 
     await Promise.all([loadNotes(), loadVaultFolders()])
+    emit('imported', props.plugin.id)
     open.value = false
   } catch (error) {
     importError.value =
@@ -114,7 +120,7 @@ async function handleImport(): Promise<void> {
   <Dialog v-model:open="open">
     <DialogContent
       v-if="plugin"
-      class="sm:max-w-[540px]"
+      :class="props.contentClass ?? 'sm:max-w-[540px]'"
     >
       <DialogHeader>
         <DialogTitle>{{ plugin.title }}</DialogTitle>

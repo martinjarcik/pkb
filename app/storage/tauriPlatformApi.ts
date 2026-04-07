@@ -15,6 +15,11 @@ type PrepareAssetPathResult = {
   relative_path: string
 }
 
+export type PrepareIcloudVaultResult = {
+  status: 'created' | 'name_conflict'
+  absolute_path?: string
+}
+
 type TauriCoreModule = {
   convertFileSrc: (path: string) => string
   invoke: <T>(command: string, args: Record<string, unknown>) => Promise<T>

@@ -5,7 +5,7 @@ use tauri::Manager;
 use walkdir::WalkDir;
 
 use crate::commands::paths::resolve_root_path;
-use crate::commands::APP_DATA_DIR;
+use crate::commands::{PrepareIcloudVaultResult, APP_DATA_DIR};
 
 fn copy_dir_recursive(src: &Path, dst: &Path) -> Result<(), String> {
     fs::create_dir_all(dst).map_err(|error| error.to_string())?;
@@ -93,4 +93,44 @@ pub fn make_relative_to_vault(vault: String, absolute_path: String) -> Result<St
         .to_str()
         .map(|s| s.replace('\\', "/"))
         .ok_or_else(|| "Invalid path encoding".to_string())
+}
+
+#[tauri::command]
+pub fn prepare_icloud_vault(folder_name: String) -> Result<PrepareIcloudVaultResult, String> {
+    if !cfg!(target_os = "macos") {
+        return Err("iCloud Drive vault creation is only supported on macOS".to_string());
+    }
+
+    let trimmed = folder_name.trim();
+
+    if trimmed.is_empty() {
+        return Err("Folder name must be a non-empty string".to_string());
+    }
+
+    if trimmed.contains('/') || trimmed.contains('\\') {
+        return Err("Folder name cannot contain path separators".to_string());
+    }
+
+    let home_dir = std::env::var("HOME").map_err(|_| "Failed to resolve the home directory".to_string())?;
+    let icloud_root = Path::new(&home_dir).join("Library/Mobile Documents/com~apple~CloudDocs");
+
+    if !icloud_root.exists() {
+        return Err("iCloud Drive is not available on this Mac".to_string());
+    }
+
+    let target_path = icloud_root.join(trimmed);
+
+    if target_path.exists() {
+        return Ok(PrepareIcloudVaultResult {
+            status: "name_conflict".to_string(),
+            absolute_path: None,
+        });
+    }
+
+    fs::create_dir_all(&target_path).map_err(|error| error.to_string())?;
+
+    Ok(PrepareIcloudVaultResult {
+        status: "created".to_string(),
+        absolute_path: target_path.to_str().map(String::from),
+    })
 }

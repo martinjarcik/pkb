@@ -2,7 +2,9 @@ import yaml from 'yaml'
 import { describe, expect, it, vi } from 'vitest'
 import { loadConfig } from '~/config/loader'
 import {
+  readOnboardingPersistence,
   readAppConfigPersistence,
+  writeOnboardingPersistence,
   writeAppConfigPatchPersistence,
 } from '~/config/persistence'
 import type { PlatformApi } from '~/storage/platformApi'
@@ -62,5 +64,41 @@ describe('persistence', () => {
       expect.stringContaining('locale: pl'),
     )
     expect(updated.locale).toBe('pl')
+  })
+
+  it('defaults onboarding state when the scoped file is missing', async () => {
+    const platformApi = createPlatformApiMock()
+
+    vi.mocked(platformApi.readScopedTextFile).mockResolvedValue(undefined)
+
+    const loaded = await readOnboardingPersistence(platformApi)
+
+    expect(platformApi.readScopedTextFile).toHaveBeenCalledWith('onboarding')
+    expect(loaded).toEqual({
+      completed: false,
+      currentSlide: 1,
+    })
+  })
+
+  it('writes onboarding state through the onboarding scope', async () => {
+    const platformApi = createPlatformApiMock()
+
+    vi.mocked(platformApi.writeScopedTextFile).mockResolvedValue({
+      content: '',
+      birthtime: '2026-04-03T10:00:00.000Z',
+      mtime: '2026-04-03T10:00:00.000Z',
+    })
+
+    const updated = await writeOnboardingPersistence(platformApi, {
+      completed: false,
+      currentSlide: 4,
+      selectedImportPluginId: 'notion',
+    })
+
+    expect(platformApi.writeScopedTextFile).toHaveBeenCalledWith(
+      'onboarding',
+      expect.stringContaining('currentSlide: 4'),
+    )
+    expect(updated.selectedImportPluginId).toBe('notion')
   })
 })

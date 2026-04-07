@@ -249,5 +249,56 @@
       "skipped": "skipped",
       "renamed": "renamed"
     }
+  },
+  "onboarding": {
+    "stepLabel": "Setup step",
+    "blocking": "Complete setup to start using the app.",
+    "actions": {
+      "back": "Back",
+      "continue": "Continue",
+      "skip": "Skip for now",
+      "finish": "Start using the app"
+    },
+    "errors": {
+      "storage": "Failed to update storage."
+    },
+    "storage": {
+      "defaultTitle": "Default",
+      "defaultDescription": "Use the app's default local vault location.",
+      "icloudTitle": "iCloud",
+      "icloudDescription": "Create a new folder in iCloud Drive and keep your notes there.",
+      "customTitle": "Custom location",
+      "customDescription": "Choose any folder on your Mac as the vault.",
+      "icloudConflict": "That iCloud folder already exists. Choose a different name.",
+      "icloudFolderLabel": "iCloud folder name",
+      "createIcloudFolder": "Create in iCloud"
+    },
+    "customization": {
+      "accentColor": "Accent color",
+      "favoriteEmoji": "Favorite emoji"
+    },
+    "slides": {
+      "welcome": {
+        "eyebrow": "Welcome",
+        "title": "Let’s get your workspace ready.",
+        "description": "A few quick choices will set up storage, optionally import existing notes, and personalize the app."
+      },
+      "storage": {
+        "title": "Choose where your notes live.",
+        "description": "You can keep the default local vault, create a fresh folder in iCloud Drive, or point the app to a custom location."
+      },
+      "import": {
+        "title": "Import existing notes.",
+        "description": "If you already have notes elsewhere, you can bring them in now. When the import finishes, setup will continue automatically."
+      },
+      "customization": {
+        "title": "Make it feel like yours.",
+        "description": "Pick the accent color and favorite emoji you want to see throughout the app."
+      },
+      "confirmation": {
+        "title": "You are all set.",
+        "description": "Your workspace is ready. You can change any of these choices later from Settings."
+      }
+    }
   }
 }
