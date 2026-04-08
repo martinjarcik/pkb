@@ -1,6 +1,6 @@
 import { nextTick, onBeforeUnmount, onMounted, ref, type Ref } from 'vue'
 import type { ComputedRef } from 'vue'
-import { prepareEditorjsBlocksForEditor } from '~/lib/editorjsBlockBackground'
+import { prepareEditorjsBlocksForEditor } from '~/lib/editorjsBlockTunes'
 import { initEditorjsDragDrop } from '~/lib/editorjsDragDrop'
 import { ImageTool } from '~/lib/editorjsImageTool'
 import {

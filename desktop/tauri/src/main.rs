@@ -7,6 +7,7 @@ fn main() {
         .invoke_handler(tauri::generate_handler![
             commands::bootstrap::init_data_dir,
             commands::bootstrap::resolve_vault,
+            commands::bootstrap::relocate_vault,
             commands::bootstrap::make_relative_to_vault,
             commands::bootstrap::prepare_icloud_vault,
             commands::import::copy_files,

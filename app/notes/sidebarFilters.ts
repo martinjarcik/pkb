@@ -10,9 +10,9 @@ export {
   tagFilterState,
 } from './tagFilterMachine'
 export {
-  allTagsFromCatalog,
+  allTagsFromNotes,
   filterNotesWithTasks,
-  filterCatalogByTags,
+  filterNotesByTags,
   filterCatalogForSidebarView,
   mergeTopLevelFolders,
   orderedCatalogRowsForSidebarView,

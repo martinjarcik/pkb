@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { useSidebarNavigation } from '~/composables/useSidebarNavigation'
 import {
   useEditorLifecycle,
   type EditorjsInstance,
@@ -47,6 +48,7 @@ const holder = ref<HTMLDivElement | null>(null)
 const surface = ref<HTMLDivElement | null>(null)
 const { t } = useTranslations()
 const { platformApi } = useNoteStorage()
+const { selectTag } = useSidebarNavigation()
 const editor = ref<EditorjsInstance | null>(null)
 
 const {
@@ -141,10 +143,103 @@ function handleHolderFocusout(event: FocusEvent): void {
   void commitTitleChange()
 }
 
+function normalizeClickedHashtag(text: string): string {
+  return text.trim().replace(/^#/, '').toLowerCase()
+}
+
+function handleHolderClick(event: MouseEvent): void {
+  if (!(event.target instanceof HTMLElement)) {
+    return
+  }
+
+  const hashtag = event.target.closest<HTMLElement>(`.${InlineHashtagTool.CSS}`)
+
+  if (!hashtag || !holder.value?.contains(hashtag)) {
+    return
+  }
+
+  const tag = normalizeClickedHashtag(hashtag.textContent ?? '')
+
+  if (tag.length === 0) {
+    return
+  }
+
+  void selectTag(tag)
+}
+
+function handleHolderPointerdown(event: PointerEvent): void {
+  if (!(event.target instanceof HTMLElement)) {
+    return
+  }
+
+  const hashtag = event.target.closest<HTMLElement>(`.${InlineHashtagTool.CSS}`)
+
+  if (!hashtag || !holder.value?.contains(hashtag)) {
+    return
+  }
+
+  event.preventDefault()
+  event.stopPropagation()
+}
+
+function findClickedHashtag(target: EventTarget | null): HTMLElement | null {
+  if (!(target instanceof Node)) {
+    return null
+  }
+
+  const element =
+    target instanceof HTMLElement ? target : (target.parentElement ?? null)
+  const hashtag = element?.closest<HTMLElement>(`.${InlineHashtagTool.CSS}`)
+
+  if (!hashtag || !holder.value?.contains(hashtag)) {
+    return null
+  }
+
+  return hashtag
+}
+
+function handleDocumentPointerdown(event: PointerEvent): void {
+  const hashtag = findClickedHashtag(event.target)
+
+  if (!hashtag) {
+    return
+  }
+
+  event.preventDefault()
+  event.stopPropagation()
+}
+
+function handleDocumentClick(event: MouseEvent): void {
+  const hashtag = findClickedHashtag(event.target)
+
+  if (!hashtag) {
+    return
+  }
+
+  event.preventDefault()
+  event.stopPropagation()
+
+  const tag = normalizeClickedHashtag(hashtag.textContent ?? '')
+
+  if (tag.length === 0) {
+    return
+  }
+
+  void selectTag(tag)
+}
+
 onMounted(async () => {
   if (!holder.value) {
     return
   }
+
+  holder.value?.addEventListener('focusout', handleHolderFocusout)
+  holder.value?.addEventListener('pointerdown', handleHolderPointerdown)
+  holder.value?.addEventListener('click', handleHolderClick)
+  holder.value?.addEventListener('keydown', handleHolderKeydown, true)
+  holder.value?.addEventListener('keyup', handleHolderKeyup)
+  document.addEventListener('pointerdown', handleDocumentPointerdown, true)
+  document.addEventListener('click', handleDocumentClick, true)
 
   await editor.value?.isReady
 
@@ -156,9 +251,6 @@ onMounted(async () => {
     highlightCssClass: InlineHighlightTool.CSS,
     onChange: scheduleContentSync,
   })
-  holder.value?.addEventListener('focusout', handleHolderFocusout)
-  holder.value?.addEventListener('keydown', handleHolderKeydown, true)
-  holder.value?.addEventListener('keyup', handleHolderKeyup)
 })
 
 watch(
@@ -201,8 +293,12 @@ defineExpose({
 
 onBeforeUnmount(() => {
   holder.value?.removeEventListener('focusout', handleHolderFocusout)
+  holder.value?.removeEventListener('pointerdown', handleHolderPointerdown)
+  holder.value?.removeEventListener('click', handleHolderClick)
   holder.value?.removeEventListener('keydown', handleHolderKeydown, true)
   holder.value?.removeEventListener('keyup', handleHolderKeyup)
+  document.removeEventListener('pointerdown', handleDocumentPointerdown, true)
+  document.removeEventListener('click', handleDocumentClick, true)
   setBigEmojiChangeHandler(null)
 })
 </script>

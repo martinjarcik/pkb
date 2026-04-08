@@ -567,6 +567,8 @@
     padding: 3px 4px;
     border-radius: 5px;
     margin: 0 1px;
+    cursor: pointer;
+    user-select: none;
     font-family: inherit;
     font-size: 0.86em;
     font-weight: 500;
@@ -982,8 +984,28 @@
   }
 
   .notes-list-item-meta {
+    align-items: center;
     color: hsl(var(--muted-foreground));
+    display: inline-flex;
     font-size: var(--app-font-size-2xs);
+    gap: 0.25rem;
+    line-height: 1;
+  }
+
+  .notes-list-item-meta-icon {
+    flex-shrink: 0;
+    height: 0.625rem;
+    width: 0.625rem;
+  }
+
+  .notes-list-item-meta-icon-emoji {
+    align-items: center;
+    display: inline-flex;
+    font-size: var(--app-font-size-2xs);
+    height: 0.625rem;
+    justify-content: center;
+    line-height: 1;
+    width: 0.625rem;
   }
 }
 .ct {
@@ -993,6 +1015,14 @@
 .ce-toolbar__content,
 .ce-block__content {
   max-width: calc(100% - 50px) !important;
+}
+
+.ce-block__content.block-size-bigger {
+  font-size: 1.25em;
+}
+
+.ce-block__content.block-size-big {
+  font-size: 1.5em;
 }
 
 .folder-emoji-picker {

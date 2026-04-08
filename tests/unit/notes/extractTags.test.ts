@@ -29,4 +29,18 @@ describe('extractTagsFromMarkdown', () => {
   it('strips the hash and lowercases tags', () => {
     expect(extractTagsFromMarkdown('#Engineering')).toEqual(['engineering'])
   })
+
+  it('ignores hashtag-like values inside html tag attributes', () => {
+    expect(
+      extractTagsFromMarkdown(
+        '<span style="color: #e4afa0ff;text-align: left;">Hello</span>',
+      ),
+    ).toEqual([])
+  })
+
+  it('keeps hashtags that appear in visible html text content', () => {
+    expect(extractTagsFromMarkdown('<span>Hello #world</span>')).toEqual([
+      'world',
+    ])
+  })
 })

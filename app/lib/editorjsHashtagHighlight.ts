@@ -27,6 +27,7 @@ function createHashtagFragment(
     const hashtag = document.createElement('span')
 
     hashtag.className = hashtagCssClass
+    hashtag.setAttribute('contenteditable', 'false')
     hashtag.textContent = tag
     fragment.append(hashtag)
     lastIndex = tagStart + tag.length

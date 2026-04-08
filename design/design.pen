@@ -119,14 +119,14 @@
                       "x": 0,
                       "y": 0,
                       "width": "fill_container",
-                      "height": 317997.92944892065,
+                      "height": 670990.7009839265,
                       "descendants": {
                         "ZYZFX": {
-                          "y": 158991.46472446033
+                          "y": 335487.85049196327
                         },
                         "Rv7um": {
                           "x": -39,
-                          "y": 158991.46472446033
+                          "y": 335487.85049196327
                         }
                       }
                     },
@@ -135,17 +135,17 @@
                       "type": "ref",
                       "ref": "XpvfC",
                       "x": 0,
-                      "y": 317997.92944892065,
+                      "y": 670990.7009839265,
                       "width": "fill_container",
-                      "height": 317997.92944892065,
+                      "height": 670990.7009839265,
                       "descendants": {
                         "ZYZFX": {
                           "content": "modifiedAt",
-                          "y": 158991.46472446033
+                          "y": 335487.85049196327
                         },
                         "Rv7um": {
                           "x": -39,
-                          "y": 158991.46472446033
+                          "y": 335487.85049196327
                         }
                       }
                     },
@@ -154,18 +154,18 @@
                       "type": "ref",
                       "ref": "XpvfC",
                       "x": 0,
-                      "y": 635995.8588978413,
+                      "y": 1341981.401967853,
                       "width": "fill_container",
-                      "height": 317997.92944892094,
+                      "height": 670990.7009839272,
                       "descendants": {
                         "ZYZFX": {
                           "content": "favorite",
-                          "y": 158991.46472446047
+                          "y": 335487.8504919636
                         },
                         "Rv7um": {
                           "content": "false",
                           "x": -27,
-                          "y": 158991.46472446047
+                          "y": 335487.8504919636
                         }
                       }
                     },
@@ -174,18 +174,18 @@
                       "type": "ref",
                       "ref": "XpvfC",
                       "x": 0,
-                      "y": 953993.7883467623,
+                      "y": 2012972.1029517804,
                       "width": "fill_container",
-                      "height": 317997.92944892094,
+                      "height": 670990.7009839272,
                       "descendants": {
                         "ZYZFX": {
                           "content": "pinned",
-                          "y": 158991.46472446047
+                          "y": 335487.8504919636
                         },
                         "Rv7um": {
                           "content": "false",
                           "x": -27,
-                          "y": 158991.46472446047
+                          "y": 335487.8504919636
                         }
                       }
                     },
@@ -195,7 +195,7 @@
                       "name": "InspectorPropertyItem",
                       "reusable": true,
                       "width": "fill_container",
-                      "height": 317997.92944892065,
+                      "height": 670990.7009839265,
                       "justifyContent": "space_between",
                       "alignItems": "center",
                       "children": [
@@ -226,14 +226,14 @@
                       "id": "Xn4l2",
                       "name": "spacer",
                       "width": "fill_container",
-                      "height": 546986.5783455514
+                      "height": 1154167.601873757
                     },
                     {
                       "type": "frame",
                       "id": "KkocO",
                       "name": "addBtn",
                       "width": "fill_container",
-                      "height": 546986.5783455519,
+                      "height": 1154167.6018737582,
                       "cornerRadius": 6,
                       "stroke": {
                         "thickness": 1,
@@ -400,8 +400,8 @@
             {
               "type": "group",
               "id": "dIaTl",
-              "x": 11080.145376274973,
-              "y": 0,
+              "x": 11334.145376274973,
+              "y": 4.000000000000025,
               "name": "NoteControls",
               "children": [
                 {
@@ -2168,6 +2168,21 @@
           "iconFontName": "pin",
           "iconFontFamily": "lucide",
           "fill": "#3f57dfff"
+        },
+        {
+          "type": "text",
+          "id": "4Dxcf",
+          "x": 82.28216371199201,
+          "y": 742,
+          "rotation": -36.45340509426309,
+          "fill": "#00000024",
+          "textGrowth": "fixed-width-height",
+          "width": 211,
+          "height": 226,
+          "content": "🦄",
+          "fontFamily": "Inder",
+          "fontSize": 183,
+          "fontWeight": "normal"
         }
       ]
     }

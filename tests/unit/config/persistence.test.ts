@@ -12,6 +12,7 @@ import type { PlatformApi } from '~/storage/platformApi'
 function createPlatformApiMock(): PlatformApi {
   return {
     readAllNotes: vi.fn(),
+    relocateVault: vi.fn(),
     writeTextFile: vi.fn(),
     deleteTextFile: vi.fn(),
     renameTextFile: vi.fn(),

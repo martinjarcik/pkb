@@ -1,3 +1,5 @@
+import { BLOCK_SIZE_TUNE_NAME } from './editorjsBlockSize'
+import EditorjsBlockSizeTune from './editorjsBlockSizeTune'
 import { BLOCK_BACKGROUND_TUNE_NAME } from './editorjsBlockBackground'
 import EditorjsBlockBackgroundTune from './editorjsBlockBackgroundTune'
 import BigEmojiTool from './bigEmojiTool'
@@ -34,7 +36,8 @@ export const inlineToolbarTools = [
   'inlineHighlight',
 ]
 
-export const blockTuneTools = [BLOCK_BACKGROUND_TUNE_NAME]
+export const blockTuneTools = [BLOCK_SIZE_TUNE_NAME, BLOCK_BACKGROUND_TUNE_NAME]
+const headingTuneTools = [BLOCK_BACKGROUND_TUNE_NAME]
 
 export const editorI18n = {
   messages: editorMessages,
@@ -52,12 +55,16 @@ export function createEditorToolsConfig({
   uploadByFile,
 }: CreateEditorToolsConfigArgs): Record<string, unknown> {
   return {
+    [BLOCK_SIZE_TUNE_NAME]: {
+      class: EditorjsBlockSizeTune,
+    },
     [BLOCK_BACKGROUND_TUNE_NAME]: {
       class: EditorjsBlockBackgroundTune,
     },
     noteTitle: {
       class: NoteTitleTool,
       inlineToolbar: false,
+      tunes: blockTuneTools,
       config: {
         ariaLabel: translate('noteTitle.ariaLabel'),
         placeholder: translate('noteTitle.placeholder'),
@@ -73,7 +80,7 @@ export function createEditorToolsConfig({
     header: {
       class: Header,
       inlineToolbar: inlineToolbarTools,
-      tunes: blockTuneTools,
+      tunes: headingTuneTools,
       toolbox: [
         {
           icon: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24" rtrvr-ls="0~hs"><path stroke="currentColor" stroke-linecap="round" stroke-width="2" d="M6 7L6 12M6 17L6 12M6 12L12 12M12 7V12M12 17L12 12"></path><path stroke="currentColor" stroke-linecap="round" stroke-width="2" d="M19 17V10.2135C19 10.1287 18.9011 10.0824 18.836 10.1367L16 12.5"></path></svg>',

@@ -13,6 +13,7 @@ defineProps<{
 
 const emit = defineEmits<{
   chooseVault: []
+  moveVault: []
   chooseAssetsFolder: []
   startImport: [plugin: ImportPlugin]
 }>()
@@ -48,6 +49,28 @@ const importPlugins = [appleNotesPlugin, appleNotesExporterPlugin, notionPlugin]
       <p class="text-sm text-muted-foreground">
         {{ t('settings.fields.vault.description') }}
       </p>
+      <div class="rounded-lg border border-border/70 bg-muted/40 p-4">
+        <div
+          class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"
+        >
+          <div class="space-y-1">
+            <p class="text-sm font-medium">
+              {{ t('settings.fields.moveVault.label') }}
+            </p>
+            <p class="text-sm text-muted-foreground">
+              {{ t('settings.fields.moveVault.description') }}
+            </p>
+          </div>
+          <Button
+            type="button"
+            variant="outline"
+            :disabled="isSaving"
+            @click="$emit('moveVault')"
+          >
+            {{ t('settings.actions.moveVault') }}
+          </Button>
+        </div>
+      </div>
     </div>
 
     <div class="space-y-2">

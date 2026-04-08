@@ -1,14 +1,20 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { ref } from 'vue'
 import { useSidebarNavigation } from '~/composables/useSidebarNavigation'
+import type { Note, NoteCatalogRow } from '~/notes/types'
 
-const { storageMock } = vi.hoisted(() => ({
-  storageMock: {
-    createFolder: vi.fn(),
-    renameFolder: vi.fn().mockResolvedValue(undefined),
-    loadFolderNames: vi.fn().mockResolvedValue([]),
-  },
-}))
+const { storageMock, notesRef, allNotesRef, selectNoteByIdMock } = vi.hoisted(
+  () => ({
+    storageMock: {
+      createFolder: vi.fn(),
+      renameFolder: vi.fn().mockResolvedValue(undefined),
+      loadFolderNames: vi.fn().mockResolvedValue([]),
+    },
+    notesRef: { value: [] as NoteCatalogRow[] },
+    allNotesRef: { value: [] as Note[] },
+    selectNoteByIdMock: vi.fn(),
+  }),
+)
 
 const vaultFolders = [
   'Keep',
@@ -25,8 +31,8 @@ vi.mock('~/composables/useTranslations', () => ({
 
 vi.mock('~/composables/useNoteCatalog', () => ({
   useNoteCatalog: () => ({
-    notes: ref([]),
-    allNotes: ref([]),
+    notes: notesRef,
+    allNotes: allNotesRef,
     findNoteById: vi.fn(),
   }),
 }))
@@ -34,7 +40,7 @@ vi.mock('~/composables/useNoteCatalog', () => ({
 vi.mock('~/composables/useNoteSelection', () => ({
   useNoteSelection: () => ({
     selectedNoteId: ref<string | null>(null),
-    selectNoteById: vi.fn(),
+    selectNoteById: selectNoteByIdMock,
   }),
 }))
 
@@ -62,6 +68,9 @@ describe('useSidebarNavigation', () => {
   beforeEach(async () => {
     vi.mocked(storageMock.renameFolder).mockReset().mockResolvedValue(undefined)
     vi.mocked(storageMock.loadFolderNames).mockReset().mockResolvedValue([])
+    vi.mocked(selectNoteByIdMock).mockReset()
+    notesRef.value = []
+    allNotesRef.value = []
 
     const sidebar = useSidebarNavigation()
     sidebar.selectedView.value = { kind: 'inbox' }
@@ -114,6 +123,29 @@ describe('useSidebarNavigation', () => {
     expect(selectedView.value).toEqual({
       kind: 'folder',
       folderPath: 'Clients/Work',
+    })
+  })
+
+  it('switches to a single selected tag view when selecting a tag directly', async () => {
+    const { selectTag, selectedView } = useSidebarNavigation()
+
+    allNotesRef.value = [
+      {
+        id: 'engineering.md',
+        content: '#engineering',
+        createdAt: '2026-03-20T00:00:00.000Z',
+        modifiedAt: '2026-03-20T00:00:00.000Z',
+        title: 'engineering',
+        description: '',
+      },
+    ]
+
+    await selectTag('engineering')
+
+    expect(selectedView.value).toEqual({
+      kind: 'tags',
+      selectedTags: ['engineering'],
+      excludedTags: [],
     })
   })
 })

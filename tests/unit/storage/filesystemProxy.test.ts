@@ -18,6 +18,7 @@ function createTestNote(overrides: Partial<Note> = {}): Note {
 function createPlatformApiMock(): PlatformApi {
   return {
     readAllNotes: vi.fn().mockResolvedValue([]),
+    relocateVault: vi.fn().mockResolvedValue(undefined),
     writeTextFile: vi.fn().mockResolvedValue({
       content: '',
       birthtime: '2026-04-01T00:00:00.000Z',

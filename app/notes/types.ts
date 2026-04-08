@@ -7,6 +7,8 @@ export const NOTE_SYSTEM_PROPERTY_KEYS = [
   'description',
 ] as const
 
+export const NOTE_OBSOLETE_PROPERTY_KEYS = ['tags'] as const
+
 export const APPLICATION_PROPERTY_KEYS = [
   'trashedAt',
   'favorite',
@@ -31,7 +33,6 @@ type NoteFields = {
   modifiedAt: string
   title: string
   description: string
-  tags?: string[]
   trashedAt?: string
   favorite?: boolean
   pinned?: boolean

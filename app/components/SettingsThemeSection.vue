@@ -39,6 +39,10 @@ const typefaceOptions: TypographyOption[] = [
     value: '"Inter", system-ui, -apple-system, BlinkMacSystemFont, sans-serif',
   },
   {
+    label: 'Rubik',
+    value: '"Rubik", "Avenir Next", "Helvetica Neue", sans-serif',
+  },
+  {
     label: 'Lora',
     value: '"Lora", Georgia, "Times New Roman", serif',
   },

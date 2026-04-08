@@ -20,6 +20,7 @@ export type PlatformAssetUploadResult = {
 
 export type PlatformApi = {
   readAllNotes(dir: string): Promise<PlatformNoteFile[]>
+  relocateVault(targetDir: string): Promise<void>
   writeTextFile(
     dir: string,
     path: string,

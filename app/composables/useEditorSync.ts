@@ -3,7 +3,7 @@ import { editorjsBlocksToMarkdown } from '~/lib/blocksToMarkdown'
 import {
   normalizeSavedEditorjsBlocks,
   prepareEditorjsBlocksForEditor,
-} from '~/lib/editorjsBlockBackground'
+} from '~/lib/editorjsBlockTunes'
 import { renderNoteTitleBlocks } from '~/lib/editorjsTitleBlock'
 import { markdownToEditorjsBlocks } from '~/lib/markdownToBlocks'
 import type { EditorjsBlock } from '~/lib/editorjsMarkdownTypes'

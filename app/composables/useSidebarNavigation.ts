@@ -7,13 +7,15 @@ import { useNoteStorage } from '~/composables/useNoteStorage'
 import { t } from '~/composables/useTranslations'
 import { filterOrderedCatalogRowsByIds, searchNotes } from '~/notes/noteSearch'
 import { sanitizeNoteTitleForFilename } from '~/notes/noteId'
+import { catalogRowIsTrashed } from '~/notes/trash'
 import {
   buildFolderTree,
   parentFolderPath,
   type FolderTreeNode,
 } from '~/notes/folderTree'
 import {
-  allTagsFromCatalog,
+  allTagsFromNotes,
+  filterNotesByTags,
   filterNotesWithTasks,
   mergeTopLevelFolders,
   orderedCatalogRowsForSidebarView,
@@ -55,6 +57,16 @@ function resolveVisibleCatalogRows(
 
   if (view.kind === 'tasks') {
     return sortCatalogRowsPinnedFirstByModifiedAt(filterNotesWithTasks(notes))
+  }
+
+  if (view.kind === 'tags') {
+    return sortCatalogRowsPinnedFirstByModifiedAt(
+      filterNotesByTags(
+        notes.filter((note) => !catalogRowIsTrashed(note)),
+        view.selectedTags,
+        view.excludedTags,
+      ),
+    )
   }
 
   return orderedCatalogRowsForSidebarView(rows, view)
@@ -176,7 +188,7 @@ export function useSidebarNavigation() {
   const folderTree = computed<FolderTreeNode[]>(() =>
     buildFolderTree(allFolderPaths.value),
   )
-  const allTags = computed(() => allTagsFromCatalog(notes.value))
+  const allTags = computed(() => allTagsFromNotes(allNotes.value))
   const selectedTags = computed(() => activeTagsFromView(selectedView.value))
   const tagFilterState = (tag: string): TagFilterState =>
     resolveTagFilterState(selectedView.value, tag)
@@ -273,6 +285,14 @@ export function useSidebarNavigation() {
     }
 
     await selectView(nextView)
+  }
+
+  async function selectTag(tag: string): Promise<void> {
+    await selectView({
+      kind: 'tags',
+      selectedTags: [tag],
+      excludedTags: [],
+    })
   }
 
   async function updateSearchInput(nextValue: string): Promise<void> {
@@ -453,6 +473,7 @@ export function useSidebarNavigation() {
     createFolder,
     renameFolder,
     cycleTag,
+    selectTag,
   }
 }
 

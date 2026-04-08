@@ -5,6 +5,8 @@ import {
   useAppConfigDisk,
   type AppConfig,
 } from '~/composables/useAppConfigDisk'
+import { useNoteSelection } from '~/composables/useNoteSelection'
+import { useNoteStorage } from '~/composables/useNoteStorage'
 import { useAppStartup } from '~/composables/useAppStartup'
 import { useLayout } from '~/composables/useLayout'
 import { useSettings, type SettingsCategory } from '~/composables/useSettings'
@@ -16,6 +18,8 @@ const { t } = useTranslations()
 const { data: appConfigDisk, saveAppConfigPatch } = useAppConfigDisk()
 const { activeCategory, settingsOpen } = useSettings()
 const { syncLayoutFromConfig } = useLayout()
+const { editorFlush } = useNoteSelection()
+const { platformApi } = useNoteStorage()
 const { startApp } = useAppStartup()
 const emit = defineEmits<{
   startImport: [plugin: ImportPlugin]
@@ -100,6 +104,10 @@ async function savePatch(
   }
 }
 
+async function flushPendingEditorChanges(): Promise<void> {
+  await editorFlush.value?.()
+}
+
 async function openDirectoryDialog(
   defaultPath?: string,
 ): Promise<string | null> {
@@ -136,7 +144,43 @@ async function chooseVaultDirectory(): Promise<void> {
     return
   }
 
+  await flushPendingEditorChanges()
   await savePatch({ vault: nextVault }, { restartApp: true })
+}
+
+async function moveVaultDirectory(): Promise<void> {
+  const defaultPath = await resolveAbsoluteVaultPath(appConfigDisk.value.vault)
+  const selectedDirectory = await openDirectoryDialog(defaultPath)
+
+  if (!selectedDirectory) {
+    return
+  }
+
+  const nextVault = selectedDirectory.trim()
+
+  if (nextVault.length === 0 || nextVault === appConfigDisk.value.vault) {
+    vaultDraft.value = appConfigDisk.value.vault
+    return
+  }
+
+  saveError.value = null
+  isSaving.value = true
+
+  try {
+    await flushPendingEditorChanges()
+    await platformApi.value.relocateVault(nextVault)
+    const updated = await saveAppConfigPatch({ vault: nextVault })
+
+    syncLayoutFromConfig(updated.layout)
+    syncDrafts(updated)
+    await startApp()
+  } catch (error) {
+    saveError.value =
+      error instanceof Error ? error.message : t('settings.errors.saveFailed')
+    syncDrafts(appConfigDisk.value)
+  } finally {
+    isSaving.value = false
+  }
 }
 
 async function makeRelativeToVault(
@@ -467,6 +511,7 @@ function handleStartImport(plugin: ImportPlugin): void {
             :vault-draft="vaultDraft"
             :assets-folder-draft="assetsFolderDraft"
             @choose-vault="void chooseVaultDirectory()"
+            @move-vault="void moveVaultDirectory()"
             @choose-assets-folder="void chooseAssetsFolderDirectory()"
             @start-import="handleStartImport"
           />

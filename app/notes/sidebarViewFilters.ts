@@ -1,3 +1,4 @@
+import { extractTagsFromMarkdown } from './extractTags'
 import { isDirectChildOfFolder, isVaultRootNote } from './noteFilters'
 import { catalogRowIsTrashed } from './trash'
 import type { Note, NoteCatalogRow } from './types'
@@ -5,12 +6,8 @@ import type { SidebarWorkspaceView } from './sidebarViewTypes'
 
 const UNCHECKED_TASK_ITEM = /^\s*[-*+]\s+\[ \]\s+/mu
 
-function rowTags(row: NoteCatalogRow): string[] {
-  if (!Array.isArray(row.tags)) {
-    return []
-  }
-
-  return row.tags.filter((tag): tag is string => typeof tag === 'string')
+function noteTags(note: Note): string[] {
+  return extractTagsFromMarkdown(note.content)
 }
 
 function noteHasTasks(note: Note): boolean {
@@ -22,27 +19,29 @@ function projectCatalogRow(note: Note): NoteCatalogRow {
   return row
 }
 
-export function allTagsFromCatalog(rows: readonly NoteCatalogRow[]): string[] {
-  return [...new Set(rows.flatMap((row) => rowTags(row)))].sort((left, right) =>
-    left.localeCompare(right),
+export function allTagsFromNotes(notes: readonly Note[]): string[] {
+  return [...new Set(notes.flatMap((note) => noteTags(note)))].sort(
+    (left, right) => left.localeCompare(right),
   )
 }
 
-export function filterCatalogByTags(
-  rows: readonly NoteCatalogRow[],
+export function filterNotesByTags(
+  notes: readonly Note[],
   selectedTags: readonly string[],
   excludedTags: readonly string[],
 ): readonly NoteCatalogRow[] {
   if (selectedTags.length === 0 && excludedTags.length === 0) {
-    return rows
+    return notes.map(projectCatalogRow)
   }
 
-  return rows.filter((row) => {
-    const tags = new Set(rowTags(row))
-    const hasAllSelected = selectedTags.every((tag) => tags.has(tag))
-    const hasNoExcluded = excludedTags.every((tag) => !tags.has(tag))
-    return hasAllSelected && hasNoExcluded
-  })
+  return notes
+    .filter((note) => {
+      const tags = new Set(noteTags(note))
+      const hasAllSelected = selectedTags.every((tag) => tags.has(tag))
+      const hasNoExcluded = excludedTags.every((tag) => !tags.has(tag))
+      return hasAllSelected && hasNoExcluded
+    })
+    .map(projectCatalogRow)
 }
 
 export function filterNotesWithTasks(
@@ -77,11 +76,7 @@ export function filterCatalogForSidebarView(
   }
 
   if (view.kind === 'tags') {
-    return filterCatalogByTags(
-      rows.filter((row) => !catalogRowIsTrashed(row)),
-      view.selectedTags,
-      view.excludedTags,
-    )
+    return rows.filter((row) => !catalogRowIsTrashed(row))
   }
 
   if (view.kind === 'tasks') {

@@ -6,6 +6,7 @@ describe('getPlatformApi', () => {
     const platformApi = getPlatformApi('filesystem', '/vault', 'assets')
 
     expect(typeof platformApi.readAllNotes).toBe('function')
+    expect(typeof platformApi.relocateVault).toBe('function')
     expect(typeof platformApi.ensureReady).toBe('function')
     expect(typeof platformApi.assetUrl).toBe('function')
   })

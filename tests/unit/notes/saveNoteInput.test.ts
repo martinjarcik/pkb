@@ -19,13 +19,11 @@ describe('buildSaveNoteInput', () => {
     expect(buildSaveNoteInput(note, '# Updated')).toEqual({
       id: 'notes/example.md',
       content: '# Updated',
-      properties: {
-        tags: [],
-      },
+      properties: {},
     })
   })
 
-  it('preserves user-defined properties', () => {
+  it('preserves user-defined properties except obsolete tags', () => {
     const note = {
       id: 'notes/example.md',
       title: 'example',
@@ -43,7 +41,6 @@ describe('buildSaveNoteInput', () => {
       id: 'notes/example.md',
       content: '# Updated',
       properties: {
-        tags: ['autosave', 'fixture'],
         meta: {
           nested: true,
         },
@@ -51,7 +48,7 @@ describe('buildSaveNoteInput', () => {
     })
   })
 
-  it('includes extracted tags from the saved content', () => {
+  it('does not save extracted tags from the content', () => {
     const note = {
       id: 'notes/example.md',
       title: 'example',
@@ -64,18 +61,17 @@ describe('buildSaveNoteInput', () => {
     expect(buildSaveNoteInput(note, '#idea #engineering')).toEqual({
       id: 'notes/example.md',
       content: '#idea #engineering',
-      properties: {
-        tags: ['engineering', 'idea'],
-      },
+      properties: {},
     })
   })
 
-  it('merges existing tags with content-extracted tags', () => {
+  it('drops obsolete tag properties while preserving other properties', () => {
     const note = {
       id: 'notes/example.md',
       title: 'example',
       description: '',
       tags: ['cooking', 'recipes'],
+      favorite: true,
       content: '',
       createdAt: '2026-03-25T08:00:00.000Z',
       modifiedAt: '2026-03-25T08:00:00.000Z',
@@ -85,7 +81,7 @@ describe('buildSaveNoteInput', () => {
       id: 'notes/example.md',
       content: '#idea #cooking',
       properties: {
-        tags: ['cooking', 'idea', 'recipes'],
+        favorite: true,
       },
     })
   })
@@ -107,7 +103,7 @@ describe('buildSaveNoteInput', () => {
 })
 
 describe('normalizeSaveProperties', () => {
-  it('sanitizes system properties and recomputes canonical save fields', () => {
+  it('sanitizes system properties and drops obsolete tags', () => {
     expect(
       normalizeSaveProperties(
         {
@@ -124,11 +120,21 @@ describe('normalizeSaveProperties', () => {
         '#idea\n- [ ] buy groceries',
       ),
     ).toEqual({
-      tags: ['existing', 'idea'],
       favorite: true,
       meta: {
         nested: true,
       },
     })
+  })
+
+  it('drops obsolete tags during normalization', () => {
+    expect(
+      normalizeSaveProperties(
+        {
+          tags: ['existing', 'e4afa0ff;text-align:'],
+        },
+        '#idea',
+      ),
+    ).toEqual({})
   })
 })

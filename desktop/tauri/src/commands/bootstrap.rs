@@ -32,6 +32,55 @@ fn copy_dir_recursive(src: &Path, dst: &Path) -> Result<(), String> {
     Ok(())
 }
 
+fn copy_dir_contents(src: &Path, dst: &Path) -> Result<(), String> {
+    fs::create_dir_all(dst).map_err(|error| error.to_string())?;
+
+    for entry in WalkDir::new(src).into_iter().filter_map(Result::ok) {
+        let path = entry.path();
+
+        if path == src {
+            continue;
+        }
+
+        let relative = path
+            .strip_prefix(src)
+            .map_err(|error| error.to_string())?;
+        let target = dst.join(relative);
+
+        if entry.file_type().is_dir() {
+            fs::create_dir_all(&target).map_err(|error| error.to_string())?;
+            continue;
+        }
+
+        if let Some(parent) = target.parent() {
+            fs::create_dir_all(parent).map_err(|error| error.to_string())?;
+        }
+
+        fs::copy(path, &target).map_err(|error| error.to_string())?;
+    }
+
+    Ok(())
+}
+
+fn remove_dir_contents(dir: &Path) -> Result<(), String> {
+    if !dir.exists() {
+        return Ok(());
+    }
+
+    for entry in fs::read_dir(dir).map_err(|error| error.to_string())? {
+        let path = entry.map_err(|error| error.to_string())?.path();
+
+        if path.is_dir() {
+            fs::remove_dir_all(path).map_err(|error| error.to_string())?;
+            continue;
+        }
+
+        fs::remove_file(path).map_err(|error| error.to_string())?;
+    }
+
+    Ok(())
+}
+
 #[tauri::command]
 pub fn init_data_dir(handle: tauri::AppHandle) -> Result<String, String> {
     let data_dir = handle
@@ -78,6 +127,44 @@ pub fn resolve_vault(dir: String) -> Result<String, String> {
         .to_str()
         .map(String::from)
         .ok_or_else(|| "Invalid path encoding".to_string())
+}
+
+#[tauri::command]
+pub fn relocate_vault(source_dir: String, target_dir: String) -> Result<(), String> {
+    let source_root = resolve_root_path(&source_dir);
+    let target_root = resolve_root_path(&target_dir);
+    let source_canonical = source_root.canonicalize().unwrap_or(source_root.clone());
+    let target_canonical = target_root.canonicalize().unwrap_or(target_root.clone());
+
+    if source_canonical == target_canonical {
+        return Ok(());
+    }
+
+    if target_canonical.starts_with(&source_canonical) {
+        return Err("Selected directory cannot be inside the current vault".to_string());
+    }
+
+    if source_canonical.starts_with(&target_canonical) {
+        return Err("Selected directory cannot contain the current vault".to_string());
+    }
+
+    if !source_root.exists() {
+        fs::create_dir_all(&target_root).map_err(|error| error.to_string())?;
+        return Ok(());
+    }
+
+    if !source_root.is_dir() {
+        return Err("Current vault path is not a directory".to_string());
+    }
+
+    if target_root.exists() && !target_root.is_dir() {
+        return Err("Selected path is not a directory".to_string());
+    }
+
+    copy_dir_contents(&source_root, &target_root)?;
+    remove_dir_contents(&source_root)?;
+
+    Ok(())
 }
 
 #[tauri::command]

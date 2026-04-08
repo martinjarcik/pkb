@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { Pin } from 'lucide-vue-next'
+import { Calendar, Folder, Pin } from 'lucide-vue-next'
 import { computed, onBeforeUnmount, ref } from 'vue'
+import { useFolderMeta } from '~/composables/useFolderMeta'
 import { useNotes } from '~/composables/useNotes'
 import { useNotesListArrowNavigation } from '~/composables/useNotesListArrowNavigation'
 import { useSidebarNavigation } from '~/composables/useSidebarNavigation'
@@ -12,6 +13,7 @@ type NotesListItem = {
   title: string
   description: string
   meta: string
+  metaKind: 'date' | 'folder'
   pinned: boolean
 }
 
@@ -36,20 +38,28 @@ const DRAG_THRESHOLD_PX = 6
 const DROP_TARGET_ACTIVE_CLASS = 'app-note-drop-target-active'
 
 const { t } = useTranslations()
+const { folderIcon } = useFolderMeta()
 
-function toListItem(row: NotesListRow): NotesListItem {
+function noteFolderPath(noteId: string): string {
+  const slash = noteId.lastIndexOf('/')
+
+  return slash === -1 ? '' : noteId.slice(0, slash)
+}
+
+function toListItem(row: NotesListRow, showFolderPath: boolean): NotesListItem {
   return {
     id: row.id,
     title: row.title,
     description: row.description,
-    meta: row.modifiedAt.slice(0, 10),
+    meta: showFolderPath ? noteFolderPath(row.id) : row.modifiedAt.slice(0, 10),
+    metaKind: showFolderPath ? 'folder' : 'date',
     pinned: row.pinned === true,
   }
 }
 
 const { isLoading, loadError, selectedNoteId, selectNoteById, moveNote } =
   useNotes()
-const { visibleCatalogRows } = useSidebarNavigation()
+const { selectedView, visibleCatalogRows } = useSidebarNavigation()
 
 const pointerDrag = ref<PointerDragState | null>(null)
 const suppressNextClickNoteId = ref<string | null>(null)
@@ -148,7 +158,12 @@ function clearPointerDragUi(): void {
   document.body.style.userSelect = ''
 }
 
-const listItems = computed(() => visibleCatalogRows.value.map(toListItem))
+const listItems = computed(() => {
+  const showFolderPath =
+    selectedView.value.kind === 'search' || selectedView.value.kind === 'tags'
+
+  return visibleCatalogRows.value.map((row) => toListItem(row, showFolderPath))
+})
 const {
   listViewport,
   totalHeight,
@@ -390,7 +405,33 @@ function getVirtualRowStyle(offset: number): Record<string, string> {
             {{ row.item.description }}
           </p>
           <p class="notes-list-item-meta">
-            {{ row.item.meta }}
+            <template
+              v-if="row.item.metaKind === 'folder' && row.item.meta.length > 0"
+            >
+              <span
+                v-if="typeof folderIcon(row.item.meta) === 'string'"
+                class="notes-list-item-meta-icon notes-list-item-meta-icon-emoji"
+                aria-hidden="true"
+              >{{ folderIcon(row.item.meta) }}</span>
+              <Folder
+                v-else
+                :size="10"
+                class="notes-list-item-meta-icon"
+                aria-hidden="true"
+              />
+              <span>{{ row.item.meta }}</span>
+            </template>
+            <template v-else-if="row.item.metaKind === 'date'">
+              <Calendar
+                :size="10"
+                class="notes-list-item-meta-icon"
+                aria-hidden="true"
+              />
+              <span>{{ row.item.meta }}</span>
+            </template>
+            <template v-else>
+              {{ row.item.meta }}
+            </template>
           </p>
         </div>
       </button>

@@ -18,11 +18,11 @@ describe('serializeDocument', () => {
       serializeDocument(
         {
           favorite: true,
-          tags: ['cooking'],
+          category: 'cooking',
         },
         '# Hello',
       ),
-    ).toBe('---\ntags:\n  - cooking\napp:\n  favorite: true\n---\n# Hello')
+    ).toBe('---\ncategory: cooking\napp:\n  favorite: true\n---\n# Hello')
   })
 
   it('nests trashedAt under app with other application properties', () => {
@@ -51,9 +51,9 @@ describe('parseDocument', () => {
   })
 
   it('returns top-level properties unchanged when app key is missing', () => {
-    expect(parseDocument('---\ntags:\n  - cooking\n---\n# Hello')).toEqual({
+    expect(parseDocument('---\ncategory: cooking\n---\n# Hello')).toEqual({
       properties: {
-        tags: ['cooking'],
+        category: 'cooking',
       },
       content: '# Hello',
     })
@@ -66,7 +66,7 @@ describe('parseDocument', () => {
         meta: {
           nested: true,
         },
-        tags: ['cooking'],
+        category: 'cooking',
       },
       '# Hello',
     )
@@ -77,8 +77,15 @@ describe('parseDocument', () => {
         meta: {
           nested: true,
         },
-        tags: ['cooking'],
+        category: 'cooking',
       },
+      content: '# Hello',
+    })
+  })
+
+  it('drops obsolete tags when parsing old frontmatter', () => {
+    expect(parseDocument('---\ntags:\n  - cooking\n---\n# Hello')).toEqual({
+      properties: {},
       content: '# Hello',
     })
   })

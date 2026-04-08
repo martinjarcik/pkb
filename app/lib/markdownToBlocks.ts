@@ -172,7 +172,7 @@ function wrapHashtagsForEditorHtml(text: string): string {
   return text.replace(
     createHashtagPattern(),
     (_match, leadingWhitespace, hashtag) =>
-      `${leadingWhitespace}<span class="inline-hashtag">${hashtag}</span>`,
+      `${leadingWhitespace}<span class="inline-hashtag" contenteditable="false">${hashtag}</span>`,
   )
 }
 

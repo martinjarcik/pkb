@@ -29,6 +29,7 @@ export default class InlineHashtagTool {
     return {
       span: {
         class: InlineHashtagTool.CSS,
+        contenteditable: 'false',
       },
     }
   }
@@ -90,6 +91,7 @@ export default class InlineHashtagTool {
     const span = document.createElement(this.tagName)
 
     span.classList.add(InlineHashtagTool.CSS)
+    span.setAttribute('contenteditable', 'false')
     span.appendChild(range.extractContents())
     range.insertNode(span)
     this.api.selection.expandToTag(span)

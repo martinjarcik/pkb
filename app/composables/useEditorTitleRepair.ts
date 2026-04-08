@@ -7,7 +7,7 @@ import {
 import {
   normalizeSavedEditorjsBlocks,
   prepareEditorjsBlocksForEditor,
-} from '~/lib/editorjsBlockBackground'
+} from '~/lib/editorjsBlockTunes'
 import type { EditorjsBlock } from '~/lib/editorjsMarkdownTypes'
 
 type EditorjsInstance = {

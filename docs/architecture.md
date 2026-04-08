@@ -26,9 +26,9 @@ five parts:
   serialized under the `app` namespace key in YAML frontmatter (see D009).
 - **Properties** — user-defined data, unique per note. In memory these live as
   top-level note fields; values may be scalars, arrays, or nested objects. On
-  disk they are serialized as top-level YAML frontmatter keys. The `tags`
-  property is derived from inline hashtags in Content, but persisted here as a
-  top-level user Property.
+  disk they are serialized as top-level YAML frontmatter keys. Inline hashtags
+  in Content are not persisted as a property; tag views derive them from loaded
+  note Content in memory.
 - **Content** — rich text stored in the `content` field (Markdown with Liquid
   templating tags).
 
@@ -169,9 +169,8 @@ those rules.
 - `NoteEditor` uses Editor.js as the client-side editing surface.
 - Markdown remains the canonical Content format; the UI converts between
   Markdown and Editor.js blocks in the browser.
-- On save, the app extracts inline hashtags from Markdown Content and persists
-  them as the top-level `tags` Property while keeping the visible Content text
-  unchanged.
+- On save, the app preserves inline hashtags directly in Markdown Content.
+  Tag-derived sidebar state is recomputed from loaded note Content in memory.
 - Templates wrap content to provide rendered page context. Liquid and layout
   code lives outside the editor. Templates are not edited inline.
 - Note metadata is edited through focused controls and dialogs rather than an
@@ -206,8 +205,9 @@ those rules.
   item (`- [ ]`), while folder views filter to notes that are direct children
   of the selected folder path (which can be a top-level or nested vault
   folder). The sidebar renders folders as an expandable tree; each node can be
-  expanded to reveal subfolders. Tag views filter across the whole catalog to
-  notes whose `tags` Property contains all active and pinned Tags (AND logic).
+  expanded to reveal subfolders. Tag views filter across the whole catalog by
+  scanning loaded note Content for inline hashtags and matching all active and
+  pinned Tags (AND logic).
   Each Tag has a tri-state filter cycle
   (idle -> active -> pinned -> idle): at most one Tag can be active; pinned
   Tags survive further clicks. For any sidebar view, the visible notes list
@@ -257,9 +257,10 @@ those rules.
 - Folder sidebar views narrow the broad note set to notes that are direct
   children of the selected folder path (e.g. `Work/Archive/plan.md` matches
   the `Work/Archive` folder view but not the `Work` folder view).
-- Tag sidebar views narrow the broad note set to notes whose `tags` Property
-  contains every active or pinned Tag. Tags cycle through idle, active, and
-  pinned states on click. Switching to Inbox or a folder clears all tag states.
+- Tag sidebar views narrow the broad note set to notes whose loaded Content
+  contains every active or pinned inline hashtag. Tags cycle through idle,
+  active, and pinned states on click. Switching to Inbox or a folder clears all
+  tag states.
 - Property mutation is an in-memory concern. Persistence is a separate
   cross-cutting concern and should not be part of an individual feature spec
   unless the feature introduces new persistence behavior.
@@ -277,7 +278,6 @@ those rules.
   ---
   app:
     favorite: true
-  tags: [cooking]
   rating: 5
   ---
   Note content here.

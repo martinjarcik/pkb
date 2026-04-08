@@ -53,6 +53,22 @@ describe('noteDescriptionFromContent', () => {
     expect(result).toBe('Travel plans for 2026.')
   })
 
+  it('omits raw urls from description text', () => {
+    const result = noteDescriptionFromContent(
+      'Read this https://example.com/docs next.',
+    )
+
+    expect(result).toBe('Read this next.')
+  })
+
+  it('keeps markdown link labels while omitting the url text', () => {
+    const result = noteDescriptionFromContent(
+      'Open [the docs](https://example.com/docs) for details.',
+    )
+
+    expect(result).toBe('Open the docs for details.')
+  })
+
   it('omits markdown table separator rows', () => {
     const result = noteDescriptionFromContent(
       ['| Name | Value |', '| --- | --- |', '| Width | 120px |'].join('\n'),

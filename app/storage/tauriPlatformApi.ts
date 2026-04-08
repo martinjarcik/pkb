@@ -217,6 +217,13 @@ export function createTauriPlatformApi(
       return callTauri<PlatformNoteFile[]>('read_all_notes', { dir })
     },
 
+    async relocateVault(targetDir: string): Promise<void> {
+      await callTauri<void>('relocate_vault', {
+        sourceDir: vaultPath,
+        targetDir,
+      })
+    },
+
     async writeTextFile(
       dir: string,
       path: string,

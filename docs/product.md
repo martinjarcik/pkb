@@ -70,12 +70,15 @@ centered dialog with four categories:
 - `Editing` — trash retention, autosave delay, default editor color, and editor
   color preview.
 - `Theme` — accent color.
-- `Storage & Import` — vault path.
+- `Storage & Import` — vault path, move current vault, and import actions.
 
 Settings are persisted in the desktop app settings directory as
 `app-config.yaml` and applied at runtime. Changing the vault path reloads the
-workspace with the updated configuration. Workspace metadata also uses
-`meta.yaml` in the same desktop app settings directory.
+workspace with the updated configuration. The same category also exposes a
+dedicated action to move the current vault contents into a different directory,
+overwriting conflicting paths before switching the configured vault path.
+Workspace metadata also uses `meta.yaml` in the same desktop app settings
+directory.
 
 ## Configuration
 
@@ -187,8 +190,8 @@ Top-level Vault folders appear below `Inbox` in `SidebarPanel`.
 
 ### Tag Views
 
-The sidebar tag section lists all unique `tags` values found in the loaded note
-catalog.
+The sidebar tag section lists all unique inline hashtags found in the loaded
+note content.
 
 - Tags are displayed with the `#` prefix in the sidebar, for example
   `#engineering`.
@@ -202,8 +205,8 @@ catalog.
 - At most one tag can be active at a time. Multiple tags can be pinned.
 - Active and pinned tags use the accent color on the tag text. Pinned tags are
   additionally displayed in bold.
-- The notes list filters to notes matching all active and pinned tags using AND
-  logic.
+- The notes list filters to notes whose content matches all active and pinned
+  tags using AND logic.
 - When no tags remain active or pinned, the view falls back to Inbox.
 - Clicking `Inbox` or a folder row clears all tag states to idle.
 
@@ -234,8 +237,9 @@ The note content area uses Editor.js as the editing surface.
 - Content autosaves after `editor.autosaveDelay` milliseconds of editor idle
   time (default 2000 ms).
 - Switching to a different note flushes any pending autosave before selection changes.
-- On save, inline hashtags such as `#engineering` are extracted into the
-  top-level `tags` frontmatter property and remain visible in the note content.
+- On save, inline hashtags such as `#engineering` remain directly in the note
+  content. The sidebar tag list and tag-filter view are derived from loaded
+  note content rather than a frontmatter property.
 - The inline toolbar includes a `Highlight` tool for marked text. Clicking it
   wraps the current selection in a yellow highlight by default. Hovering the
   highlight item opens color choices: red, green, yellow, blue, orange,

@@ -38,7 +38,8 @@
       "themeDescription": "Colors and typography"
     },
     "actions": {
-      "chooseDirectory": "Choose directory"
+      "chooseDirectory": "Choose directory",
+      "moveVault": "Move current vault"
     },
     "sections": {
       "features": "Workspace features",
@@ -50,6 +51,10 @@
         "label": "Vault",
         "placeholder": "./vault",
         "description": "Choose the local directory used for filesystem note storage."
+      },
+      "moveVault": {
+        "label": "Move notes to a new vault location",
+        "description": "Moves the current vault contents into another directory, overwriting conflicting files, and then switches the app to that location."
       },
       "assetsFolder": {
         "label": "Assets",

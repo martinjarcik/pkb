@@ -2,10 +2,10 @@ import { describe, expect, it } from 'vitest'
 import type { Note, NoteCatalogRow } from '~/notes/types'
 import {
   activeTagsFromView,
-  allTagsFromCatalog,
   applyTagCycle,
+  allTagsFromNotes,
   cycleTagState,
-  filterCatalogByTags,
+  filterNotesByTags,
   filterCatalogForSidebarView,
   filterNotesWithTasks,
   mergeTopLevelFolders,
@@ -14,15 +14,13 @@ import {
   type SidebarWorkspaceView,
 } from '~/notes/sidebarFilters'
 
-function createCatalogRow(id: string, tags: unknown): NoteCatalogRow {
+function createCatalogRow(id: string): NoteCatalogRow {
   return {
     id,
-    content: '',
     createdAt: '2026-03-20T00:00:00.000Z',
     modifiedAt: '2026-03-20T00:00:00.000Z',
     title: id,
     description: '',
-    tags,
   } as NoteCatalogRow
 }
 
@@ -37,72 +35,78 @@ function createNote(id: string, content: string): Note {
   }
 }
 
-describe('allTagsFromCatalog', () => {
-  it('collects all unique tags from the catalog in sorted order', () => {
+describe('allTagsFromNotes', () => {
+  it('collects all unique tags from note content in sorted order', () => {
     expect(
-      allTagsFromCatalog([
-        createCatalogRow('a.md', ['b', 'a']),
-        createCatalogRow('b.md', ['b', 'c']),
+      allTagsFromNotes([
+        createNote('a.md', '#b and #a'),
+        createNote('b.md', '#b and #c'),
       ]),
     ).toEqual(['a', 'b', 'c'])
   })
 
-  it('ignores non-array tag values', () => {
+  it('ignores heading markers that are not hashtags', () => {
     expect(
-      allTagsFromCatalog([
-        createCatalogRow('a.md', 'nope'),
-        createCatalogRow('b.md', ['tag']),
+      allTagsFromNotes([
+        createNote('a.md', '# Title'),
+        createNote('b.md', 'body #tag'),
       ]),
+    ).toEqual(['tag'])
+  })
+
+  it('ignores malformed tags in note content', () => {
+    expect(
+      allTagsFromNotes([createNote('a.md', '#tag #e4afa0ff;text-align:')]),
     ).toEqual(['tag'])
   })
 })
 
-describe('filterCatalogByTags', () => {
+describe('filterNotesByTags', () => {
   it('filters notes by selected tags using AND logic', () => {
-    const rows = [
-      createCatalogRow('a.md', ['engineering', 'idea']),
-      createCatalogRow('b.md', ['engineering', 'dream']),
-      createCatalogRow('c.md', ['idea']),
+    const notes = [
+      createNote('a.md', '#engineering #idea'),
+      createNote('b.md', '#engineering #dream'),
+      createNote('c.md', '#idea'),
     ]
 
     expect(
-      filterCatalogByTags(rows, ['engineering', 'idea'], []).map(
+      filterNotesByTags(notes, ['engineering', 'idea'], []).map(
         (row) => row.id,
       ),
     ).toEqual(['a.md'])
   })
 
   it('excludes notes that have any excluded tag', () => {
-    const rows = [
-      createCatalogRow('a.md', ['engineering', 'idea']),
-      createCatalogRow('b.md', ['engineering', 'dream']),
-      createCatalogRow('c.md', ['idea']),
+    const notes = [
+      createNote('a.md', '#engineering #idea'),
+      createNote('b.md', '#engineering #dream'),
+      createNote('c.md', '#idea'),
     ]
 
     expect(
-      filterCatalogByTags(rows, [], ['engineering']).map((row) => row.id),
+      filterNotesByTags(notes, [], ['engineering']).map((row) => row.id),
     ).toEqual(['c.md'])
   })
 
   it('combines selected and excluded tags', () => {
-    const rows = [
-      createCatalogRow('a.md', ['engineering', 'idea']),
-      createCatalogRow('b.md', ['engineering', 'dream']),
-      createCatalogRow('c.md', ['idea']),
+    const notes = [
+      createNote('a.md', '#engineering #idea'),
+      createNote('b.md', '#engineering #dream'),
+      createNote('c.md', '#idea'),
     ]
 
     expect(
-      filterCatalogByTags(rows, ['idea'], ['engineering']).map((row) => row.id),
+      filterNotesByTags(notes, ['idea'], ['engineering']).map((row) => row.id),
     ).toEqual(['c.md'])
   })
 
   it('returns all rows when no tags are specified', () => {
-    const rows = [
-      createCatalogRow('a.md', ['engineering']),
-      createCatalogRow('b.md', ['idea']),
+    const notes = [
+      createNote('a.md', '#engineering'),
+      createNote('b.md', '#idea'),
     ]
 
-    expect(filterCatalogByTags(rows, [], []).map((row) => row.id)).toEqual([
+    expect(filterNotesByTags(notes, [], []).map((row) => row.id)).toEqual([
       'a.md',
       'b.md',
     ])
@@ -265,9 +269,9 @@ describe('applyTagCycle', () => {
 describe('filterCatalogForSidebarView', () => {
   it('excludes trashed notes from inbox', () => {
     const rows = [
-      createCatalogRow('a.md', []),
+      createCatalogRow('a.md'),
       {
-        ...createCatalogRow('b.md', []),
+        ...createCatalogRow('b.md'),
         trashedAt: '2026-01-01T00:00:00.000Z',
       },
     ]
@@ -279,9 +283,9 @@ describe('filterCatalogForSidebarView', () => {
 
   it('lists only trashed notes in trashed view', () => {
     const rows = [
-      createCatalogRow('a.md', []),
+      createCatalogRow('a.md'),
       {
-        ...createCatalogRow('b.md', []),
+        ...createCatalogRow('b.md'),
         trashedAt: '2026-01-01T00:00:00.000Z',
       },
     ]
@@ -293,13 +297,13 @@ describe('filterCatalogForSidebarView', () => {
 
   it('lists only non-trashed favorited notes in favorites view', () => {
     const rows = [
-      createCatalogRow('plain.md', []),
+      createCatalogRow('plain.md'),
       {
-        ...createCatalogRow('fav.md', []),
+        ...createCatalogRow('fav.md'),
         favorite: true,
       },
       {
-        ...createCatalogRow('trashed-fav.md', []),
+        ...createCatalogRow('trashed-fav.md'),
         favorite: true,
         trashedAt: '2026-01-01T00:00:00.000Z',
       },
@@ -312,9 +316,9 @@ describe('filterCatalogForSidebarView', () => {
 
   it('returns no notes in favorites view when none are favorited', () => {
     const rows = [
-      createCatalogRow('a.md', []),
+      createCatalogRow('a.md'),
       {
-        ...createCatalogRow('b.md', []),
+        ...createCatalogRow('b.md'),
         favorite: false,
       },
     ]
@@ -329,11 +333,11 @@ describe('sortCatalogRowsPinnedFirstByModifiedAt', () => {
   it('orders pinned notes before non-pinned notes', () => {
     const rows = [
       {
-        ...createCatalogRow('newer.md', []),
+        ...createCatalogRow('newer.md'),
         modifiedAt: '2026-03-26T12:00:00.000Z',
       },
       {
-        ...createCatalogRow('pinned-older.md', []),
+        ...createCatalogRow('pinned-older.md'),
         modifiedAt: '2026-03-20T12:00:00.000Z',
         pinned: true,
       },
@@ -347,12 +351,12 @@ describe('sortCatalogRowsPinnedFirstByModifiedAt', () => {
   it('orders multiple pinned notes by modifiedAt descending', () => {
     const rows = [
       {
-        ...createCatalogRow('p-old.md', []),
+        ...createCatalogRow('p-old.md'),
         modifiedAt: '2026-03-20T12:00:00.000Z',
         pinned: true,
       },
       {
-        ...createCatalogRow('p-new.md', []),
+        ...createCatalogRow('p-new.md'),
         modifiedAt: '2026-03-26T12:00:00.000Z',
         pinned: true,
       },
@@ -368,11 +372,11 @@ describe('orderedCatalogRowsForSidebarView', () => {
   it('applies inbox filter then pinned-first ordering', () => {
     const rows = [
       {
-        ...createCatalogRow('inbox-newer.md', []),
+        ...createCatalogRow('inbox-newer.md'),
         modifiedAt: '2026-03-26T12:00:00.000Z',
       },
       {
-        ...createCatalogRow('inbox-pinned.md', []),
+        ...createCatalogRow('inbox-pinned.md'),
         modifiedAt: '2026-03-20T12:00:00.000Z',
         pinned: true,
       },

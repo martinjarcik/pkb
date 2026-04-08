@@ -2,11 +2,15 @@ import yaml from 'yaml'
 import type { NoteProperties, NotePropertyValue } from '~/notes/types'
 import {
   APPLICATION_PROPERTY_KEYS,
+  NOTE_OBSOLETE_PROPERTY_KEYS,
   NOTE_SYSTEM_PROPERTY_KEYS,
 } from '~/notes/types'
 
 const NOTE_SYSTEM_PROPERTY_KEY_SET = new Set<string>(NOTE_SYSTEM_PROPERTY_KEYS)
 const APPLICATION_PROPERTY_KEY_SET = new Set<string>(APPLICATION_PROPERTY_KEYS)
+const NOTE_OBSOLETE_PROPERTY_KEY_SET = new Set<string>(
+  NOTE_OBSOLETE_PROPERTY_KEYS,
+)
 const MAX_PROPERTY_DEPTH = 10
 
 function coercePropertyValue(
@@ -43,7 +47,11 @@ export function sanitizeProperties(value: unknown): NoteProperties {
 
   return Object.fromEntries(
     Object.entries(value)
-      .filter(([key]) => !NOTE_SYSTEM_PROPERTY_KEY_SET.has(key))
+      .filter(
+        ([key]) =>
+          !NOTE_SYSTEM_PROPERTY_KEY_SET.has(key) &&
+          !NOTE_OBSOLETE_PROPERTY_KEY_SET.has(key),
+      )
       .map(([key, val]) => [key, coercePropertyValue(val)]),
   ) as NoteProperties
 }

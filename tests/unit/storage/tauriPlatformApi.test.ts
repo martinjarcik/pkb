@@ -68,4 +68,38 @@ describe('tauriPlatformApi', () => {
       'asset://localhost/%2FUsers%2Fm.jarcik%2FDocuments%2FNotes%2Fassets%2Fimage%201.png',
     )
   })
+
+  it('relocates the current vault through the tauri command', async () => {
+    const invoke = vi.fn(
+      <T>(command: string, args: Record<string, unknown>) => {
+        if (command === 'relocate_vault') {
+          expect(args).toEqual({
+            sourceDir: './vault',
+            targetDir: '/Users/m.jarcik/Documents/Moved Vault',
+          })
+
+          return Promise.resolve(undefined) as Promise<T>
+        }
+
+        throw new Error(`Unexpected command: ${command}`)
+      },
+    )
+
+    vi.doMock('@tauri-apps/api/core', () => ({
+      convertFileSrc: vi.fn(),
+      invoke,
+    }))
+
+    const { createTauriPlatformApi } =
+      await import('~/storage/tauriPlatformApi')
+
+    const platformApi = createTauriPlatformApi('./vault', 'assets')
+
+    await platformApi.relocateVault('/Users/m.jarcik/Documents/Moved Vault')
+
+    expect(invoke).toHaveBeenCalledWith('relocate_vault', {
+      sourceDir: './vault',
+      targetDir: '/Users/m.jarcik/Documents/Moved Vault',
+    })
+  })
 })

@@ -452,7 +452,7 @@ describe('editorjsMarkdown', () => {
         {
           type: 'paragraph',
           data: {
-            text: 'Use <span class="inline-hashtag">#engineering</span> here.',
+            text: 'Use <span class="inline-hashtag" contenteditable="false">#engineering</span> here.',
           },
         },
       ]),
@@ -485,7 +485,7 @@ describe('editorjsMarkdown', () => {
       {
         type: 'paragraph',
         data: {
-          text: 'Use <span class="inline-hashtag">#engineering</span> here.',
+          text: 'Use <span class="inline-hashtag" contenteditable="false">#engineering</span> here.',
         },
       },
     ])
