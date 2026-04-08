@@ -18,7 +18,6 @@ defineProps<{
 const emit = defineEmits<{
   updateAccentColor: [value: string]
   updateSidebarBackgroundColor: [value: string]
-  updateSidebarTextColor: [value: string]
   updateSidebarBadge: [value: string]
   updateApplicationTypeface: [value: string | undefined]
   updateApplicationFontSize: [value: string | undefined]
@@ -133,28 +132,6 @@ function clearSidebarBadge(): void {
       </div>
       <p class="text-sm text-muted-foreground">
         {{ t('settings.fields.sidebarBackgroundColor.description') }}
-      </p>
-    </div>
-
-    <div class="space-y-2">
-      <Label for="settings-sidebar-text-color">
-        {{ t('settings.fields.sidebarTextColor.label') }}
-      </Label>
-      <div class="flex items-center gap-3">
-        <Input
-          id="settings-sidebar-text-color"
-          class="h-10 w-20 p-1"
-          :disabled="isSaving"
-          :model-value="appConfig.theme.sidebarTextColor"
-          type="color"
-          @update:model-value="emit('updateSidebarTextColor', String($event))"
-        />
-        <code class="text-sm text-muted-foreground">
-          {{ appConfig.theme.sidebarTextColor }}
-        </code>
-      </div>
-      <p class="text-sm text-muted-foreground">
-        {{ t('settings.fields.sidebarTextColor.description') }}
       </p>
     </div>
 

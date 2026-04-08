@@ -256,14 +256,6 @@ async function updateSidebarBackgroundColor(color: string): Promise<void> {
   await savePatch({ theme: { sidebarBackgroundColor: color } })
 }
 
-async function updateSidebarTextColor(color: string): Promise<void> {
-  if (color === appConfigDisk.value.theme.sidebarTextColor) {
-    return
-  }
-
-  await savePatch({ theme: { sidebarTextColor: color } })
-}
-
 async function updateSidebarBadge(badge: string): Promise<void> {
   if (badge === appConfigDisk.value.theme.sidebarBadge) {
     return
@@ -462,7 +454,6 @@ function handleStartImport(plugin: ImportPlugin): void {
             @update-sidebar-background-color="
               void updateSidebarBackgroundColor($event)
             "
-            @update-sidebar-text-color="void updateSidebarTextColor($event)"
             @update-sidebar-badge="void updateSidebarBadge($event)"
             @update-application-typeface="handleApplicationTypefaceSelected"
             @update-application-font-size="handleApplicationFontSizeSelected"

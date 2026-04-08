@@ -34,7 +34,7 @@
       "featuresDescription": "Feature flags and panels",
       "editing": "Editing",
       "editingDescription": "Notes, editor, and colors",
-      "theme": "Theme",
+      "theme": "Appearance",
       "themeDescription": "Colors and typography"
     },
     "actions": {
@@ -70,10 +70,6 @@
       "sidebarBackgroundColor": {
         "label": "Sidebar background color",
         "description": "Used as the background color for the left sidebar panel."
-      },
-      "sidebarTextColor": {
-        "label": "Sidebar text color",
-        "description": "Used for sidebar labels, section titles, and controls."
       },
       "sidebarBadge": {
         "label": "Sidebar Badge",

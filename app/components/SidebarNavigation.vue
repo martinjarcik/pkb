@@ -6,7 +6,6 @@ import { useTranslations } from '~/composables/useTranslations'
 
 const { t } = useTranslations()
 const {
-  accentColor,
   selectedView,
   selectInbox,
   selectTasks,
@@ -28,7 +27,6 @@ const { favorites: favoritesEnabled, tasks: tasksEnabled } = useAppFeatures()
         :icon="Inbox"
         :label="t('sidebarNavigation.inbox')"
         :selected="selectedView.kind === 'inbox'"
-        :accent-color="accentColor"
         @activate="selectInbox"
       />
     </div>
@@ -38,7 +36,6 @@ const { favorites: favoritesEnabled, tasks: tasksEnabled } = useAppFeatures()
       :icon="ListTodo"
       :label="t('sidebarNavigation.tasks')"
       :selected="selectedView.kind === 'tasks'"
-      :accent-color="accentColor"
       @activate="selectTasks"
     />
     <SidebarNavigationItem
@@ -47,7 +44,6 @@ const { favorites: favoritesEnabled, tasks: tasksEnabled } = useAppFeatures()
       :icon="Star"
       :label="t('sidebarNavigation.favorites')"
       :selected="selectedView.kind === 'favorites'"
-      :accent-color="accentColor"
       @activate="selectFavorites"
     />
     <SidebarNavigationItem
@@ -55,7 +51,6 @@ const { favorites: favoritesEnabled, tasks: tasksEnabled } = useAppFeatures()
       :icon="Trash2"
       :label="t('sidebarNavigation.trashed')"
       :selected="selectedView.kind === 'trashed'"
-      :accent-color="accentColor"
       @activate="selectTrashed"
     />
   </nav>

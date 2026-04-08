@@ -36,7 +36,6 @@ export type AppConfig = {
   theme: {
     accentColor: string
     sidebarBackgroundColor: string
-    sidebarTextColor: string
     sidebarBadge: string
     defaultEditorColor: string
     typography: {

@@ -31,7 +31,8 @@ const { loadOnboarding, onboardingOpen } = useOnboarding()
 const {
   accentColor,
   sidebarBackgroundColor,
-  sidebarTextColor,
+  sidebarSelectedTextContrastClass,
+  sidebarTextContrastClass,
   applicationTypeface,
   applicationFontSize,
   editorTypeface,
@@ -218,7 +219,6 @@ onBeforeUnmount(() => {
     :style="{
       '--app-config-accent-color': accentColor,
       '--app-config-sidebar-background-color': sidebarBackgroundColor,
-      '--app-config-sidebar-text-color': sidebarTextColor,
       '--app-config-editor-font-family': editorTypeface,
       '--app-config-editor-font-size': editorFontSize,
     }"
@@ -227,6 +227,8 @@ onBeforeUnmount(() => {
       ref="workspaceShellRef"
       :class="[
         'flex h-screen overflow-hidden text-foreground',
+        sidebarTextContrastClass,
+        sidebarSelectedTextContrastClass,
         { 'pointer-events-none select-none': onboardingOpen },
       ]"
     >

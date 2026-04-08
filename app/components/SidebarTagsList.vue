@@ -1,8 +1,7 @@
 <script setup lang="ts">
 import { useSidebarNavigation } from '~/composables/useSidebarNavigation'
 
-const { accentColor, allTags, tagFilterState, cycleTag } =
-  useSidebarNavigation()
+const { allTags, tagFilterState, cycleTag } = useSidebarNavigation()
 </script>
 
 <template>
@@ -15,7 +14,6 @@ const { accentColor, allTags, tagFilterState, cycleTag } =
       :key="tag"
       :tag="tag"
       :state="tagFilterState(tag)"
-      :accent-color="accentColor"
       @click="cycleTag(tag)"
     />
   </div>

@@ -7,7 +7,6 @@ const props = defineProps<{
   nodes: FolderTreeNode[]
   depth: number
   folderIcon: (path: string) => string | undefined
-  accentColor: string
   selectedView: SidebarWorkspaceView
   isFolderExpanded: (path: string) => boolean
 }>()
@@ -37,7 +36,6 @@ function isSelected(folderPath: string): boolean {
       :folder-name="folderDisplayName(node.path)"
       :custom-icon="folderIcon(node.path)"
       :selected="isSelected(node.path)"
-      :accent-color="accentColor"
       :has-children="node.children.length > 0"
       :expanded="isFolderExpanded(node.path)"
       :depth="depth"
@@ -51,7 +49,6 @@ function isSelected(folderPath: string): boolean {
         :nodes="node.children"
         :depth="depth + 1"
         :folder-icon="folderIcon"
-        :accent-color="accentColor"
         :selected-view="selectedView"
         :is-folder-expanded="isFolderExpanded"
         @select="emit('select', $event)"

@@ -9,7 +9,6 @@ const props = defineProps<{
   folderPath: string
   folderName: string
   selected: boolean
-  accentColor: string
   customIcon?: string
   hasChildren?: boolean
   expanded?: boolean
@@ -59,7 +58,7 @@ function handleCreateSubfolderClick(event: MouseEvent): void {
     <button
       v-if="hasChildren"
       type="button"
-      class="flex h-6 w-4 shrink-0 items-center justify-center rounded text-muted-foreground/60 transition-colors hover:text-foreground"
+      class="sidebar-folder-expand-button flex h-6 w-4 shrink-0 items-center justify-center rounded transition-colors"
       :aria-label="
         expanded
           ? t('sidebarFolders.collapseFolder')
@@ -86,7 +85,6 @@ function handleCreateSubfolderClick(event: MouseEvent): void {
       :icon="displayIcon"
       :label="folderName"
       :selected="selected"
-      :accent-color="accentColor"
       class="!w-full !pr-14"
       @activate="handleClick"
     />
@@ -95,10 +93,9 @@ function handleCreateSubfolderClick(event: MouseEvent): void {
     >
       <button
         type="button"
-        class="pointer-events-auto flex h-6 w-6 items-center justify-center rounded"
+        class="sidebar-folder-row-action pointer-events-auto flex h-6 w-6 items-center justify-center rounded"
         :class="{
-          'text-white': selected,
-          'text-foreground/80': !selected,
+          'sidebar-folder-row-action-selected': selected,
         }"
         :aria-label="t('sidebarFolders.createSubfolder')"
         data-testid="sidebar-folder-create-subfolder"
@@ -111,10 +108,9 @@ function handleCreateSubfolderClick(event: MouseEvent): void {
       </button>
       <button
         type="button"
-        class="pointer-events-auto flex h-6 w-6 items-center justify-center rounded"
+        class="sidebar-folder-row-action pointer-events-auto flex h-6 w-6 items-center justify-center rounded"
         :class="{
-          'text-white': selected,
-          'text-foreground/80': !selected,
+          'sidebar-folder-row-action-selected': selected,
         }"
         :aria-label="t('sidebarFolders.editFolder')"
         data-testid="sidebar-folder-edit"

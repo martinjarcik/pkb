@@ -1,21 +1,16 @@
 <script setup lang="ts">
-import { computed, type Component } from 'vue'
+import type { Component } from 'vue'
 
-const props = defineProps<{
+defineProps<{
   navigationId: string
   icon: Component | string
   label: string
   selected: boolean
-  accentColor: string
   dropActive?: boolean
 }>()
 const emit = defineEmits<{
   activate: []
 }>()
-
-const selectedStyle = computed(() =>
-  props.selected ? { backgroundColor: props.accentColor } : undefined,
-)
 
 function handleClick(): void {
   emit('activate')
@@ -34,7 +29,6 @@ function handleClick(): void {
       'sidebar-navigation-item-drop-active': dropActive,
     }"
     :data-drop-active="dropActive ? 'true' : 'false'"
-    :style="selectedStyle"
     @click="handleClick"
   >
     <span

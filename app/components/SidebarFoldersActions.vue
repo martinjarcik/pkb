@@ -13,7 +13,6 @@ const emit = defineEmits<{
 }>()
 
 const {
-  accentColor,
   selectedView,
   selectFolder,
   folderTree,
@@ -56,7 +55,6 @@ function renderNodes(nodes: FolderTreeNode[]): FolderTreeNode[] {
         :folder-name="folderDisplayName(node.path)"
         :custom-icon="folderIcon(node.path)"
         :selected="isSelected(node.path)"
-        :accent-color="accentColor"
         :has-children="node.children.length > 0"
         :expanded="isFolderExpanded(node.path)"
         :depth="0"
@@ -70,7 +68,6 @@ function renderNodes(nodes: FolderTreeNode[]): FolderTreeNode[] {
           :nodes="node.children"
           :depth="1"
           :folder-icon="folderIcon"
-          :accent-color="accentColor"
           :selected-view="selectedView"
           :is-folder-expanded="isFolderExpanded"
           @select="selectFolder($event)"

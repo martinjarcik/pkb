@@ -20,7 +20,6 @@ layout:
 theme:
   accentColor: '#3f57dfff'
   sidebarBackgroundColor: '#fafafa'
-  sidebarTextColor: '#444444'
   sidebarBadge: '🦄'
   defaultEditorColor: yellow
   typography:

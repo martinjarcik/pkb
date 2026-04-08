@@ -51,10 +51,10 @@
     --app-config-editor-font-family:
       system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
     --app-config-editor-font-size: 14px;
-    --app-sidebar-text: #444444;
-    --app-sidebar-section-title: #414244;
-    --app-sidebar-control: #989999;
+    --app-sidebar-text: #000000;
+    --app-sidebar-muted-text: rgba(0, 0, 0, 0.7);
     --app-sidebar-selected-text: #ffffff;
+    --app-sidebar-selected-muted-text: rgba(255, 255, 255, 0.82);
   }
 
   .dark {
@@ -146,12 +146,32 @@
     font-size: var(--app-font-size-sm);
   }
 
+  .sidebar-contrast-text-dark {
+    --app-sidebar-text: #000000;
+    --app-sidebar-muted-text: rgba(0, 0, 0, 0.7);
+  }
+
+  .sidebar-contrast-text-light {
+    --app-sidebar-text: #ffffff;
+    --app-sidebar-muted-text: rgba(255, 255, 255, 0.72);
+  }
+
+  .sidebar-contrast-selected-dark {
+    --app-sidebar-selected-text: #000000;
+    --app-sidebar-selected-muted-text: rgba(0, 0, 0, 0.82);
+  }
+
+  .sidebar-contrast-selected-light {
+    --app-sidebar-selected-text: #ffffff;
+    --app-sidebar-selected-muted-text: rgba(255, 255, 255, 0.82);
+  }
+
   .sidebar-panel-shell {
     background-color: var(
       --app-config-sidebar-background-color,
       hsl(var(--sidebar-background))
     );
-    color: hsl(var(--sidebar-foreground));
+    color: var(--app-sidebar-text);
     padding: var(--app-space-xl);
     padding-top: 0;
   }
@@ -170,7 +190,7 @@
     border: 0;
     border-radius: 5px;
     box-sizing: border-box;
-    color: var(--app-config-sidebar-text-color, var(--app-sidebar-text));
+    color: var(--app-sidebar-text);
     cursor: pointer;
     display: flex;
     font-size: 15px;
@@ -192,6 +212,7 @@
   }
 
   .sidebar-navigation-item-selected {
+    background-color: var(--app-config-accent-color, hsl(var(--primary)));
     color: var(--app-sidebar-selected-text);
   }
 
@@ -245,10 +266,7 @@
   }
 
   .sidebar-section-title {
-    color: var(
-      --app-config-sidebar-text-color,
-      var(--app-sidebar-section-title)
-    );
+    color: var(--app-sidebar-text);
     font-size: 11px;
     font-weight: 700;
     line-height: 2;
@@ -273,7 +291,7 @@
     appearance: none;
     background: transparent;
     border: 0;
-    color: var(--app-config-sidebar-text-color, var(--app-sidebar-control));
+    color: var(--app-sidebar-muted-text);
     cursor: pointer;
     display: inline-flex;
     align-items: center;
@@ -285,7 +303,7 @@
   }
 
   .sidebar-section-control-button:hover {
-    color: hsl(var(--foreground));
+    color: var(--app-sidebar-text);
   }
 
   .sidebar-section-control-button:focus-visible {
@@ -307,7 +325,7 @@
     background: rgba(0, 0, 0, 0.04);
     border: 1px solid transparent;
     border-radius: 3px;
-    color: var(--app-config-sidebar-text-color, var(--app-sidebar-text));
+    color: var(--app-sidebar-text);
     cursor: pointer;
     font-size: 13px;
     line-height: 2;
@@ -318,15 +336,34 @@
   }
 
   .sidebar-tag-item-selected {
+    background-color: var(--app-config-accent-color, hsl(var(--primary)));
     border-color: transparent;
+    color: var(--app-sidebar-selected-text);
     opacity: 1;
   }
 
   .sidebar-tag-item-excluded {
     background: transparent;
-    border: 1px solid;
+    border: 1px solid var(--app-config-accent-color, hsl(var(--primary)));
+    color: var(--app-config-accent-color, hsl(var(--primary)));
     opacity: 1;
     text-decoration: line-through;
+  }
+
+  .sidebar-folder-expand-button {
+    color: var(--app-sidebar-muted-text);
+  }
+
+  .sidebar-folder-expand-button:hover {
+    color: var(--app-sidebar-text);
+  }
+
+  .sidebar-folder-row-action {
+    color: var(--app-sidebar-muted-text);
+  }
+
+  .sidebar-folder-row-action-selected {
+    color: var(--app-sidebar-selected-muted-text);
   }
 
   .notes-list-controls-shell {

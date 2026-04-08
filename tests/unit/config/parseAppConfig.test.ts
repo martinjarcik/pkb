@@ -22,7 +22,6 @@ function createBaseConfig() {
     theme: {
       accentColor: '#3f57dfff',
       sidebarBackgroundColor: '#fafafa',
-      sidebarTextColor: '#444444',
       sidebarBadge: '🦄',
       defaultEditorColor: 'yellow',
       typography: {
@@ -73,13 +72,6 @@ describe('parseAppConfig', () => {
     config.theme = { accentColor: '#3f57dfff' }
 
     expect(parseAppConfig(config).theme.sidebarBackgroundColor).toBe('#fafafa')
-  })
-
-  it('defaults theme.sidebarTextColor when missing', () => {
-    const config = createBaseConfig() as Record<string, unknown>
-    config.theme = { accentColor: '#3f57dfff' }
-
-    expect(parseAppConfig(config).theme.sidebarTextColor).toBe('#444444')
   })
 
   it('defaults theme.sidebarBadge when missing', () => {

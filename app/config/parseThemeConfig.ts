@@ -51,11 +51,6 @@ export function parseThemeConfig(
     theme.sidebarBackgroundColor.trim().length > 0
       ? theme.sidebarBackgroundColor.trim()
       : '#fafafa'
-  const sidebarTextColor =
-    typeof theme.sidebarTextColor === 'string' &&
-    theme.sidebarTextColor.trim().length > 0
-      ? theme.sidebarTextColor.trim()
-      : '#444444'
   const sidebarBadge =
     typeof theme.sidebarBadge === 'string'
       ? theme.sidebarBadge.trim()
@@ -103,7 +98,6 @@ export function parseThemeConfig(
   return {
     accentColor: theme.accentColor,
     sidebarBackgroundColor,
-    sidebarTextColor,
     sidebarBadge,
     defaultEditorColor,
     typography: {

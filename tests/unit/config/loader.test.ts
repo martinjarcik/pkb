@@ -23,7 +23,6 @@ describe('loadConfig', () => {
       theme: {
         accentColor: '#3f57dfff',
         sidebarBackgroundColor: '#fafafa',
-        sidebarTextColor: '#444444',
         defaultEditorColor: 'yellow',
       },
     })
