@@ -153,7 +153,7 @@
     "webhookCancel": "Cancel"
   },
   "sidebarNavigation": {
-    "inbox": "Inbox",
+    "inbox": "Unsorted",
     "tasks": "Tasks",
     "favorites": "Favorites",
     "trashed": "Trashed"

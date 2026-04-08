@@ -1,4 +1,5 @@
 import type { EditorjsBlock } from './editorjsMarkdownTypes'
+import { BIG_EMOJI_STICK_BLOCK_CLASS, hasStickBigEmojiHtml } from './bigEmoji'
 import { markdownUrlFromEditorImageFileUrl } from './editorjsImageUrl'
 import { inlineHtmlToMarkdown } from './editorjsInlineNormalization'
 
@@ -147,6 +148,14 @@ function renderTableMarkdown(data: Record<string, unknown>): string {
 
 function collectBlockCommentTokens(block: EditorjsBlock): string[] {
   const tokens = block.cssClasses ? [...block.cssClasses] : []
+  const text = typeof block.data.text === 'string' ? block.data.text : ''
+
+  if (
+    !tokens.includes(BIG_EMOJI_STICK_BLOCK_CLASS) &&
+    hasStickBigEmojiHtml(text)
+  ) {
+    tokens.push(BIG_EMOJI_STICK_BLOCK_CLASS)
+  }
 
   if (block.type === 'image' && block.data.stretched === true) {
     tokens.push('image-stretch')

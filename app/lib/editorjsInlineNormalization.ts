@@ -1,8 +1,9 @@
 import {
   hasBigEmojiBigMarker,
+  hasBigEmojiStickMarker,
   isBigEmojiContent,
   replacePlainBigEmojiMarkersWithMarkdown,
-  stripBigEmojiBigMarker,
+  stripBigEmojiMarkers,
 } from './bigEmoji'
 import {
   getInlineHighlightDefaultColor,
@@ -29,6 +30,7 @@ function bigEmojiMarkdownWrapper(
 
   if (
     hasBigEmojiBigMarker(content) ||
+    hasBigEmojiStickMarker(content) ||
     tag.toLowerCase() === 'strong' ||
     classTokens.includes('inline-big-emoji-big')
   ) {
@@ -59,13 +61,13 @@ function isWrappedBigEmojiMarkdown(content: string): boolean {
 }
 
 function standaloneBigEmojiMarkdown(content: string): string | null {
-  const cleanContent = stripBigEmojiBigMarker(content)
-  if (!isBigEmojiContent(cleanContent)) {
+  const normalizedContent = stripBigEmojiMarkers(content)
+  if (!isBigEmojiContent(normalizedContent)) {
     return null
   }
 
   const wrapper = hasBigEmojiBigMarker(content) ? '__' : '**'
-  return `${wrapper}${cleanContent}${wrapper}`
+  return `${wrapper}${normalizedContent}${wrapper}`
 }
 
 export function inlineHtmlToMarkdown(text: string): string {
@@ -126,7 +128,7 @@ export function inlineHtmlToMarkdown(text: string): string {
         }
 
         const wrapper = bigEmojiMarkdownWrapper(innerTag, innerAttrs, content)
-        const cleanContent = stripBigEmojiBigMarker(content)
+        const cleanContent = stripBigEmojiMarkers(content)
         return `${wrapper}${cleanContent}${wrapper}`
       },
     ],
@@ -138,7 +140,7 @@ export function inlineHtmlToMarkdown(text: string): string {
         }
 
         const wrapper = bigEmojiMarkdownWrapper(tag, attrs, content)
-        const cleanContent = stripBigEmojiBigMarker(content)
+        const cleanContent = stripBigEmojiMarkers(content)
         return `${wrapper}${cleanContent}${wrapper}\u200C`
       },
     ],
@@ -150,7 +152,7 @@ export function inlineHtmlToMarkdown(text: string): string {
         }
 
         const wrapper = bigEmojiMarkdownWrapper(tag, attrs, content)
-        const cleanContent = stripBigEmojiBigMarker(content)
+        const cleanContent = stripBigEmojiMarkers(content)
         return `${wrapper}${cleanContent}${wrapper}`
       },
     ],

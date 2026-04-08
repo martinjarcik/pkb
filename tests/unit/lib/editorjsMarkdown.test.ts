@@ -1032,6 +1032,52 @@ describe('editorjsMarkdown', () => {
     expect(markdown).toBe('<!-- block: note-box accent -->\nStyled paragraph')
   })
 
+  it('serializes stick big emoji as block comment plus underscore markdown', () => {
+    const markdown = editorjsBlocksToMarkdown([
+      {
+        type: 'paragraph',
+        data: {
+          text: 'Status <b class="inline-big-emoji inline-big-emoji-big inline-big-emoji-stick" contenteditable="false" data-size="big" data-stick="true">🤖\u2060</b> updated.',
+        },
+        cssClasses: ['block-big-emoji-stick'],
+      },
+    ])
+
+    expect(markdown).toBe(
+      '<!-- block: block-big-emoji-stick -->\nStatus __🤖__ updated.',
+    )
+  })
+
+  it('serializes stick big emoji block comment from saved html fallback', () => {
+    const markdown = editorjsBlocksToMarkdown([
+      {
+        type: 'paragraph',
+        data: {
+          text: 'Status <b class="inline-big-emoji inline-big-emoji-big inline-big-emoji-stick" contenteditable="false" data-size="big">🤖\u2060</b> updated.',
+        },
+      },
+    ])
+
+    expect(markdown).toBe(
+      '<!-- block: block-big-emoji-stick -->\nStatus __🤖__ updated.',
+    )
+  })
+
+  it('serializes stick big emoji block comment from marker-only html fallback', () => {
+    const markdown = editorjsBlocksToMarkdown([
+      {
+        type: 'paragraph',
+        data: {
+          text: 'Status <b class="inline-big-emoji inline-big-emoji-big" contenteditable="false">🤖\u2060\u2063</b> updated.',
+        },
+      },
+    ])
+
+    expect(markdown).toBe(
+      '<!-- block: block-big-emoji-stick -->\nStatus __🤖__ updated.',
+    )
+  })
+
   it('ignores regular HTML comments that do not start with block:', () => {
     const blocks = markdownToEditorjsBlocks('<!-- just a comment -->\nHello')
 

@@ -594,6 +594,19 @@
     font-size: 3em;
   }
 
+  .note-editor-surface .inline-big-emoji.inline-big-emoji-stick {
+    position: absolute;
+    top: 0;
+    left: 0;
+  }
+
+  .note-editor-surface
+    .ce-block-background
+    .inline-big-emoji.inline-big-emoji-stick {
+    top: 0.75rem;
+    left: 0.875rem;
+  }
+
   .note-editor-surface strong.inline-big-emoji {
     font-size: 3em;
   }
@@ -1023,6 +1036,11 @@
 
 .ce-block__content.block-size-big {
   font-size: 1.5em;
+}
+
+.ce-block__content:has(.inline-big-emoji-stick) {
+  position: relative;
+  padding-left: 5em !important;
 }
 
 .folder-emoji-picker {
