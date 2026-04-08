@@ -1,4 +1,7 @@
 import {
+  BIG_EMOJI_BIGGER_CLASS,
+  BIG_EMOJI_BIGGER_SIZE,
+  BIG_EMOJI_DEFAULT_SIZE,
   hasBigEmojiBigMarker,
   hasBigEmojiStickMarker,
   isBigEmojiContent,
@@ -18,26 +21,62 @@ export function editorHtmlLineBreaksToMarkdownNewlines(text: string): string {
   return text.replace(/[\u200B\u200A]/g, '').replace(/<br\b[^>]*\/?>/gi, '\n')
 }
 
-function bigEmojiMarkdownWrapper(
+type BigEmojiMarkdownRender = {
+  markdown: string
+  wrapped: boolean
+}
+
+function renderBigEmojiMarkdown(
   tag: string,
   attrs: string,
   content: string,
-): '__' | '**' {
+): BigEmojiMarkdownRender {
   const classValue = attrs.match(/\bclass=(["'])(.*?)\1/i)?.[2] ?? ''
   const classTokens = classValue
     .split(/\s+/)
     .filter((token) => token.length > 0)
+  const cleanContent = stripBigEmojiMarkers(content)
 
   if (
     hasBigEmojiBigMarker(content) ||
     hasBigEmojiStickMarker(content) ||
     tag.toLowerCase() === 'strong' ||
-    classTokens.includes('inline-big-emoji-big')
+    classTokens.includes('inline-big-emoji-big') ||
+    /\bdata-size=(["'])big\1/i.test(attrs)
   ) {
-    return '__'
+    return {
+      markdown: `__${cleanContent}__`,
+      wrapped: true,
+    }
   }
 
-  return /\bdata-size=(["'])big\1/i.test(attrs) ? '__' : '**'
+  if (
+    classTokens.includes(BIG_EMOJI_BIGGER_CLASS) ||
+    new RegExp(`\\bdata-size=(["'])${BIG_EMOJI_BIGGER_SIZE}\\1`, 'i').test(
+      attrs,
+    )
+  ) {
+    return {
+      markdown: `**${cleanContent}**`,
+      wrapped: true,
+    }
+  }
+
+  if (
+    new RegExp(`\\bdata-size=(["'])${BIG_EMOJI_DEFAULT_SIZE}\\1`, 'i').test(
+      attrs,
+    )
+  ) {
+    return {
+      markdown: cleanContent,
+      wrapped: false,
+    }
+  }
+
+  return {
+    markdown: `**${cleanContent}**`,
+    wrapped: true,
+  }
 }
 
 function isBigEmojiAttrs(attrs: string): boolean {
@@ -66,7 +105,10 @@ function standaloneBigEmojiMarkdown(content: string): string | null {
     return null
   }
 
-  const wrapper = hasBigEmojiBigMarker(content) ? '__' : '**'
+  const wrapper =
+    hasBigEmojiBigMarker(content) || hasBigEmojiStickMarker(content)
+      ? '__'
+      : '**'
   return `${wrapper}${normalizedContent}${wrapper}`
 }
 
@@ -127,9 +169,7 @@ export function inlineHtmlToMarkdown(text: string): string {
           return match
         }
 
-        const wrapper = bigEmojiMarkdownWrapper(innerTag, innerAttrs, content)
-        const cleanContent = stripBigEmojiMarkers(content)
-        return `${wrapper}${cleanContent}${wrapper}`
+        return renderBigEmojiMarkdown(innerTag, innerAttrs, content).markdown
       },
     ],
     [
@@ -139,9 +179,8 @@ export function inlineHtmlToMarkdown(text: string): string {
           return match
         }
 
-        const wrapper = bigEmojiMarkdownWrapper(tag, attrs, content)
-        const cleanContent = stripBigEmojiMarkers(content)
-        return `${wrapper}${cleanContent}${wrapper}\u200C`
+        const rendered = renderBigEmojiMarkdown(tag, attrs, content)
+        return `${rendered.markdown}${rendered.wrapped ? '\u200C' : ''}`
       },
     ],
     [
@@ -151,9 +190,7 @@ export function inlineHtmlToMarkdown(text: string): string {
           return match
         }
 
-        const wrapper = bigEmojiMarkdownWrapper(tag, attrs, content)
-        const cleanContent = stripBigEmojiMarkers(content)
-        return `${wrapper}${cleanContent}${wrapper}`
+        return renderBigEmojiMarkdown(tag, attrs, content).markdown
       },
     ],
     [

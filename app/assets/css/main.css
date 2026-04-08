@@ -1,3 +1,26 @@
+@import '@fontsource/noto-emoji/index.css';
+@import '@fontsource/inter/latin.css';
+@import '@fontsource/josefin-sans/latin.css';
+@import '@fontsource/roboto/latin.css';
+@import '@fontsource/open-sans/latin.css';
+@import '@fontsource/rubik/latin.css';
+@import '@fontsource/dm-sans/latin.css';
+@import '@fontsource/poppins/latin.css';
+@import '@fontsource/lato/latin.css';
+@import '@fontsource/nunito/latin.css';
+@import '@fontsource/ubuntu/latin.css';
+@import '@fontsource/source-sans-pro/latin.css';
+@import '@fontsource/work-sans/latin.css';
+@import '@fontsource/manrope/latin.css';
+@import '@fontsource/raleway/latin.css';
+@import '@fontsource/montserrat/latin.css';
+@import '@fontsource/playfair-display/latin.css';
+@import '@fontsource/libre-baskerville/latin.css';
+@import '@fontsource/neuton/latin.css';
+@import '@fontsource/lora/latin.css';
+@import '@fontsource/jetbrains-mono/latin.css';
+@import '@fontsource/arvo/latin.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -578,23 +601,39 @@
   .note-editor-surface .inline-big-emoji {
     cursor: pointer;
     display: inline-block;
-    font-size: 2em;
+    font-size: inherit;
     font-style: normal;
     font-weight: 400;
+    line-height: inherit;
+    vertical-align: baseline;
+    padding: 0;
+  }
+
+  .note-editor-surface .inline-big-emoji[data-size='bigger'] {
+    font-size: 2em;
     line-height: 1;
     vertical-align: middle;
-    padding: 0;
+  }
+
+  .note-editor-surface .inline-big-emoji.inline-big-emoji-bigger {
+    font-size: 2em;
+    line-height: 1;
+    vertical-align: middle;
   }
 
   .note-editor-surface .inline-big-emoji[data-size='big'] {
     font-size: 3em;
+    line-height: 1;
+    vertical-align: middle;
   }
 
   .note-editor-surface .inline-big-emoji.inline-big-emoji-big {
     font-size: 3em;
+    line-height: 1;
+    vertical-align: middle;
   }
 
-  .note-editor-surface .inline-big-emoji.inline-big-emoji-stick {
+  .note-editor-surface .cdx-block .inline-big-emoji-stick:first-child {
     position: absolute;
     top: 0;
     left: 0;
@@ -1054,11 +1093,12 @@
   z-index: 0;
 }
 
-@keyframes image-preloader-spin {
-  0% {
-    transform: rotate(0deg);
-  }
-  100% {
-    transform: rotate(360deg);
-  }
+.big-emoji-actions .big-emoji-action-stick {
+  display: none;
+}
+
+body:has(.block-big-emoji-selected .inline-big-emoji-selected:first-child)
+  .big-emoji-actions
+  .big-emoji-action-stick {
+  display: inline-flex;
 }

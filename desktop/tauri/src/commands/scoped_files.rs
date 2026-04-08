@@ -18,11 +18,7 @@ fn legacy_app_config_path(vault_path: &str) -> Result<PathBuf, String> {
 
 fn legacy_meta_path(vault_path: &str) -> Result<PathBuf, String> {
     let vault = resolve_root_path(vault_path);
-    let vault_parent = vault
-        .parent()
-        .ok_or_else(|| "Vault path must have a parent directory".to_string())?;
-
-    Ok(vault_parent.join("meta.yaml"))
+    Ok(vault.join("meta.yaml"))
 }
 
 fn scoped_file_path(handle: &tauri::AppHandle, scope: &str) -> Result<PathBuf, String> {
@@ -39,13 +35,24 @@ fn scoped_file_path(handle: &tauri::AppHandle, scope: &str) -> Result<PathBuf, S
     }
 }
 
+fn current_scoped_file_path(
+    handle: &tauri::AppHandle,
+    vault_path: &str,
+    scope: &str,
+) -> Result<PathBuf, String> {
+    match scope {
+        "meta" => legacy_meta_path(vault_path),
+        _ => scoped_file_path(handle, scope),
+    }
+}
+
 #[tauri::command]
 pub fn read_scoped_text_file(
     handle: tauri::AppHandle,
     vault_path: String,
     scope: String,
 ) -> Result<Option<PlatformTextFile>, String> {
-    let path = scoped_file_path(&handle, &scope)?;
+    let path = current_scoped_file_path(&handle, &vault_path, &scope)?;
 
     if path.exists() {
         return Ok(Some(text_file_with_stats(&path)?));
@@ -68,11 +75,11 @@ pub fn read_scoped_text_file(
 #[tauri::command]
 pub fn write_scoped_text_file(
     handle: tauri::AppHandle,
-    _vault_path: String,
+    vault_path: String,
     scope: String,
     content: String,
 ) -> Result<PlatformTextFile, String> {
-    let path = scoped_file_path(&handle, &scope)?;
+    let path = current_scoped_file_path(&handle, &vault_path, &scope)?;
 
     if let Some(parent) = path.parent() {
         fs::create_dir_all(parent).map_err(|error| error.to_string())?;

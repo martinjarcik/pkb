@@ -99,3 +99,7 @@ Support Notion imports with a generic `read_text_files` Tauri command so the gui
 ## D031 — 2026-04
 
 Persist first-run onboarding progress and completion as an app-scoped YAML file outside the Vault so the blocking setup guide can resume across launches without depending on note storage contents.
+
+## D032 — 2026-04
+
+Persist workspace folder metadata in `meta.yaml` inside the currently configured Vault root instead of the app data directory. This keeps folder icons aligned with the active storage target while `app-config.yaml` and onboarding state remain app-scoped. Partially supersedes D018.

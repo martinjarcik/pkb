@@ -77,8 +77,7 @@ Settings are persisted in the desktop app settings directory as
 workspace with the updated configuration. The same category also exposes a
 dedicated action to move the current vault contents into a different directory,
 overwriting conflicting paths before switching the configured vault path.
-Workspace metadata also uses `meta.yaml` in the same desktop app settings
-directory.
+Workspace metadata uses `meta.yaml` inside the currently configured Vault root.
 
 ## Configuration
 
@@ -100,8 +99,9 @@ directory.
 | `theme.accentColor`           | string  | `"#3f57dfff"`  | Accent color for selected nav, pinned note icon, and list tint                                         |
 | `theme.defaultEditorColor`    | string  | `"yellow"`     | Default editor highlight/background color key                                                          |
 
-Workspace metadata (folder icons, etc.) is stored in `meta.yaml` in the desktop
-app settings directory (see Vault Folder Views), not in `app/config/default.yaml`.
+Workspace metadata (folder icons, etc.) is stored in `meta.yaml` inside the
+currently configured Vault root (see Vault Folder Views), not in
+`app/config/default.yaml`.
 
 ## Features
 
@@ -244,11 +244,13 @@ The note content area uses Editor.js as the editing surface.
   wraps the current selection in a yellow highlight by default. Hovering the
   highlight item opens color choices: red, green, yellow, blue, orange,
   purple, grey, and brown.
-- The inline toolbar includes a `Big Emoji` tool that opens the same emoji
-  picker used for folder icons and inserts the selected emoji inline at `2em`.
-- Big Emoji content is stored in Markdown as bold emoji such as `**🤖**` and is
-  reloaded back into the editor as a Big Emoji block when the bold text contains
-  only a single emoji sequence.
+- The editor normalizes supported emoji sequences into inline `Emoji block`
+  elements and keeps the existing floating toolbar with `Default`, `Bigger`,
+  `Big`, and `Stick it!` actions.
+- Plain emoji such as `🤖` are stored in Markdown unchanged and reload into the
+  editor as default Emoji blocks with no enlarged styling.
+- Styled Emoji blocks are stored in Markdown as bold emoji such as `**🤖**` or
+  `__🤖__` and reload back into the editor with their larger size variants.
 - Highlighted text is stored in Markdown as `==text==` for the default yellow
   highlight, or `==<emoji>text==` for non-default colors such as
   `==🔴important==`.

@@ -557,7 +557,87 @@ describe('editorjsMarkdown', () => {
       {
         type: 'paragraph',
         data: {
-          text: 'Status <b class="inline-big-emoji" contenteditable="false">🤖</b> updated.',
+          text: 'Status <b class="inline-big-emoji inline-big-emoji-bigger" contenteditable="false" data-size="bigger">🤖</b> updated.',
+        },
+      },
+    ])
+  })
+
+  it('parses plain emoji markdown to default emoji block editor HTML', () => {
+    expect(markdownToEditorjsBlocks('Status 🤖 updated.')).toEqual([
+      {
+        type: 'paragraph',
+        data: {
+          text: 'Status <b class="inline-big-emoji" contenteditable="false" data-size="default">🤖</b> updated.',
+        },
+      },
+    ])
+  })
+
+  it('parses plain emoji markdown in headings, lists, quotes, and tables', () => {
+    expect(
+      markdownToEditorjsBlocks(`## Heading 🤖
+
+- Task 🤖
+
+> Quote 🤖
+
+| Emoji |
+| :--- |
+| 🤖 |`),
+    ).toEqual([
+      {
+        type: 'header',
+        data: {
+          level: 2,
+          text: 'Heading <b class="inline-big-emoji" contenteditable="false" data-size="default">🤖</b>',
+        },
+      },
+      {
+        type: 'paragraph',
+        data: {
+          text: '',
+        },
+      },
+      {
+        type: 'list',
+        data: {
+          style: 'unordered',
+          items: [
+            'Task <b class="inline-big-emoji" contenteditable="false" data-size="default">🤖</b>',
+          ],
+        },
+      },
+      {
+        type: 'paragraph',
+        data: {
+          text: '',
+        },
+      },
+      {
+        type: 'simpleQuote',
+        data: {
+          text: 'Quote <b class="inline-big-emoji" contenteditable="false" data-size="default">🤖</b>',
+        },
+      },
+      {
+        type: 'paragraph',
+        data: {
+          text: '',
+        },
+      },
+      {
+        type: 'table',
+        data: {
+          alignments: ['left'],
+          content: [
+            ['Emoji'],
+            [
+              '<b class="inline-big-emoji" contenteditable="false" data-size="default">🤖</b>',
+            ],
+          ],
+          stretched: false,
+          withHeadings: true,
         },
       },
     ])
@@ -658,7 +738,20 @@ describe('editorjsMarkdown', () => {
         {
           type: 'paragraph',
           data: {
-            text: 'Status <b class="inline-big-emoji">🤖</b> updated.',
+            text: 'Status <b class="inline-big-emoji" contenteditable="false" data-size="default">🤖</b> updated.',
+          },
+        },
+      ]),
+    ).toBe('Status 🤖 updated.')
+  })
+
+  it('serializes bigger-size emoji html to asterisk bold markdown', () => {
+    expect(
+      editorjsBlocksToMarkdown([
+        {
+          type: 'paragraph',
+          data: {
+            text: 'Status <b class="inline-big-emoji inline-big-emoji-bigger" contenteditable="false" data-size="bigger">🤖</b> updated.',
           },
         },
       ]),
@@ -684,11 +777,11 @@ describe('editorjsMarkdown', () => {
         {
           type: 'paragraph',
           data: {
-            text: 'Status <b class="inline-big-emoji">🤖</b>\u200B updated.',
+            text: 'Status <b class="inline-big-emoji" contenteditable="false" data-size="default">🤖</b>\u200B updated.',
           },
         },
       ]),
-    ).toBe('Status **🤖** updated.')
+    ).toBe('Status 🤖 updated.')
   })
 
   it('removes thin big emoji caret anchors from markdown output', () => {
@@ -697,7 +790,20 @@ describe('editorjsMarkdown', () => {
         {
           type: 'paragraph',
           data: {
-            text: 'Status <b class="inline-big-emoji">🤖</b>\u200A updated.',
+            text: 'Status <b class="inline-big-emoji" contenteditable="false" data-size="default">🤖</b>\u200A updated.',
+          },
+        },
+      ]),
+    ).toBe('Status 🤖 updated.')
+  })
+
+  it('serializes legacy b-tag emoji html without explicit size to asterisk bold markdown', () => {
+    expect(
+      editorjsBlocksToMarkdown([
+        {
+          type: 'paragraph',
+          data: {
+            text: 'Status <b class="inline-big-emoji" contenteditable="false">🤖</b> updated.',
           },
         },
       ]),
@@ -728,6 +834,19 @@ describe('editorjsMarkdown', () => {
         },
       ]),
     ).toBe('Status **🤖** updated.')
+  })
+
+  it('serializes saved span-tag default emoji html to plain markdown', () => {
+    expect(
+      editorjsBlocksToMarkdown([
+        {
+          type: 'paragraph',
+          data: {
+            text: 'Status <span class="inline-big-emoji" contenteditable="false" data-size="default">🤖</span> updated.',
+          },
+        },
+      ]),
+    ).toBe('Status 🤖 updated.')
   })
 
   it('serializes saved span-tag big-size emoji html to underscore markdown', () => {
@@ -814,11 +933,24 @@ describe('editorjsMarkdown', () => {
         {
           type: 'paragraph',
           data: {
-            text: 'Status <span class="inline-big-emoji" contenteditable="false">🤖</span><b>bold</b> updated.',
+            text: 'Status <span class="inline-big-emoji inline-big-emoji-bigger" contenteditable="false" data-size="bigger">🤖</span><b>bold</b> updated.',
           },
         },
       ]),
     ).toBe('Status **🤖**\u200C**bold** updated.')
+  })
+
+  it('does not insert separator between default emoji block and bold text', () => {
+    expect(
+      editorjsBlocksToMarkdown([
+        {
+          type: 'paragraph',
+          data: {
+            text: 'Status <span class="inline-big-emoji" contenteditable="false" data-size="default">🤖</span><b>bold</b> updated.',
+          },
+        },
+      ]),
+    ).toBe('Status 🤖**bold** updated.')
   })
 
   it('round-trips default highlight markdown', () => {
@@ -873,6 +1005,14 @@ describe('editorjsMarkdown', () => {
     )
   })
 
+  it('round-trips plain emoji markdown as default emoji blocks', () => {
+    const markdown = 'Status 🤖 updated.'
+
+    expect(editorjsBlocksToMarkdown(markdownToEditorjsBlocks(markdown))).toBe(
+      markdown,
+    )
+  })
+
   it('round-trips underscore bold emoji as big-size emoji', () => {
     expect(
       editorjsBlocksToMarkdown(
@@ -887,6 +1027,41 @@ describe('editorjsMarkdown', () => {
     expect(editorjsBlocksToMarkdown(markdownToEditorjsBlocks(markdown))).toBe(
       markdown,
     )
+  })
+
+  it('does not convert inline code emoji to emoji blocks', () => {
+    expect(markdownToEditorjsBlocks('Use `🤖` inline.')).toEqual([
+      {
+        type: 'paragraph',
+        data: {
+          text: 'Use <code class="inline-code">🤖</code> inline.',
+        },
+      },
+    ])
+  })
+
+  it('does not convert highlight color-prefix emoji to emoji blocks', () => {
+    expect(
+      markdownToEditorjsBlocks(`Use ==${altMeta.emoji}urgent== text.`),
+    ).toEqual([
+      {
+        type: 'paragraph',
+        data: {
+          text: `Use <mark class="inline-highlight" data-text="${altColor}" style="color: ${altMeta.text}">urgent</mark> text.`,
+        },
+      },
+    ])
+  })
+
+  it('does not convert fenced code emoji to emoji blocks', () => {
+    expect(markdownToEditorjsBlocks('```\n🤖\n```')).toEqual([
+      {
+        type: 'code',
+        data: {
+          code: '🤖',
+        },
+      },
+    ])
   })
 
   it('treats attributed br tags as paragraph separators', () => {

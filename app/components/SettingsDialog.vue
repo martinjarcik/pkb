@@ -1,10 +1,12 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
 import type { ImportPlugin } from '~/import/types'
+import SettingsDevelopmentSection from '~/components/SettingsDevelopmentSection.vue'
 import {
   useAppConfigDisk,
   type AppConfig,
 } from '~/composables/useAppConfigDisk'
+import { useAppReset } from '~/composables/useAppReset'
 import { useNoteSelection } from '~/composables/useNoteSelection'
 import { useNoteStorage } from '~/composables/useNoteStorage'
 import { useAppStartup } from '~/composables/useAppStartup'
@@ -21,6 +23,7 @@ const { syncLayoutFromConfig } = useLayout()
 const { editorFlush } = useNoteSelection()
 const { platformApi } = useNoteStorage()
 const { startApp } = useAppStartup()
+const { resetApp } = useAppReset()
 const emit = defineEmits<{
   startImport: [plugin: ImportPlugin]
 }>()
@@ -54,6 +57,11 @@ const categoryItems = computed<
     id: 'general',
     label: t('settings.categories.general'),
     description: t('settings.categories.generalDescription'),
+  },
+  {
+    id: 'development',
+    label: t('settings.categories.development'),
+    description: t('settings.categories.developmentDescription'),
   },
 ])
 
@@ -430,6 +438,22 @@ function handleStartImport(plugin: ImportPlugin): void {
   settingsOpen.value = false
   emit('startImport', plugin)
 }
+
+async function handleResetApp(): Promise<void> {
+  saveError.value = null
+  isSaving.value = true
+
+  try {
+    await flushPendingEditorChanges()
+    await resetApp()
+    settingsOpen.value = false
+  } catch (error) {
+    saveError.value =
+      error instanceof Error ? error.message : t('settings.errors.saveFailed')
+  } finally {
+    isSaving.value = false
+  }
+}
 </script>
 
 <template>
@@ -514,6 +538,12 @@ function handleStartImport(plugin: ImportPlugin): void {
             @move-vault="void moveVaultDirectory()"
             @choose-assets-folder="void chooseAssetsFolderDirectory()"
             @start-import="handleStartImport"
+          />
+
+          <SettingsDevelopmentSection
+            v-else-if="activeCategory === 'development'"
+            :is-saving="isSaving"
+            @reset-app="void handleResetApp()"
           />
         </div>
       </div>

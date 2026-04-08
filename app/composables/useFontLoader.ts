@@ -1,50 +1,32 @@
-const fontLoaders: Record<string, () => Promise<unknown>> = {
-  '"Noto Emoji", sans-serif': () => import('@fontsource/noto-emoji/index.css'),
-  '"Inter", system-ui, -apple-system, BlinkMacSystemFont, sans-serif': () =>
-    import('@fontsource/inter/latin.css'),
-  '"Josefin Sans", "Trebuchet MS", "Gill Sans", sans-serif': () =>
-    import('@fontsource/josefin-sans/latin.css'),
-  '"Roboto", "Helvetica Neue", Arial, sans-serif': () =>
-    import('@fontsource/roboto/latin.css'),
-  '"Open Sans", "Helvetica Neue", Arial, sans-serif': () =>
-    import('@fontsource/open-sans/latin.css'),
-  '"Rubik", "Avenir Next", "Helvetica Neue", sans-serif': () =>
-    import('@fontsource/rubik/latin.css'),
-  '"DM Sans", "Avenir Next", "Helvetica Neue", sans-serif': () =>
-    import('@fontsource/dm-sans/latin.css'),
-  '"Poppins", "Avenir Next", "Helvetica Neue", sans-serif': () =>
-    import('@fontsource/poppins/latin.css'),
-  '"Lato", "Helvetica Neue", Arial, sans-serif': () =>
-    import('@fontsource/lato/latin.css'),
-  '"Nunito", "Avenir Next", "Helvetica Neue", sans-serif': () =>
-    import('@fontsource/nunito/latin.css'),
-  '"Ubuntu", "Helvetica Neue", Arial, sans-serif': () =>
-    import('@fontsource/ubuntu/latin.css'),
-  '"Source Sans Pro", "Helvetica Neue", Arial, sans-serif': () =>
-    import('@fontsource/source-sans-pro/latin.css'),
-  '"Work Sans", "Avenir Next", "Helvetica Neue", sans-serif': () =>
-    import('@fontsource/work-sans/latin.css'),
-  '"Manrope", "Avenir Next", "Helvetica Neue", sans-serif': () =>
-    import('@fontsource/manrope/latin.css'),
-  '"Raleway", "Helvetica Neue", Arial, sans-serif': () =>
-    import('@fontsource/raleway/latin.css'),
-  '"Montserrat", "Avenir Next", "Helvetica Neue", sans-serif': () =>
-    import('@fontsource/montserrat/latin.css'),
-  '"Playfair Display", Georgia, "Times New Roman", serif': () =>
-    import('@fontsource/playfair-display/latin.css'),
-  '"Libre Baskerville", Georgia, "Times New Roman", serif': () =>
-    import('@fontsource/libre-baskerville/latin.css'),
-  '"Neuton", Georgia, "Times New Roman", serif': () =>
-    import('@fontsource/neuton/latin.css'),
-  '"Lora", Georgia, "Times New Roman", serif': () =>
-    import('@fontsource/lora/latin.css'),
-  '"JetBrains Mono", "Courier New", Courier, monospace': () =>
-    import('@fontsource/jetbrains-mono/latin.css'),
-  '"Arvo", Georgia, "Times New Roman", serif': () =>
-    import('@fontsource/arvo/latin.css'),
-}
+const supportedFontFamilies = new Set([
+  '"Noto Emoji", sans-serif',
+  '"Inter", system-ui, -apple-system, BlinkMacSystemFont, sans-serif',
+  '"Josefin Sans", "Trebuchet MS", "Gill Sans", sans-serif',
+  '"Roboto", "Helvetica Neue", Arial, sans-serif',
+  '"Open Sans", "Helvetica Neue", Arial, sans-serif',
+  '"Rubik", "Avenir Next", "Helvetica Neue", sans-serif',
+  '"DM Sans", "Avenir Next", "Helvetica Neue", sans-serif',
+  '"Poppins", "Avenir Next", "Helvetica Neue", sans-serif',
+  '"Lato", "Helvetica Neue", Arial, sans-serif',
+  '"Nunito", "Avenir Next", "Helvetica Neue", sans-serif',
+  '"Ubuntu", "Helvetica Neue", Arial, sans-serif',
+  '"Source Sans Pro", "Helvetica Neue", Arial, sans-serif',
+  '"Work Sans", "Avenir Next", "Helvetica Neue", sans-serif',
+  '"Manrope", "Avenir Next", "Helvetica Neue", sans-serif',
+  '"Raleway", "Helvetica Neue", Arial, sans-serif',
+  '"Montserrat", "Avenir Next", "Helvetica Neue", sans-serif',
+  '"Playfair Display", Georgia, "Times New Roman", serif',
+  '"Libre Baskerville", Georgia, "Times New Roman", serif',
+  '"Neuton", Georgia, "Times New Roman", serif',
+  '"Lora", Georgia, "Times New Roman", serif',
+  '"JetBrains Mono", "Courier New", Courier, monospace',
+  '"Arvo", Georgia, "Times New Roman", serif',
+])
 
 const loadedFontFamilies = new Set<string>()
+const loadingFontFamilies = new Map<string, Promise<void>>()
+const DEFAULT_FONT_PRELOAD_TEXT = 'PKB Inbox Tasks Favorites Trashed Settings'
+const DEFAULT_FONT_WEIGHTS = ['400', '500', '600', '700']
 
 function getPrimaryFontFamily(fontFamily: string): string | null {
   const firstFamily = fontFamily.split(',')[0]?.trim()
@@ -57,39 +39,86 @@ function getPrimaryFontFamily(fontFamily: string): string | null {
 }
 
 export function useFontLoader() {
-  async function ensureFontLoaded(fontFamily: string): Promise<void> {
-    if (loadedFontFamilies.has(fontFamily)) {
+  async function ensureFontLoaded(
+    fontFamily: string,
+    text: string = DEFAULT_FONT_PRELOAD_TEXT,
+    weights: string[] = DEFAULT_FONT_WEIGHTS,
+  ): Promise<void> {
+    const cacheKey = `${fontFamily}::${weights.join(',')}::${text}`
+
+    if (loadedFontFamilies.has(cacheKey)) {
       return
     }
 
-    const loadFont = fontLoaders[fontFamily]
+    const pendingLoad = loadingFontFamilies.get(cacheKey)
 
-    if (!loadFont) {
-      loadedFontFamilies.add(fontFamily)
+    if (pendingLoad !== undefined) {
+      await pendingLoad
       return
     }
 
-    await loadFont()
-    loadedFontFamilies.add(fontFamily)
+    if (!supportedFontFamilies.has(fontFamily)) {
+      loadedFontFamilies.add(cacheKey)
+      return
+    }
 
     const primaryFontFamily = getPrimaryFontFamily(fontFamily)
 
     if (!primaryFontFamily) {
+      loadedFontFamilies.add(cacheKey)
       return
     }
 
-    await Promise.all([
-      document.fonts.load(`1rem "${primaryFontFamily}"`),
-      document.fonts.load(`700 1rem "${primaryFontFamily}"`),
+    const loadPromise = Promise.all(
+      weights.map((weight) =>
+        document.fonts.load(`${weight} 1rem "${primaryFontFamily}"`, text),
+      ),
+    ).then(() => {
+      loadedFontFamilies.add(cacheKey)
+    })
+
+    loadingFontFamilies.set(cacheKey, loadPromise)
+
+    try {
+      await loadPromise
+    } finally {
+      loadingFontFamilies.delete(cacheKey)
+    }
+  }
+
+  async function ensureSidebarBadgeFontLoaded(
+    sidebarBadge: string,
+  ): Promise<void> {
+    if (sidebarBadge.length === 0) {
+      return
+    }
+
+    await ensureFontLoaded('"Noto Emoji", sans-serif', sidebarBadge, ['400'])
+  }
+
+  async function ensureApplicationFontLoaded(
+    fontFamily: string,
+  ): Promise<void> {
+    await ensureFontLoaded(fontFamily, DEFAULT_FONT_PRELOAD_TEXT, [
+      '400',
+      '500',
+      '600',
+      '700',
     ])
   }
 
-  async function ensureSidebarBadgeFontLoaded(): Promise<void> {
-    await ensureFontLoaded('"Noto Emoji", sans-serif')
+  async function ensureEditorFontLoaded(fontFamily: string): Promise<void> {
+    await ensureFontLoaded(fontFamily, DEFAULT_FONT_PRELOAD_TEXT, [
+      '400',
+      '500',
+      '700',
+    ])
   }
 
   return {
     ensureFontLoaded,
+    ensureApplicationFontLoaded,
+    ensureEditorFontLoaded,
     ensureSidebarBadgeFontLoaded,
   }
 }

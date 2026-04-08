@@ -4,6 +4,9 @@ import { remarkHighlightMark } from 'remark-highlight-mark'
 
 const EMOJI_PATTERN =
   /[\p{Emoji_Presentation}\p{Extended_Pictographic}]\uFE0F?/gu
+const BROKEN_DOUBLE_UNDERSCORE_RUN_PATTERN = /_{4,}/g
+const STANDALONE_DOUBLE_UNDERSCORE_PATTERN =
+  /(^|[\s([{])__(?=$|[\s)\]}.,!?;:])/g
 const URL_PATTERN = /\b(?:https?:\/\/|www\.)[^\s<>()]+/giu
 const markdownParser = remark().use(remarkGfm).use(remarkHighlightMark)
 
@@ -58,7 +61,9 @@ export function noteDescriptionFromContent(content: string): string {
   const normalizedContent = segments
     .join(' ')
     .replace(URL_PATTERN, ' ')
+    .replace(STANDALONE_DOUBLE_UNDERSCORE_PATTERN, '$1')
     .replace(EMOJI_PATTERN, '')
+    .replace(BROKEN_DOUBLE_UNDERSCORE_RUN_PATTERN, '')
     .replace(/\s+([.,!?;:])/g, '$1')
     .replace(/\s+/g, ' ')
     .trim()

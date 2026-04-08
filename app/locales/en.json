@@ -35,16 +35,21 @@
       "editing": "Editing",
       "editingDescription": "Notes, editor, and colors",
       "theme": "Appearance",
-      "themeDescription": "Colors and typography"
+      "themeDescription": "Colors and typography",
+      "development": "Development",
+      "developmentDescription": "Reset app state"
     },
     "actions": {
       "chooseDirectory": "Choose directory",
-      "moveVault": "Move current vault"
+      "moveVault": "Move current vault",
+      "reset": "Reset"
     },
     "sections": {
       "features": "Workspace features",
       "layout": "Panel visibility",
-      "import": "Import"
+      "import": "Import",
+      "development": "Development",
+      "developmentDescription": "Danger zone utilities for local testing."
     },
     "fields": {
       "vault": {
@@ -101,6 +106,10 @@
         "label": "Default editor color",
         "placeholder": "Select a default editor color",
         "description": "Used as the default highlight and background color for supported editor tools."
+      },
+      "resetApp": {
+        "label": "Reset application state",
+        "description": "Restore default app settings, clear onboarding progress, and remove saved folder metadata so the app behaves like a new install."
       },
       "features": {
         "favorites": {

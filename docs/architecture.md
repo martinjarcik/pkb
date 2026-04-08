@@ -222,11 +222,13 @@ those rules.
 - `NoteEditor.vue` applies `patchExecCommandForInlineHighlight()` during
   mount so inline highlight operations stay in sync with autosave. It must call
   `restoreExecCommand()` during `onBeforeUnmount`.
-- `BigEmojiTool` registers a capture-phase `click` listener on `document`
-  in its constructor to toggle between regular emoji text and big emoji
-  `<strong>` blocks. Clicking a plain emoji wraps it; clicking an existing
-  big emoji unwraps it. Cleanup happens through the Editor.js tool `destroy()`
-  path when `NoteEditor` destroys the editor instance on unmount.
+- `BigEmojiTool` registers capture-phase `click` and `input` listeners on
+  `document` in its constructor to normalize supported emoji sequences into
+  inline Emoji blocks, open the floating Emoji block toolbar, and preserve the
+  existing size/stick controls. Default Emoji blocks render without enlarged
+  styling, while `Bigger`, `Big`, and `Stick it!` keep their specialized
+  behavior. Cleanup happens through the Editor.js tool `destroy()` path when
+  `NoteEditor` destroys the editor instance on unmount.
 - `useEditorSync()` owns the pending autosave timer. `NoteEditor.vue`
   must call `clearPendingContentSync()` during prop-driven re-renders and
   before unmount.
@@ -336,10 +338,10 @@ from config and does not own module-scope refs.
   configuration state (e.g. panel visibility toggles) lives in composables
   initialized from these defaults.
 - `WorkspaceMeta` (`app/config/parseMeta.ts`) — typed workspace metadata (for
-  example per-folder emoji icons), persisted in `meta.yaml` in the desktop app
-  data directory. Loaded and updated through the client-side persistence layer backed by
-  the `PlatformApi`; `useFolderMeta()` holds reactive folder metadata in shared
-  Vue refs.
+  example per-folder emoji icons), persisted in `meta.yaml` inside the
+  currently configured Vault root. Loaded and updated through the client-side
+  persistence layer backed by the `PlatformApi`; `useFolderMeta()` holds
+  reactive folder metadata in shared Vue refs.
 
 ### Config sources in the running app
 
@@ -352,8 +354,8 @@ from config and does not own module-scope refs.
   before disk load succeeds and remain the validation baseline for missing
   scoped files.
 - Runtime config/meta writes are orchestrated in the client and persisted via
-  the `PlatformApi`. Both `app-config.yaml` and `meta.yaml` live in the desktop
-  app data directory.
+  the `PlatformApi`. `app-config.yaml` lives in the desktop app data directory,
+  while `meta.yaml` lives inside the currently configured Vault root.
 
 ## Common change chains
 

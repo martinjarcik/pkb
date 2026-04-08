@@ -100,3 +100,25 @@ export async function writeMetaPatchPersistence(
 
   return validated
 }
+
+export async function resetAppPersistence(platformApi: PlatformApi): Promise<{
+  appConfig: AppConfig
+  onboarding: OnboardingState
+  meta: WorkspaceMeta
+}> {
+  const appConfig = loadConfig()
+  const onboarding = DEFAULT_ONBOARDING_STATE
+  const meta = parseMeta(undefined)
+
+  await Promise.all([
+    platformApi.writeScopedTextFile('app-config', yaml.stringify(appConfig)),
+    platformApi.writeScopedTextFile('onboarding', yaml.stringify(onboarding)),
+    platformApi.writeScopedTextFile('meta', yaml.stringify(meta)),
+  ])
+
+  return {
+    appConfig,
+    onboarding,
+    meta,
+  }
+}

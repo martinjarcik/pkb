@@ -69,6 +69,22 @@ describe('noteDescriptionFromContent', () => {
     expect(result).toBe('Open the docs for details.')
   })
 
+  it('removes standalone double underscore markdown markers', () => {
+    const result = noteDescriptionFromContent(
+      'Plan __ highlighted section __ today.',
+    )
+
+    expect(result).toBe('Plan highlighted section today.')
+  })
+
+  it('removes double underscore runs left after emoji markdown is stripped', () => {
+    const result = noteDescriptionFromContent(
+      'kk __😃__ hhkkkd__🤖__\n\nkk__🦄__hhkkkd __🤖__kkkmjj',
+    )
+
+    expect(result).toBe('kk hhkkkd kkhhkkkd kkkmjj')
+  })
+
   it('omits markdown table separator rows', () => {
     const result = noteDescriptionFromContent(
       ['| Name | Value |', '| --- | --- |', '| Width | 120px |'].join('\n'),

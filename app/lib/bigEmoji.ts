@@ -1,16 +1,21 @@
 export const BIG_EMOJI_CLASS = 'inline-big-emoji'
+export const BIG_EMOJI_DEFAULT_SIZE = 'default'
+export const BIG_EMOJI_BIGGER_SIZE = 'bigger'
 export const BIG_EMOJI_BIG_SIZE = 'big'
+export const BIG_EMOJI_BIGGER_CLASS = 'inline-big-emoji-bigger'
 export const BIG_EMOJI_BIG_CLASS = 'inline-big-emoji-big'
 export const BIG_EMOJI_STICK_CLASS = 'inline-big-emoji-stick'
 export const BIG_EMOJI_STICK_BLOCK_CLASS = 'block-big-emoji-stick'
+export const BIG_EMOJI_SELECTED_BLOCK_CLASS = 'block-big-emoji-selected'
 export const BIG_EMOJI_BIG_MARKER = '\u2060'
 export const BIG_EMOJI_STICK_MARKER = '\u2063'
 
-export type BigEmojiSize = 'bigger' | 'big'
+export type BigEmojiSize = 'default' | 'bigger' | 'big'
 
-const BIG_EMOJI_CONTENT_PATTERN = String.raw`\p{Extended_Pictographic}(?:\uFE0F|\u200D\p{Extended_Pictographic})*`
+export const BIG_EMOJI_CONTENT_PATTERN = String.raw`\p{Extended_Pictographic}(?:\uFE0F|\u200D\p{Extended_Pictographic})*`
 
 const BIG_EMOJI_ONLY_PATTERN = new RegExp(`^${BIG_EMOJI_CONTENT_PATTERN}$`, 'u')
+const PLAIN_EMOJI_PATTERN = new RegExp(BIG_EMOJI_CONTENT_PATTERN, 'gu')
 const ASTERISK_BIG_EMOJI_PATTERN = new RegExp(
   String.raw`\*\*(${BIG_EMOJI_CONTENT_PATTERN})\*\*`,
   'gu',
@@ -53,14 +58,24 @@ export function replacePlainBigEmojiMarkersWithMarkdown(text: string): string {
 
 export function renderBigEmojiHtml(
   emoji: string,
-  size: BigEmojiSize = 'bigger',
+  size: BigEmojiSize = BIG_EMOJI_DEFAULT_SIZE,
 ): string {
-  const sizeClass = size === BIG_EMOJI_BIG_SIZE ? ` ${BIG_EMOJI_BIG_CLASS}` : ''
-  const sizeAttr =
-    size === BIG_EMOJI_BIG_SIZE ? ` data-size="${BIG_EMOJI_BIG_SIZE}"` : ''
+  const sizeClass =
+    size === BIG_EMOJI_BIGGER_SIZE
+      ? ` ${BIG_EMOJI_BIGGER_CLASS}`
+      : size === BIG_EMOJI_BIG_SIZE
+        ? ` ${BIG_EMOJI_BIG_CLASS}`
+        : ''
+  const sizeAttr = ` data-size="${size}"`
   const textContent =
     size === BIG_EMOJI_BIG_SIZE ? `${emoji}${BIG_EMOJI_BIG_MARKER}` : emoji
   return `<b class="${BIG_EMOJI_CLASS}${sizeClass}" contenteditable="false"${sizeAttr}>${textContent}</b>`
+}
+
+export function renderPlainEmojiAsEditorHtml(text: string): string {
+  return text.replace(PLAIN_EMOJI_PATTERN, (emoji) =>
+    renderBigEmojiHtml(emoji, BIG_EMOJI_DEFAULT_SIZE),
+  )
 }
 
 export function renderBigEmojiMarkdownAsEditorHtml(markdown: string): string {

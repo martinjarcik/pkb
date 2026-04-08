@@ -4,6 +4,7 @@ import { loadConfig } from '~/config/loader'
 import {
   readOnboardingPersistence,
   readAppConfigPersistence,
+  resetAppPersistence,
   writeOnboardingPersistence,
   writeAppConfigPatchPersistence,
 } from '~/config/persistence'
@@ -101,5 +102,39 @@ describe('persistence', () => {
       expect.stringContaining('currentSlide: 4'),
     )
     expect(updated.selectedImportPluginId).toBe('notion')
+  })
+
+  it('resets app persistence to default config, onboarding, and empty meta', async () => {
+    const platformApi = createPlatformApiMock()
+
+    vi.mocked(platformApi.writeScopedTextFile).mockResolvedValue({
+      content: '',
+      birthtime: '2026-04-03T10:00:00.000Z',
+      mtime: '2026-04-03T10:00:00.000Z',
+    })
+
+    const reset = await resetAppPersistence(platformApi)
+
+    expect(platformApi.writeScopedTextFile).toHaveBeenCalledTimes(3)
+    expect(platformApi.writeScopedTextFile).toHaveBeenCalledWith(
+      'app-config',
+      expect.stringContaining(`vault: ${loadConfig().vault}`),
+    )
+    expect(platformApi.writeScopedTextFile).toHaveBeenCalledWith(
+      'onboarding',
+      expect.stringContaining('currentSlide: 1'),
+    )
+    expect(platformApi.writeScopedTextFile).toHaveBeenCalledWith(
+      'meta',
+      expect.stringContaining('folders: {}'),
+    )
+    expect(reset.appConfig).toEqual(loadConfig())
+    expect(reset.onboarding).toEqual({
+      completed: false,
+      currentSlide: 1,
+    })
+    expect(reset.meta).toEqual({
+      folders: {},
+    })
   })
 })

@@ -33,6 +33,7 @@ const {
   sidebarBackgroundColor,
   sidebarSelectedTextContrastClass,
   sidebarTextContrastClass,
+  sidebarBadge,
   applicationTypeface,
   applicationFontSize,
   editorTypeface,
@@ -48,10 +49,16 @@ const {
   showNotesListPanel,
   sidebarPanelWidth,
 } = useLayout()
-const { ensureFontLoaded, ensureSidebarBadgeFontLoaded } = useFontLoader()
+const {
+  ensureApplicationFontLoaded,
+  ensureEditorFontLoaded,
+  ensureSidebarBadgeFontLoaded,
+} = useFontLoader()
 
 const workspaceShellRef = ref<HTMLElement | null>(null)
 const activeResizeTarget = ref<ResizeTarget | null>(null)
+const appliedApplicationTypeface = ref(applicationTypeface.value)
+const applicationTypefaceLoadId = ref(0)
 const resizeStartPointerX = ref(0)
 const resizeStartWidth = ref(0)
 
@@ -68,20 +75,46 @@ watchEffect(() => {
 })
 
 watchEffect(() => {
-  document.documentElement.style.fontFamily = applicationTypeface.value
+  document.documentElement.style.fontFamily = appliedApplicationTypeface.value
   document.documentElement.style.fontSize = applicationFontSize.value
 })
 
 watch(
-  [applicationTypeface, editorTypeface],
-  ([nextApplicationTypeface, nextEditorTypeface]) => {
-    void ensureFontLoaded(nextApplicationTypeface)
+  applicationTypeface,
+  async (nextApplicationTypeface) => {
+    const loadId = applicationTypefaceLoadId.value + 1
+    applicationTypefaceLoadId.value = loadId
+    await ensureApplicationFontLoaded(nextApplicationTypeface)
 
-    if (nextEditorTypeface === nextApplicationTypeface) {
+    if (loadId !== applicationTypefaceLoadId.value) {
       return
     }
 
-    void ensureFontLoaded(nextEditorTypeface)
+    appliedApplicationTypeface.value = nextApplicationTypeface
+  },
+  {
+    immediate: true,
+  },
+)
+
+watch(
+  editorTypeface,
+  (nextEditorTypeface) => {
+    if (nextEditorTypeface === applicationTypeface.value) {
+      return
+    }
+
+    void ensureEditorFontLoaded(nextEditorTypeface)
+  },
+  {
+    immediate: true,
+  },
+)
+
+watch(
+  sidebarBadge,
+  (nextSidebarBadge) => {
+    void ensureSidebarBadgeFontLoaded(nextSidebarBadge)
   },
   {
     immediate: true,
@@ -199,7 +232,6 @@ function startResize(target: ResizeTarget, event: PointerEvent): void {
 }
 
 onMounted(() => {
-  void ensureSidebarBadgeFontLoaded()
   void (async () => {
     await startApp()
     await loadOnboarding()

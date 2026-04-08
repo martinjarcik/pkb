@@ -4,6 +4,7 @@ import { remarkHighlightMark } from 'remark-highlight-mark'
 import { createHashtagPattern } from '~/notes/extractTags'
 import {
   isBigEmojiContent,
+  renderPlainEmojiAsEditorHtml,
   renderBigEmojiHtml,
   renderBigEmojiMarkdownAsEditorHtml,
 } from './bigEmoji'
@@ -176,6 +177,14 @@ function wrapHashtagsForEditorHtml(text: string): string {
   )
 }
 
+type InlineParseOptions = {
+  wrapPlainEmoji: boolean
+}
+
+const defaultInlineParseOptions: InlineParseOptions = {
+  wrapPlainEmoji: true,
+}
+
 function createEmptyParagraphBlock(): EditorjsBlock {
   return {
     type: 'paragraph',
@@ -270,48 +279,120 @@ function blocksFromRootWithBlankLines(
   return output
 }
 
-function parseInlineNodeToHtml(node: MarkdownNode): string {
+function parseTextNodeToHtml(
+  value: string,
+  options: InlineParseOptions,
+): string {
+  const emojiWrapped = options.wrapPlainEmoji
+    ? renderPlainEmojiAsEditorHtml(value)
+    : value
+
+  return markdownNewlinesToEditorHtml(wrapHashtagsForEditorHtml(emojiWrapped))
+}
+
+function isBigEmojiOpeningHtmlNode(node: MarkdownNode): boolean {
+  if (node.type !== 'html') {
+    return false
+  }
+
+  const value = node.value ?? ''
+
+  return (
+    /<(b|span|strong)\b/i.test(value) &&
+    /\binline-big-emoji\b/i.test(value) &&
+    !/^\s*<\//.test(value)
+  )
+}
+
+function isBigEmojiClosingHtmlNode(node: MarkdownNode): boolean {
+  return (
+    node.type === 'html' &&
+    /^\s*<\/(b|span|strong)>\s*$/i.test(node.value ?? '')
+  )
+}
+
+function parseInlineNodeToHtml(
+  node: MarkdownNode,
+  options: InlineParseOptions = defaultInlineParseOptions,
+): string {
   switch (node.type) {
     case 'image':
       return ''
     case 'text':
-      return markdownNewlinesToEditorHtml(
-        wrapHashtagsForEditorHtml(node.value ?? ''),
-      )
+      return parseTextNodeToHtml(node.value ?? '', options)
     case 'emphasis':
-      return `<i>${parseInlineNodesToHtml(node.children)}</i>`
+      return `<i>${parseInlineNodesToHtml(node.children, options)}</i>`
     case 'strong': {
-      const content = parseInlineNodesToHtml(node.children)
+      const content = parseInlineNodesToHtml(node.children, {
+        wrapPlainEmoji: false,
+      })
 
       return isBigEmojiContent(content)
-        ? renderBigEmojiHtml(content)
+        ? renderBigEmojiHtml(content, 'bigger')
         : `<b>${content}</b>`
     }
     case 'delete':
-      return `<s>${parseInlineNodesToHtml(node.children)}</s>`
+      return `<s>${parseInlineNodesToHtml(node.children, options)}</s>`
     case 'inlineCode':
       return `<code class="inline-code">${node.value ?? ''}</code>`
     case 'mark':
     case 'highlight': {
-      const renderedContent = parseInlineNodesToHtml(node.children)
+      const renderedContent = parseInlineNodesToHtml(node.children, {
+        wrapPlainEmoji: false,
+      })
       const { style, content } =
         parseInlineHighlightMarkdownPrefix(renderedContent)
 
       return renderInlineHighlightHtml(content, style)
     }
     case 'link':
-      return `<a href="${node.url ?? ''}">${parseInlineNodesToHtml(node.children)}</a>`
+      return `<a href="${node.url ?? ''}">${parseInlineNodesToHtml(node.children, options)}</a>`
     case 'break':
       return '<br>'
     case 'html':
       return node.value ?? ''
     default:
-      return parseInlineNodesToHtml(node.children)
+      return parseInlineNodesToHtml(node.children, options)
   }
 }
 
-function parseInlineNodesToHtml(children: MarkdownNode[] | undefined): string {
-  return (children ?? []).map((child) => parseInlineNodeToHtml(child)).join('')
+function parseInlineNodesToHtml(
+  children: MarkdownNode[] | undefined,
+  options: InlineParseOptions = defaultInlineParseOptions,
+): string {
+  const nodes = children ?? []
+  const html: string[] = []
+
+  for (let index = 0; index < nodes.length; index += 1) {
+    const child = nodes[index]!
+
+    if (isBigEmojiOpeningHtmlNode(child)) {
+      const parts = [child.value ?? '']
+
+      while (index + 1 < nodes.length) {
+        index += 1
+        const next = nodes[index]!
+
+        if (next.type === 'text') {
+          parts.push(next.value ?? '')
+          continue
+        }
+
+        parts.push(parseInlineNodeToHtml(next, { wrapPlainEmoji: false }))
+
+        if (isBigEmojiClosingHtmlNode(next)) {
+          break
+        }
+      }
+
+      html.push(parts.join(''))
+      continue
+    }
+
+    html.push(parseInlineNodeToHtml(child, options))
+  }
+
+  return html.join('')
 }
 
 function parseHeading(node: MarkdownNode): EditorjsBlock {

@@ -1,9 +1,14 @@
 import type { API, SanitizerConfig } from '@editorjs/editorjs'
 import {
+  BIG_EMOJI_BIGGER_CLASS,
+  BIG_EMOJI_BIGGER_SIZE,
+  BIG_EMOJI_CONTENT_PATTERN,
+  BIG_EMOJI_DEFAULT_SIZE,
   BIG_EMOJI_BIG_CLASS,
   BIG_EMOJI_BIG_MARKER,
   BIG_EMOJI_BIG_SIZE,
   BIG_EMOJI_CLASS,
+  BIG_EMOJI_SELECTED_BLOCK_CLASS,
   BIG_EMOJI_STICK_BLOCK_CLASS,
   BIG_EMOJI_STICK_CLASS,
   BIG_EMOJI_STICK_MARKER,
@@ -15,14 +20,33 @@ import {
 // Use a tiny visible-width editor-only anchor so the caret can land after an
 // inline big emoji at line end. The serializer strips it back out on save.
 const CARET_ANCHOR = '\u200A'
+const CARET_MARKER_ATTRIBUTE = 'data-emoji-block-caret'
+const EDITOR_SKIPPED_SELECTOR = [
+  `.${BIG_EMOJI_CLASS}`,
+  '[data-note-title]',
+  'code.inline-code',
+  '.ce-toolbar',
+].join(', ')
 
-const EMOJI_SEGMENT_PATTERN =
-  /\p{Extended_Pictographic}(?:\uFE0F|\u200D\p{Extended_Pictographic})*/u
+const EMOJI_SEGMENT_PATTERN = new RegExp(BIG_EMOJI_CONTENT_PATTERN, 'u')
+const BIG_EMOJI_SELECTED_CLASS = 'inline-big-emoji-selected'
 
 let onBigEmojiChange: (() => void) | null = null
 
 export function setBigEmojiChangeHandler(handler: (() => void) | null): void {
   onBigEmojiChange = handler
+}
+
+function setSelectedBigEmojiSelection(
+  element: HTMLElement | null,
+  block: Element | null | undefined,
+): void {
+  selectedBigEmojiElement?.classList.remove(BIG_EMOJI_SELECTED_CLASS)
+  selectedBigEmojiBlock?.classList.remove(BIG_EMOJI_SELECTED_BLOCK_CLASS)
+  selectedBigEmojiElement = element
+  selectedBigEmojiBlock = block instanceof HTMLElement ? block : null
+  selectedBigEmojiElement?.classList.add(BIG_EMOJI_SELECTED_CLASS)
+  selectedBigEmojiBlock?.classList.add(BIG_EMOJI_SELECTED_BLOCK_CLASS)
 }
 
 function resolveBigEmojiBlock(target: Node | null): Element | null {
@@ -63,9 +87,30 @@ type BigEmojiMode = BigEmojiSize | 'stick'
 
 const BIG_EMOJI_SANITIZE_CLASSES = [
   BIG_EMOJI_CLASS,
+  BIG_EMOJI_BIGGER_CLASS,
   BIG_EMOJI_BIG_CLASS,
   BIG_EMOJI_STICK_CLASS,
 ] as unknown as string
+
+type BigEmojiActionsUi = {
+  actions: HTMLDivElement
+  defaultButton: HTMLButtonElement
+  biggerButton: HTMLButtonElement
+  bigButton: HTMLButtonElement
+  stickButton: HTMLButtonElement
+}
+
+let sharedFloatingActions: BigEmojiActionsUi | null = null
+let sharedFloatingActionsOwnerId: symbol | null = null
+let sharedFloatingActionsHandlers: {
+  applyDefaultSize: () => void
+  applyBiggerSize: () => void
+  applyBigSize: () => void
+  applyStickSize: () => void
+} | null = null
+let selectedBigEmojiElement: HTMLElement | null = null
+let selectedBigEmojiBlock: HTMLElement | null = null
+let bigEmojiToolInstanceCount = 0
 
 export default class BigEmojiTool {
   static get isInline(): boolean {
@@ -73,7 +118,7 @@ export default class BigEmojiTool {
   }
 
   static get title(): string {
-    return 'Big Emoji'
+    return 'Emoji Block'
   }
 
   static get CSS(): string {
@@ -101,6 +146,7 @@ export default class BigEmojiTool {
   }
 
   private api: BigEmojiApi
+  private instanceId: symbol
   private button: HTMLButtonElement | null
   private cursorOverEmoji: boolean
   private floatingActions: HTMLDivElement | null
@@ -109,9 +155,11 @@ export default class BigEmojiTool {
   private bigActionButton: HTMLButtonElement | null
   private stickActionButton: HTMLButtonElement | null
   private pendingTarget: BigEmojiTarget | null
+  private isNormalizingInput: boolean
 
   constructor({ api }: { api: API }) {
     this.api = api as BigEmojiApi
+    this.instanceId = Symbol('big-emoji-tool')
     this.button = null
     this.cursorOverEmoji = false
     this.floatingActions = null
@@ -120,8 +168,11 @@ export default class BigEmojiTool {
     this.bigActionButton = null
     this.stickActionButton = null
     this.pendingTarget = null
+    this.isNormalizingInput = false
+    bigEmojiToolInstanceCount += 1
     document.addEventListener('mousedown', this.handleDocumentMouseDown, true)
     document.addEventListener('click', this.handleClick, true)
+    document.addEventListener('input', this.handleInput, true)
     document.addEventListener('mousemove', this.handleMouseMove)
     document.addEventListener('scroll', this.hideActions, true)
     window.addEventListener('resize', this.hideActions)
@@ -153,10 +204,21 @@ export default class BigEmojiTool {
       true,
     )
     document.removeEventListener('click', this.handleClick, true)
+    document.removeEventListener('input', this.handleInput, true)
     document.removeEventListener('mousemove', this.handleMouseMove)
     document.removeEventListener('scroll', this.hideActions, true)
     window.removeEventListener('resize', this.hideActions)
-    this.floatingActions?.remove()
+    if (sharedFloatingActionsOwnerId === this.instanceId) {
+      sharedFloatingActionsOwnerId = null
+      sharedFloatingActionsHandlers = null
+      setSelectedBigEmojiSelection(null, null)
+      sharedFloatingActions?.actions.setAttribute('hidden', '')
+    }
+    bigEmojiToolInstanceCount = Math.max(0, bigEmojiToolInstanceCount - 1)
+    if (bigEmojiToolInstanceCount === 0) {
+      sharedFloatingActions?.actions.remove()
+      sharedFloatingActions = null
+    }
     this.floatingActions = null
     this.defaultActionButton = null
     this.biggerActionButton = null
@@ -230,9 +292,155 @@ export default class BigEmojiTool {
     this.hideActions()
   }
 
+  private handleInput = (event: Event): void => {
+    if (this.isNormalizingInput) {
+      return
+    }
+
+    const target = event.target
+    if (!(target instanceof HTMLElement)) {
+      return
+    }
+
+    if (!this.isInsideEditor(target) || this.isInsideNoteTitle(target)) {
+      return
+    }
+
+    const root = this.resolveNormalizationRoot(target)
+    if (!root) {
+      return
+    }
+
+    const changed = this.normalizeEmojiBlocksInRoot(root)
+    if (!changed) {
+      return
+    }
+
+    this.isNormalizingInput = true
+
+    try {
+      this.notifyBlockChanged(resolveBigEmojiBlock(root))
+    } finally {
+      this.isNormalizingInput = false
+    }
+  }
+
   private notifyBlockChanged(block: Element | null | undefined): void {
     block?.dispatchEvent(new Event('input', { bubbles: true }))
     onBigEmojiChange?.()
+  }
+
+  private resolveNormalizationRoot(target: HTMLElement): HTMLElement | null {
+    if (target.closest(EDITOR_SKIPPED_SELECTOR)) {
+      return null
+    }
+
+    return (
+      target.closest('.ce-paragraph, .ce-header, .ce-inline-tool-input') ??
+      target.closest('[contenteditable="true"]')
+    )
+  }
+
+  private normalizeEmojiBlocksInRoot(root: HTMLElement): boolean {
+    const marker = this.insertCaretMarker(root)
+    const textNodes = this.collectEmojiTextNodes(root)
+    let changed = false
+
+    for (const node of textNodes) {
+      changed = this.normalizeEmojiTextNode(node) || changed
+    }
+
+    this.restoreCaretMarker(marker)
+    return changed
+  }
+
+  private insertCaretMarker(root: HTMLElement): HTMLElement | null {
+    const selection = window.getSelection()
+    const range = selection?.rangeCount ? selection.getRangeAt(0) : null
+
+    if (!range || !range.collapsed || !root.contains(range.startContainer)) {
+      return null
+    }
+
+    const marker = document.createElement('span')
+    marker.setAttribute(CARET_MARKER_ATTRIBUTE, 'true')
+    range.insertNode(marker)
+    return marker
+  }
+
+  private restoreCaretMarker(marker: HTMLElement | null): void {
+    if (!marker) {
+      return
+    }
+
+    const selection = window.getSelection()
+    if (selection) {
+      const range = document.createRange()
+      range.setStartAfter(marker)
+      range.collapse(true)
+      selection.removeAllRanges()
+      selection.addRange(range)
+    }
+
+    marker.remove()
+  }
+
+  private collectEmojiTextNodes(root: HTMLElement): Text[] {
+    const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT)
+    const textNodes: Text[] = []
+    let current: Node | null
+
+    while ((current = walker.nextNode()) !== null) {
+      if (!(current instanceof Text)) {
+        continue
+      }
+
+      if (current.textContent?.match(EMOJI_SEGMENT_PATTERN) === null) {
+        continue
+      }
+
+      const parent = current.parentElement
+      if (parent?.closest(EDITOR_SKIPPED_SELECTOR)) {
+        continue
+      }
+
+      textNodes.push(current)
+    }
+
+    return textNodes
+  }
+
+  private normalizeEmojiTextNode(node: Text): boolean {
+    const text = node.textContent ?? ''
+    const regex = new RegExp(EMOJI_SEGMENT_PATTERN.source, 'gu')
+    let match: RegExpExecArray | null
+    let lastIndex = 0
+    let changed = false
+    const fragment = document.createDocumentFragment()
+
+    while ((match = regex.exec(text)) !== null) {
+      changed = true
+
+      if (match.index > lastIndex) {
+        fragment.append(text.slice(lastIndex, match.index))
+      }
+
+      fragment.append(
+        this.createBigEmojiElement(match[0], BIG_EMOJI_DEFAULT_SIZE),
+      )
+      lastIndex = match.index + match[0].length
+    }
+
+    if (!changed) {
+      return false
+    }
+
+    if (lastIndex < text.length) {
+      fragment.append(text.slice(lastIndex))
+    }
+
+    node.parentNode?.replaceChild(fragment, node)
+    return true
   }
 
   private handleMouseMove = (event: MouseEvent): void => {
@@ -321,7 +529,18 @@ export default class BigEmojiTool {
       return
     }
 
+    sharedFloatingActionsOwnerId = this.instanceId
+    sharedFloatingActionsHandlers = {
+      applyDefaultSize: () => this.applyDefaultSize(),
+      applyBiggerSize: () => this.applyBiggerSize(),
+      applyBigSize: () => this.applyBigSize(),
+      applyStickSize: () => this.applyStickSize(),
+    }
     this.pendingTarget = target
+    setSelectedBigEmojiSelection(
+      target.kind === 'big' ? target.element : null,
+      target.kind === 'big' ? target.block : null,
+    )
     this.syncActionButtons()
     this.floatingActions.hidden = false
     this.positionFloatingActions(anchorRect)
@@ -332,6 +551,11 @@ export default class BigEmojiTool {
       return
     }
 
+    if (sharedFloatingActionsOwnerId === this.instanceId) {
+      sharedFloatingActionsOwnerId = null
+      sharedFloatingActionsHandlers = null
+      setSelectedBigEmojiSelection(null, null)
+    }
     this.floatingActions.hidden = true
     this.pendingTarget = null
   }
@@ -341,38 +565,57 @@ export default class BigEmojiTool {
       return
     }
 
-    const actions = document.createElement('div')
-    actions.className = 'big-emoji-actions'
-    actions.hidden = true
+    if (!sharedFloatingActions) {
+      const actions = document.createElement('div')
+      actions.className = 'big-emoji-actions'
+      actions.hidden = true
 
-    const defaultButton = this.createActionButton('Default', () =>
-      this.applyDefaultSize(),
-    )
-    const biggerButton = this.createActionButton('Bigger', () =>
-      this.applyBiggerSize(),
-    )
-    const bigButton = this.createActionButton('Big', () => this.applyBigSize())
-    const stickButton = this.createActionButton('Stick it!', () =>
-      this.applyStickSize(),
-    )
+      const defaultButton = this.createSharedActionButton(
+        'default',
+        'Default',
+        () => sharedFloatingActionsHandlers?.applyDefaultSize(),
+      )
+      const biggerButton = this.createSharedActionButton(
+        'bigger',
+        'Bigger',
+        () => sharedFloatingActionsHandlers?.applyBiggerSize(),
+      )
+      const bigButton = this.createSharedActionButton('big', 'Big', () =>
+        sharedFloatingActionsHandlers?.applyBigSize(),
+      )
+      const stickButton = this.createSharedActionButton(
+        'stick',
+        'Stick it!',
+        () => sharedFloatingActionsHandlers?.applyStickSize(),
+      )
 
-    actions.append(defaultButton, biggerButton, bigButton, stickButton)
-    document.body.append(actions)
+      actions.append(defaultButton, biggerButton, bigButton, stickButton)
+      document.body.append(actions)
 
-    this.floatingActions = actions
-    this.defaultActionButton = defaultButton
-    this.biggerActionButton = biggerButton
-    this.bigActionButton = bigButton
-    this.stickActionButton = stickButton
+      sharedFloatingActions = {
+        actions,
+        defaultButton,
+        biggerButton,
+        bigButton,
+        stickButton,
+      }
+    }
+
+    this.floatingActions = sharedFloatingActions.actions
+    this.defaultActionButton = sharedFloatingActions.defaultButton
+    this.biggerActionButton = sharedFloatingActions.biggerButton
+    this.bigActionButton = sharedFloatingActions.bigButton
+    this.stickActionButton = sharedFloatingActions.stickButton
   }
 
-  private createActionButton(
+  private createSharedActionButton(
+    name: 'default' | 'bigger' | 'big' | 'stick',
     label: string,
     onClick: () => void,
   ): HTMLButtonElement {
     const button = document.createElement('button')
     button.type = 'button'
-    button.className = 'big-emoji-action'
+    button.className = `big-emoji-action big-emoji-action-${name}`
     button.textContent = label
     button.dataset.state = 'idle'
     button.setAttribute('aria-pressed', 'false')
@@ -393,15 +636,16 @@ export default class BigEmojiTool {
     const isPlain = target?.kind === 'plain'
     const currentSize = this.currentPendingMode()
     const isBigTarget = target?.kind === 'big'
+    const isDefault = isPlain || (isBigTarget && currentSize === 'default')
     const isBigger = isBigTarget && currentSize === 'bigger'
     const isBig = isBigTarget && currentSize === 'big'
     const isStick = isBigTarget && currentSize === 'stick'
 
     if (this.defaultActionButton) {
-      this.defaultActionButton.dataset.state = isPlain ? 'active' : 'idle'
+      this.defaultActionButton.dataset.state = isDefault ? 'active' : 'idle'
       this.defaultActionButton.setAttribute(
         'aria-pressed',
-        isPlain ? 'true' : 'false',
+        isDefault ? 'true' : 'false',
       )
     }
 
@@ -466,10 +710,12 @@ export default class BigEmojiTool {
 
     switch (target.kind) {
       case 'plain':
+        this.wrapAsEmoji(target.range, target.emoji, 'default')
+        this.notifyBlockChanged(target.block)
         break
       case 'big':
-        this.clearStickMode(target.block)
-        this.unwrapBigEmoji(target.element)
+        this.clearStickModeForElement(target.block, target.element)
+        this.setBigEmojiSize(target.element, 'default')
         this.notifyBlockChanged(target.block)
         break
     }
@@ -490,7 +736,7 @@ export default class BigEmojiTool {
         this.notifyBlockChanged(target.block)
         break
       case 'big':
-        this.clearStickMode(target.block)
+        this.clearStickModeForElement(target.block, target.element)
         this.setBigEmojiSize(target.element, 'bigger')
         this.notifyBlockChanged(target.block)
         break
@@ -508,12 +754,11 @@ export default class BigEmojiTool {
 
     switch (target.kind) {
       case 'plain':
-        this.clearStickMode(target.block)
         this.wrapAsEmoji(target.range, target.emoji, 'big')
         this.notifyBlockChanged(target.block)
         break
       case 'big':
-        this.clearStickMode(target.block)
+        this.clearStickModeForElement(target.block, target.element)
         this.setBigEmojiSize(target.element, 'big')
         this.notifyBlockChanged(target.block)
         break
@@ -575,7 +820,7 @@ export default class BigEmojiTool {
   private wrapAsEmoji(
     range: Range,
     emoji: string,
-    size: BigEmojiSize = 'bigger',
+    size: BigEmojiSize = 'default',
   ): HTMLElement {
     const element = this.createBigEmojiElement(emoji, size)
     range.deleteContents()
@@ -599,17 +844,32 @@ export default class BigEmojiTool {
   }
 
   private getBigEmojiSize(element: HTMLElement): BigEmojiSize {
-    return element.classList.contains(BIG_EMOJI_BIG_CLASS) ||
+    if (
+      element.classList.contains(BIG_EMOJI_BIG_CLASS) ||
       (element.textContent?.includes(BIG_EMOJI_BIG_MARKER) ?? false) ||
       element.tagName === 'STRONG' ||
       element.dataset.size === BIG_EMOJI_BIG_SIZE
-      ? 'big'
-      : 'bigger'
+    ) {
+      return 'big'
+    }
+
+    if (
+      element.classList.contains(BIG_EMOJI_BIGGER_CLASS) ||
+      element.dataset.size === BIG_EMOJI_BIGGER_SIZE
+    ) {
+      return 'bigger'
+    }
+
+    if (element.dataset.size === BIG_EMOJI_DEFAULT_SIZE) {
+      return 'default'
+    }
+
+    return 'bigger'
   }
 
   private isStickMode(
     element: HTMLElement,
-    block: Element | null | undefined,
+    _block: Element | null | undefined,
   ): boolean {
     if (element.classList.contains(BIG_EMOJI_STICK_CLASS)) {
       return true
@@ -623,10 +883,7 @@ export default class BigEmojiTool {
       return true
     }
 
-    return (
-      block instanceof HTMLElement &&
-      block.classList.contains(BIG_EMOJI_STICK_BLOCK_CLASS)
-    )
+    return false
   }
 
   private createBigEmojiElement(
@@ -635,12 +892,16 @@ export default class BigEmojiTool {
   ): HTMLElement {
     const element = document.createElement('B')
     element.classList.add(BigEmojiTool.CSS)
-    if (size === 'big') {
+    element.dataset.size = size
+
+    if (size === 'bigger') {
+      element.classList.add(BIG_EMOJI_BIGGER_CLASS)
+      element.textContent = emoji
+    } else if (size === 'big') {
       element.classList.add(BIG_EMOJI_BIG_CLASS)
       element.dataset.size = BIG_EMOJI_BIG_SIZE
       element.textContent = `${emoji}${BIG_EMOJI_BIG_MARKER}`
     } else {
-      delete element.dataset.size
       element.textContent = emoji
     }
     element.contentEditable = 'false'
@@ -653,17 +914,15 @@ export default class BigEmojiTool {
   ): HTMLElement {
     const textContent = element.textContent ?? ''
     const hasBigMarker = textContent.includes(BIG_EMOJI_BIG_MARKER)
+    const currentSize = this.getBigEmojiSize(element)
     const alreadySized =
       size === 'big'
-        ? element.classList.contains(BIG_EMOJI_BIG_CLASS) &&
-          element.dataset.size === BIG_EMOJI_BIG_SIZE &&
-          hasBigMarker
-        : !element.classList.contains(BIG_EMOJI_BIG_CLASS) &&
-          !element.dataset.size &&
-          !hasBigMarker
+        ? currentSize === 'big' && hasBigMarker
+        : size === 'bigger'
+          ? currentSize === 'bigger' && !hasBigMarker
+          : currentSize === 'default' && !hasBigMarker
 
     if (alreadySized) {
-      this.clearStickMarker(element)
       return element
     }
 
@@ -705,6 +964,25 @@ export default class BigEmojiTool {
     )) {
       this.clearStickMarker(element)
     }
+  }
+
+  private clearStickModeForElement(
+    block: Element | null | undefined,
+    element: HTMLElement,
+  ): void {
+    this.clearStickMarker(element)
+    this.syncStickBlockClass(block)
+  }
+
+  private syncStickBlockClass(block: Element | null | undefined): void {
+    if (!(block instanceof HTMLElement)) {
+      return
+    }
+
+    const hasStickEmoji =
+      block.querySelector(`.${BIG_EMOJI_STICK_CLASS}`) !== null
+
+    block.classList.toggle(BIG_EMOJI_STICK_BLOCK_CLASS, hasStickEmoji)
   }
 
   private clearStickMarker(element: HTMLElement): void {

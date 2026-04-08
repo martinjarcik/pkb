@@ -1,6 +1,11 @@
 import { ref } from 'vue'
 
-export type SettingsCategory = 'general' | 'features' | 'editing' | 'theme'
+export type SettingsCategory =
+  | 'general'
+  | 'features'
+  | 'editing'
+  | 'theme'
+  | 'development'
 
 const settingsOpen = ref(false)
 const activeCategory = ref<SettingsCategory>('general')
