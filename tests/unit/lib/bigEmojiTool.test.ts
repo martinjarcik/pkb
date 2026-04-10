@@ -2,8 +2,10 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import BigEmojiTool from '~/lib/bigEmojiTool'
 import {
   BIG_EMOJI_BIGGER_CLASS,
+  BIG_EMOJI_BIGGER_MARKER,
   BIG_EMOJI_BIGGER_SIZE,
   BIG_EMOJI_DEFAULT_SIZE,
+  BIG_EMOJI_DEFAULT_MARKER,
   BIG_EMOJI_BIG_CLASS,
   BIG_EMOJI_BIG_MARKER,
   BIG_EMOJI_BIG_SIZE,
@@ -151,7 +153,7 @@ describe('BigEmojiTool', () => {
       isBigClass: replacement.classList.contains(BIG_EMOJI_BIG_CLASS),
       size: replacement.dataset.size,
     }).toEqual({
-      textContent: '🤖',
+      textContent: `🤖${BIG_EMOJI_BIGGER_MARKER}`,
       isBiggerClass: true,
       isBigClass: false,
       size: BIG_EMOJI_BIGGER_SIZE,
@@ -191,7 +193,7 @@ describe('BigEmojiTool', () => {
       isBigClass: replacement.classList.contains(BIG_EMOJI_BIG_CLASS),
       size: replacement.dataset.size,
     }).toEqual({
-      textContent: '🤖',
+      textContent: `🤖${BIG_EMOJI_DEFAULT_MARKER}`,
       isBiggerClass: false,
       isBigClass: false,
       size: BIG_EMOJI_DEFAULT_SIZE,

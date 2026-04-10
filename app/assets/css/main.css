@@ -616,7 +616,7 @@
   }
 
   .note-editor-surface .inline-big-emoji.inline-big-emoji-bigger {
-    font-size: 2em;
+    font-size: 1.75em;
     line-height: 1;
     vertical-align: middle;
   }
@@ -628,7 +628,7 @@
   }
 
   .note-editor-surface .inline-big-emoji.inline-big-emoji-big {
-    font-size: 3em;
+    font-size: 2.5em;
     line-height: 1;
     vertical-align: middle;
   }
@@ -642,7 +642,7 @@
   .note-editor-surface
     .ce-block-background
     .inline-big-emoji.inline-big-emoji-stick {
-    top: 1.5rem;
+    top: 18px;
     left: 0.875rem;
   }
 
@@ -747,13 +747,15 @@
   }
 
   .note-editor-surface .ce-block-background {
-    border-radius: 0.75rem;
+    border-radius: 6px;
     transition: background-color 0.15s ease;
+    margin-bottom: 0.5em;
   }
 
   .note-editor-surface .ce-block-background[data-block-background-color] {
     background-color: var(--editor-block-background-color);
-    padding: 0.75rem 0.875rem;
+    color: var(--editor-block-text-color);
+    padding: 5px 15px;
   }
 
   .note-editor-surface
@@ -762,6 +764,7 @@
     padding: 0;
   }
 
+  /*
   .note-editor-surface
     .ce-block:has(
       + .ce-block
@@ -781,6 +784,8 @@
     border-top-left-radius: 0;
     border-top-right-radius: 0;
   }
+
+  */
 
   .note-editor-surface h1.ce-header,
   .note-editor-surface h2.ce-header,
@@ -1079,7 +1084,7 @@
 
 .ce-block__content:has(.inline-big-emoji-stick) {
   position: relative;
-  padding-left: 5em !important;
+  padding-left: 4.5em !important;
 }
 
 .folder-emoji-picker {

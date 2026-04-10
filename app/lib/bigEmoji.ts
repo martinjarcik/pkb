@@ -7,6 +7,8 @@ export const BIG_EMOJI_BIG_CLASS = 'inline-big-emoji-big'
 export const BIG_EMOJI_STICK_CLASS = 'inline-big-emoji-stick'
 export const BIG_EMOJI_STICK_BLOCK_CLASS = 'block-big-emoji-stick'
 export const BIG_EMOJI_SELECTED_BLOCK_CLASS = 'block-big-emoji-selected'
+export const BIG_EMOJI_DEFAULT_MARKER = '\u2062'
+export const BIG_EMOJI_BIGGER_MARKER = '\u2064'
 export const BIG_EMOJI_BIG_MARKER = '\u2060'
 export const BIG_EMOJI_STICK_MARKER = '\u2063'
 
@@ -33,6 +35,14 @@ export function hasBigEmojiBigMarker(content: string): boolean {
   return content.includes(BIG_EMOJI_BIG_MARKER)
 }
 
+export function hasBigEmojiDefaultMarker(content: string): boolean {
+  return content.includes(BIG_EMOJI_DEFAULT_MARKER)
+}
+
+export function hasBigEmojiBiggerMarker(content: string): boolean {
+  return content.includes(BIG_EMOJI_BIGGER_MARKER)
+}
+
 export function stripBigEmojiBigMarker(content: string): string {
   return content.replaceAll(BIG_EMOJI_BIG_MARKER, '')
 }
@@ -43,17 +53,32 @@ export function hasBigEmojiStickMarker(content: string): boolean {
 
 export function stripBigEmojiMarkers(content: string): string {
   return content
+    .replaceAll(BIG_EMOJI_DEFAULT_MARKER, '')
+    .replaceAll(BIG_EMOJI_BIGGER_MARKER, '')
     .replaceAll(BIG_EMOJI_BIG_MARKER, '')
     .replaceAll(BIG_EMOJI_STICK_MARKER, '')
 }
 
-const PLAIN_BIG_EMOJI_MARKER_PATTERN = new RegExp(
-  `(${BIG_EMOJI_CONTENT_PATTERN})${BIG_EMOJI_BIG_MARKER}`,
-  'gu',
-)
-
 export function replacePlainBigEmojiMarkersWithMarkdown(text: string): string {
-  return text.replace(PLAIN_BIG_EMOJI_MARKER_PATTERN, '__$1__')
+  return text
+    .replace(
+      new RegExp(
+        `(${BIG_EMOJI_CONTENT_PATTERN})${BIG_EMOJI_DEFAULT_MARKER}`,
+        'gu',
+      ),
+      '$1',
+    )
+    .replace(
+      new RegExp(
+        `(${BIG_EMOJI_CONTENT_PATTERN})${BIG_EMOJI_BIGGER_MARKER}`,
+        'gu',
+      ),
+      '**$1**',
+    )
+    .replace(
+      new RegExp(`(${BIG_EMOJI_CONTENT_PATTERN})${BIG_EMOJI_BIG_MARKER}`, 'gu'),
+      '__$1__',
+    )
 }
 
 export function renderBigEmojiHtml(
@@ -68,7 +93,11 @@ export function renderBigEmojiHtml(
         : ''
   const sizeAttr = ` data-size="${size}"`
   const textContent =
-    size === BIG_EMOJI_BIG_SIZE ? `${emoji}${BIG_EMOJI_BIG_MARKER}` : emoji
+    size === BIG_EMOJI_BIG_SIZE
+      ? `${emoji}${BIG_EMOJI_BIG_MARKER}`
+      : size === BIG_EMOJI_BIGGER_SIZE
+        ? `${emoji}${BIG_EMOJI_BIGGER_MARKER}`
+        : `${emoji}${BIG_EMOJI_DEFAULT_MARKER}`
   return `<b class="${BIG_EMOJI_CLASS}${sizeClass}" contenteditable="false"${sizeAttr}>${textContent}</b>`
 }
 
@@ -128,8 +157,11 @@ export function decorateFirstBigEmojiHtmlAsStick(text: string): string {
       )
         ? ''
         : ' data-stick="true"'
+      const nextContent = hasBigEmojiStickMarker(content)
+        ? content
+        : `${content}${BIG_EMOJI_STICK_MARKER}`
 
-      return `<${tag}${beforeClass}class=${quote}${classTokens.join(' ')}${quote}${afterClass}${stickAttr}>${content}</${tag}>`
+      return `<${tag}${beforeClass}class=${quote}${classTokens.join(' ')}${quote}${afterClass}${stickAttr}>${nextContent}</${tag}>`
     },
   )
 }

@@ -1,5 +1,6 @@
 import type { API, BlockAPI } from '@editorjs/editorjs'
 import {
+  extractBlockBackgroundColorFromCssClasses,
   getBlockBackgroundColors,
   isBlockBackgroundColor,
   type BlockBackgroundColor,
@@ -82,6 +83,15 @@ export default class EditorjsBlockBackgroundTune {
 
   wrap(blockContent: HTMLElement): HTMLElement {
     this.element = blockContent
+
+    const initialColor = extractBlockBackgroundColorFromCssClasses(
+      Array.from(blockContent.classList),
+    )
+
+    if (initialColor && !this.color) {
+      this.color = initialColor
+    }
+
     this.syncElement()
 
     return blockContent
@@ -107,13 +117,16 @@ export default class EditorjsBlockBackgroundTune {
     if (!this.color) {
       delete this.element.dataset.blockBackgroundColor
       this.element.style.removeProperty('--editor-block-background-color')
+      this.element.style.removeProperty('--editor-block-text-color')
       return
     }
 
+    const colorSet = getBlockBackgroundColors()[this.color]!
     this.element.dataset.blockBackgroundColor = this.color
     this.element.style.setProperty(
       '--editor-block-background-color',
-      getBlockBackgroundColors()[this.color]!.background,
+      colorSet.background,
     )
+    this.element.style.setProperty('--editor-block-text-color', colorSet.text)
   }
 }

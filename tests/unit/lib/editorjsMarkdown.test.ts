@@ -557,7 +557,7 @@ describe('editorjsMarkdown', () => {
       {
         type: 'paragraph',
         data: {
-          text: 'Status <b class="inline-big-emoji inline-big-emoji-bigger" contenteditable="false" data-size="bigger">🤖</b> updated.',
+          text: 'Status <b class="inline-big-emoji inline-big-emoji-bigger" contenteditable="false" data-size="bigger">🤖\u2064</b> updated.',
         },
       },
     ])
@@ -568,7 +568,7 @@ describe('editorjsMarkdown', () => {
       {
         type: 'paragraph',
         data: {
-          text: 'Status <b class="inline-big-emoji" contenteditable="false" data-size="default">🤖</b> updated.',
+          text: 'Status <b class="inline-big-emoji" contenteditable="false" data-size="default">🤖\u2062</b> updated.',
         },
       },
     ])
@@ -590,7 +590,7 @@ describe('editorjsMarkdown', () => {
         type: 'header',
         data: {
           level: 2,
-          text: 'Heading <b class="inline-big-emoji" contenteditable="false" data-size="default">🤖</b>',
+          text: 'Heading <b class="inline-big-emoji" contenteditable="false" data-size="default">🤖\u2062</b>',
         },
       },
       {
@@ -604,7 +604,7 @@ describe('editorjsMarkdown', () => {
         data: {
           style: 'unordered',
           items: [
-            'Task <b class="inline-big-emoji" contenteditable="false" data-size="default">🤖</b>',
+            'Task <b class="inline-big-emoji" contenteditable="false" data-size="default">🤖\u2062</b>',
           ],
         },
       },
@@ -617,7 +617,7 @@ describe('editorjsMarkdown', () => {
       {
         type: 'simpleQuote',
         data: {
-          text: 'Quote <b class="inline-big-emoji" contenteditable="false" data-size="default">🤖</b>',
+          text: 'Quote <b class="inline-big-emoji" contenteditable="false" data-size="default">🤖\u2062</b>',
         },
       },
       {
@@ -633,7 +633,7 @@ describe('editorjsMarkdown', () => {
           content: [
             ['Emoji'],
             [
-              '<b class="inline-big-emoji" contenteditable="false" data-size="default">🤖</b>',
+              '<b class="inline-big-emoji" contenteditable="false" data-size="default">🤖\u2062</b>',
             ],
           ],
           stretched: false,

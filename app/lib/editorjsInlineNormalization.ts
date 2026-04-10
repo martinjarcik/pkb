@@ -3,6 +3,8 @@ import {
   BIG_EMOJI_BIGGER_SIZE,
   BIG_EMOJI_DEFAULT_SIZE,
   hasBigEmojiBigMarker,
+  hasBigEmojiBiggerMarker,
+  hasBigEmojiDefaultMarker,
   hasBigEmojiStickMarker,
   isBigEmojiContent,
   replacePlainBigEmojiMarkersWithMarkdown,
@@ -52,6 +54,7 @@ function renderBigEmojiMarkdown(
 
   if (
     classTokens.includes(BIG_EMOJI_BIGGER_CLASS) ||
+    hasBigEmojiBiggerMarker(content) ||
     new RegExp(`\\bdata-size=(["'])${BIG_EMOJI_BIGGER_SIZE}\\1`, 'i').test(
       attrs,
     )
@@ -63,6 +66,7 @@ function renderBigEmojiMarkdown(
   }
 
   if (
+    hasBigEmojiDefaultMarker(content) ||
     new RegExp(`\\bdata-size=(["'])${BIG_EMOJI_DEFAULT_SIZE}\\1`, 'i').test(
       attrs,
     )
@@ -108,8 +112,12 @@ function standaloneBigEmojiMarkdown(content: string): string | null {
   const wrapper =
     hasBigEmojiBigMarker(content) || hasBigEmojiStickMarker(content)
       ? '__'
-      : '**'
-  return `${wrapper}${normalizedContent}${wrapper}`
+      : hasBigEmojiDefaultMarker(content)
+        ? ''
+        : '**'
+  return wrapper.length === 0
+    ? normalizedContent
+    : `${wrapper}${normalizedContent}${wrapper}`
 }
 
 export function inlineHtmlToMarkdown(text: string): string {

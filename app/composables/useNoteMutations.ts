@@ -10,6 +10,11 @@ import { buildSaveNoteInput } from '~/notes/saveNoteInput'
 import { dispatchNoteWebhook } from '~/notes/webhook'
 import type { Note, NoteCatalogRow, NoteProperties } from '~/notes/types'
 import type { NoteStorage } from '~/storage/types'
+import {
+  createEditorDebugTraceId,
+  logEditorDebug,
+  summarizeMarkdownForDebug,
+} from '~/lib/editorDebugTrace'
 
 type UseNoteMutationsArgs = {
   storage: ComputedRef<NoteStorage>
@@ -91,8 +96,15 @@ export function useNoteMutations({
       return
     }
 
+    const traceId = createEditorDebugTraceId('persist')
     const saveInput = buildSaveNoteInput(currentNote, content)
     const optimisticNote = updateNoteContent(currentNote.id, content)
+
+    logEditorDebug('notes.persist.requested', {
+      markdown: summarizeMarkdownForDebug(content),
+      noteId: currentNote.id,
+      traceId,
+    })
 
     saveError.value = null
 
@@ -100,6 +112,11 @@ export function useNoteMutations({
     try {
       savedNote = await storage.value.saveNote(saveInput)
     } catch (error) {
+      logEditorDebug('notes.persist.failed', {
+        error: error instanceof Error ? error.message : String(error),
+        noteId: currentNote.id,
+        traceId,
+      })
       saveError.value =
         error instanceof Error ? error.message : t('notes.errorSaveFallback')
 
@@ -112,6 +129,11 @@ export function useNoteMutations({
 
     replaceNote(savedNote)
     selectedNoteFull.value = savedNote
+    logEditorDebug('notes.persist.completed', {
+      markdown: summarizeMarkdownForDebug(savedNote.content),
+      noteId: savedNote.id,
+      traceId,
+    })
     void dispatchWebhookIfPresent(savedNote, 'updated')
   }
 

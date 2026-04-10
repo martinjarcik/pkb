@@ -1,9 +1,11 @@
 import type { API, SanitizerConfig } from '@editorjs/editorjs'
 import {
   BIG_EMOJI_BIGGER_CLASS,
+  BIG_EMOJI_BIGGER_MARKER,
   BIG_EMOJI_BIGGER_SIZE,
   BIG_EMOJI_CONTENT_PATTERN,
   BIG_EMOJI_DEFAULT_SIZE,
+  BIG_EMOJI_DEFAULT_MARKER,
   BIG_EMOJI_BIG_CLASS,
   BIG_EMOJI_BIG_MARKER,
   BIG_EMOJI_BIG_SIZE,
@@ -12,6 +14,9 @@ import {
   BIG_EMOJI_STICK_BLOCK_CLASS,
   BIG_EMOJI_STICK_CLASS,
   BIG_EMOJI_STICK_MARKER,
+  hasBigEmojiBigMarker,
+  hasBigEmojiBiggerMarker,
+  hasBigEmojiDefaultMarker,
   hasBigEmojiStickMarker,
   stripBigEmojiMarkers,
   type BigEmojiSize,
@@ -855,12 +860,16 @@ export default class BigEmojiTool {
 
     if (
       element.classList.contains(BIG_EMOJI_BIGGER_CLASS) ||
+      (element.textContent?.includes(BIG_EMOJI_BIGGER_MARKER) ?? false) ||
       element.dataset.size === BIG_EMOJI_BIGGER_SIZE
     ) {
       return 'bigger'
     }
 
-    if (element.dataset.size === BIG_EMOJI_DEFAULT_SIZE) {
+    if (
+      (element.textContent?.includes(BIG_EMOJI_DEFAULT_MARKER) ?? false) ||
+      element.dataset.size === BIG_EMOJI_DEFAULT_SIZE
+    ) {
       return 'default'
     }
 
@@ -896,13 +905,13 @@ export default class BigEmojiTool {
 
     if (size === 'bigger') {
       element.classList.add(BIG_EMOJI_BIGGER_CLASS)
-      element.textContent = emoji
+      element.textContent = `${emoji}${BIG_EMOJI_BIGGER_MARKER}`
     } else if (size === 'big') {
       element.classList.add(BIG_EMOJI_BIG_CLASS)
       element.dataset.size = BIG_EMOJI_BIG_SIZE
       element.textContent = `${emoji}${BIG_EMOJI_BIG_MARKER}`
     } else {
-      element.textContent = emoji
+      element.textContent = `${emoji}${BIG_EMOJI_DEFAULT_MARKER}`
     }
     element.contentEditable = 'false'
     return element
@@ -913,14 +922,13 @@ export default class BigEmojiTool {
     size: BigEmojiSize,
   ): HTMLElement {
     const textContent = element.textContent ?? ''
-    const hasBigMarker = textContent.includes(BIG_EMOJI_BIG_MARKER)
     const currentSize = this.getBigEmojiSize(element)
     const alreadySized =
       size === 'big'
-        ? currentSize === 'big' && hasBigMarker
+        ? currentSize === 'big' && hasBigEmojiBigMarker(textContent)
         : size === 'bigger'
-          ? currentSize === 'bigger' && !hasBigMarker
-          : currentSize === 'default' && !hasBigMarker
+          ? currentSize === 'bigger' && hasBigEmojiBiggerMarker(textContent)
+          : currentSize === 'default' && hasBigEmojiDefaultMarker(textContent)
 
     if (alreadySized) {
       return element

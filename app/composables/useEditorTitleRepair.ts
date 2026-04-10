@@ -8,6 +8,11 @@ import {
   normalizeSavedEditorjsBlocks,
   prepareEditorjsBlocksForEditor,
 } from '~/lib/editorjsBlockTunes'
+import {
+  createEditorDebugTraceId,
+  logEditorDebug,
+  summarizeBlocksForDebug,
+} from '~/lib/editorDebugTrace'
 import type { EditorjsBlock } from '~/lib/editorjsMarkdownTypes'
 
 type EditorjsInstance = {
@@ -24,6 +29,7 @@ type EditorjsInstance = {
 type UseEditorTitleRepairArgs = {
   editor: Ref<EditorjsInstance | null>
   isApplyingExternalContent: Ref<boolean>
+  noteId: () => string | null
   title: () => string
   flushContentSync: () => Promise<void>
   scheduleContentSync: () => void
@@ -33,6 +39,7 @@ type UseEditorTitleRepairArgs = {
 export function useEditorTitleRepair({
   editor,
   isApplyingExternalContent,
+  noteId,
   title,
   flushContentSync,
   scheduleContentSync,
@@ -121,13 +128,24 @@ export function useEditorTitleRepair({
   }
 
   async function handleEditorChange(): Promise<void> {
+    const traceId = createEditorDebugTraceId('change')
     const instance = currentEditor()
 
     if (isEditorBusy()) {
+      logEditorDebug('editor.change.skipped.busy', {
+        isApplyingExternalContent: isApplyingExternalContent.value,
+        isRepairingTitleBlock: isRepairingTitleBlock.value,
+        noteId: noteId(),
+        traceId,
+      })
       return
     }
 
     if (!instance) {
+      logEditorDebug('editor.change.skipped.missingEditor', {
+        noteId: noteId(),
+        traceId,
+      })
       return
     }
 
@@ -138,19 +156,44 @@ export function useEditorTitleRepair({
     }
 
     if (repairMovedNoteTitleBlock()) {
+      logEditorDebug('editor.change.repairedMovedTitle', {
+        noteId: noteId(),
+        traceId,
+      })
       return
     }
 
     const output = await instance.save()
+    logEditorDebug('editor.change.savedRawBlocks', {
+      blocks: summarizeBlocksForDebug(output.blocks),
+      noteId: noteId(),
+      traceId,
+    })
 
     if (isEditorBusy()) {
+      logEditorDebug('editor.change.skipped.afterSaveBusy', {
+        isApplyingExternalContent: isApplyingExternalContent.value,
+        isRepairingTitleBlock: isRepairingTitleBlock.value,
+        noteId: noteId(),
+        traceId,
+      })
       return
     }
 
     const savedBlocks = normalizeSavedEditorjsBlocks(output.blocks)
+    logEditorDebug('editor.change.normalizedBlocks', {
+      blocks: summarizeBlocksForDebug(savedBlocks),
+      noteId: noteId(),
+      traceId,
+    })
     const normalizedBlocks = ensureNoteTitleBlock(savedBlocks, title())
 
     if (!blocksMatch(savedBlocks, normalizedBlocks)) {
+      logEditorDebug('editor.change.repairingTitleBlock', {
+        normalizedBlocks: summarizeBlocksForDebug(normalizedBlocks),
+        noteId: noteId(),
+        traceId,
+      })
       isRepairingTitleBlock.value = true
 
       try {
@@ -165,6 +208,10 @@ export function useEditorTitleRepair({
     }
 
     scheduleContentSync()
+    logEditorDebug('editor.change.scheduledSync', {
+      noteId: noteId(),
+      traceId,
+    })
   }
 
   return {

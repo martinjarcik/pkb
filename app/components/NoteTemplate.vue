@@ -67,6 +67,7 @@ watch(shouldFocusTitle, async (nextShouldFocusTitle) => {
       ref="noteEditor"
       :autosave-delay="editorAutosaveDelay"
       :content="selectedNote?.content ?? ''"
+      :note-id="selectedNoteId"
       :scroll-reset-key="selectedNoteId"
       :title="selectedNoteTitle"
       :wide="isWide"

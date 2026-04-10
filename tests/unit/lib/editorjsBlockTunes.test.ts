@@ -22,7 +22,7 @@ describe('editorjsBlockTunes', () => {
       {
         type: 'paragraph',
         data: {
-          text: 'Status <b class="inline-big-emoji inline-big-emoji-big inline-big-emoji-stick" contenteditable="false" data-size="big" data-stick="true">🤖\u2060</b> updated.',
+          text: 'Status <b class="inline-big-emoji inline-big-emoji-big inline-big-emoji-stick" contenteditable="false" data-size="big" data-stick="true">🤖\u2060\u2063</b> updated.',
         },
         cssClasses: [BIG_EMOJI_STICK_BLOCK_CLASS],
       },

@@ -26,6 +26,7 @@ const props = withDefaults(
   defineProps<{
     autosaveDelay?: number
     content?: string
+    noteId?: string | null
     scrollResetKey?: string | null
     title?: string
     wide?: boolean
@@ -33,6 +34,7 @@ const props = withDefaults(
   {
     autosaveDelay: 2000,
     content: '',
+    noteId: null,
     scrollResetKey: null,
     title: '',
     wide: false,
@@ -65,6 +67,7 @@ const {
   platformApi,
   autosaveDelay: () => props.autosaveDelay,
   content: () => props.content,
+  noteId: () => props.noteId,
   title: () => props.title,
   emitContentChange: (value) => emit('content-change', value),
 })
@@ -72,6 +75,7 @@ const {
 const { commitTitleChange, handleEditorChange } = useEditorTitleRepair({
   editor,
   isApplyingExternalContent,
+  noteId: () => props.noteId,
   title: () => props.title,
   flushContentSync,
   scheduleContentSync,

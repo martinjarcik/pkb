@@ -91,9 +91,11 @@ function buildRenderedBlocks(
   noteTitle: string,
   assetUrl: (relativePath: string) => string,
 ): EditorjsBlock[] {
-  return renderNoteTitleBlocks(
-    markdownToEditorjsBlocks(markdown, assetUrl),
-    noteTitle,
+  return prepareEditorjsBlocksForEditor(
+    renderNoteTitleBlocks(
+      markdownToEditorjsBlocks(markdown, assetUrl),
+      noteTitle,
+    ),
   )
 }
 
@@ -242,7 +244,7 @@ export function useEditorLifecycle({
         )
 
         await editor.value.blocks.render({
-          blocks: prepareEditorjsBlocksForEditor(latestBlocks),
+          blocks: latestBlocks,
         })
 
         syncRenderedState(latestContent, latestTitle)

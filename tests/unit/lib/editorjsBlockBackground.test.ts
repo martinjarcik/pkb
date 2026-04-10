@@ -5,6 +5,7 @@ import {
   normalizeSavedEditorjsBlocks,
   prepareEditorjsBlocksForEditor,
 } from '~/lib/editorjsBlockBackground'
+import EditorjsBlockBackgroundTune from '~/lib/editorjsBlockBackgroundTune'
 
 const [primaryColor, secondaryColor = primaryColor] = Object.keys(
   getBlockBackgroundColors(),
@@ -76,5 +77,49 @@ describe('editorjsBlockBackground', () => {
         cssClasses: ['note-box'],
       },
     ])
+  })
+
+  it('hydrates missing tune data from the rendered block class', () => {
+    const classTokens = new Set([
+      'note-box',
+      `block-background-${primaryColor}`,
+    ])
+    const styleProperties: Record<string, string> = {}
+    const element = {
+      classList: {
+        add: (...tokens: string[]) => {
+          for (const token of tokens) classTokens.add(token)
+        },
+        [Symbol.iterator]: () => classTokens[Symbol.iterator](),
+      },
+      dataset: {},
+      style: {
+        removeProperty: (name: string) => {
+          delete styleProperties[name]
+        },
+        setProperty: (name: string, value: string) => {
+          styleProperties[name] = value
+        },
+      },
+    } as unknown as HTMLElement
+    const tune = new EditorjsBlockBackgroundTune({
+      api: {},
+      block: {
+        dispatchChange: () => {},
+      },
+      data: {},
+    } as never)
+
+    tune.wrap(element)
+
+    expect(tune.save()).toEqual({ color: primaryColor })
+    expect(classTokens.has('ce-block-background')).toBe(true)
+    expect(element.dataset.blockBackgroundColor).toBe(primaryColor)
+    expect(styleProperties['--editor-block-background-color']).toBe(
+      getBlockBackgroundColors()[primaryColor]!.background,
+    )
+    expect(styleProperties['--editor-block-text-color']).toBe(
+      getBlockBackgroundColors()[primaryColor]!.text,
+    )
   })
 })
